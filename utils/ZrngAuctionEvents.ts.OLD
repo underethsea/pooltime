@@ -1,0 +1,188 @@
+import { ethers } from 'ethers';
+import {CONFIG,ABI,ADDRESS_AUCTION,ADDRESS} from '../constants/'; 
+import {PROVIDERS} from '../constants/';
+import {CONTRACTS} from '../constants/contracts'
+
+
+const ETHERSCAN_KEY = process.env.NEXT_PUBLIC_ETHERSCAN
+
+interface RngAuctionCompletedEvent {
+  sender: string;
+  recipient: string;
+  sequenceId: number;
+  rng: string;
+  rngRequestId: number;
+  elapsedTime: number;
+  rewardFraction: number;
+  transactionHash: string;
+  gasCost: ethers.BigNumber;
+  linkPayment: ethers.BigNumber;
+  relayGasCost: ethers.BigNumber;
+}
+
+interface AuctionRewardAllocatedEvent {
+    sequenceId: number;
+    recipient: string;
+    index: number;
+    reward: ethers.BigNumber;
+  }
+  
+  // Function to fetch AuctionRewardAllocated events
+  async function fetchAuctionRewardAllocatedEvents(): Promise<AuctionRewardAllocatedEvent[]> {
+    
+    const l2Contract = CONTRACTS.RNGRELAYAUCTION[CONFIG.CHAINNAME]
+    // Fetch the events
+    const auctionEvents = await l2Contract.queryFilter(l2Contract.filters.AuctionRewardAllocated());
+  
+    // Process the events
+    return auctionEvents.map((event:any) => {
+      return {
+        sequenceId: event.args.sequenceId,
+        recipient: event.args.recipient,
+        index: event.args.index,
+        reward: event.args.reward
+      };
+    });
+  }
+
+export async function GetRngAuctionCompletedEvents(): Promise<RngAuctionCompletedEvent[]> {
+    const provider = PROVIDERS.MAINNET;
+    const RNGAUCTION_ADDRESS=ADDRESS_AUCTION.MAINNET.RNGAUCTION
+    const contract = new ethers.Contract(RNGAUCTION_ADDRESS, ABI.RNGAUCTION, provider);
+
+       // Combine all fetches into one Promise.all
+       const [linkTransfers, relays, events,auctionRewards] = await Promise.all([
+        fetchRecentLinkTransferEvents(provider, RNGAUCTION_ADDRESS),
+        fetchRelayEvents(),
+        contract.queryFilter(contract.filters.RngAuctionCompleted()),
+        fetchAuctionRewardAllocatedEvents()
+    ]);
+ 
+    console.log("auction rewards",auctionRewards)
+    const auctionRewardsMap = new Map();
+
+// Populate the map with arrays of events
+auctionRewards.forEach(event => {
+    const existingEvents = auctionRewardsMap.get(event.sequenceId) || [];
+    existingEvents.push(event);
+    auctionRewardsMap.set(event.sequenceId, existingEvents);
+});
+
+
+    // const auctionRewardsMap = new Map(auctionRewards.map(event => [event.sequenceId, event]));
+
+    const eventResults = events.map((event, index) => {
+        const transferData = linkTransfers.get(event.transactionHash);
+        const linkPayment = transferData ? transferData.amount : ethers.BigNumber.from(0);
+        const gasCost = transferData ? transferData.gasCost : ethers.BigNumber.from(0);
+        const eventTimestamp = transferData ? transferData.timestamp : 0;
+
+       
+
+        if (!event.args) {
+            console.error('Event arguments are undefined for transaction:', event.transactionHash);
+            return null;
+        }
+        const auctionRewardsArray = auctionRewardsMap.get(event.args.sequenceId) || [];
+        let auctionRewardIndex0 = ethers.BigNumber.from(0);
+        let auctionRewardIndex1 = ethers.BigNumber.from(0);
+    
+        // Assign rewards to the respective index
+        auctionRewardsArray.forEach((auctionReward:any) => {
+            if (auctionReward.index === 0) {
+                auctionRewardIndex0 = auctionReward.reward;
+            } else if (auctionReward.index === 1) {
+                auctionRewardIndex1 = auctionReward.reward;
+            }
+        });
+    
+
+        const nextEventTimestamp = index < events.length - 1
+            ? linkTransfers.get(events[index + 1].transactionHash)?.timestamp ?? Number.MAX_SAFE_INTEGER
+            : Number.MAX_SAFE_INTEGER;
+        const relay = findMatchingRelayEvent(eventTimestamp, nextEventTimestamp, relays);
+        const auctionReward = auctionRewardsMap.get(event.args.sequenceId);
+
+        console.log("found auction rewards",auctionReward)
+        return {
+            sender: event.args.sender,
+            recipient: event.args.recipient,
+            sequenceId: event.args.sequenceId,
+            rng: event.args.rng,
+            rngRequestId: event.args.rngRequestId,
+            elapsedTime: event.args.elapsedTime,
+            rewardFraction: event.args.rewardFraction,
+            transactionHash: event.transactionHash,
+            gasCost: gasCost,
+            linkPayment: linkPayment,
+            relayGasCost: relay ? relay.gasCost : ethers.BigNumber.from(0),
+            relayTransactionHash: relay ? relay.transactionHash : '', // Include the relay transaction hash
+            // auctionRewardRecipient: auctionReward ? auctionReward.recipient : '',
+            // auctionRewardIndex: auctionReward ? auctionReward.index : null,
+            // auctionRewardAmount: auctionReward ? auctionReward.reward : ethers.BigNumber.from(0),
+            auctionRewardIndex0: auctionRewardIndex0,
+            auctionRewardIndex1: auctionRewardIndex1
+
+        };
+    }).filter(e => e !== null);
+    return eventResults as RngAuctionCompletedEvent[];
+}
+function findMatchingRelayEvent(rngTimestamp: number, nextRngTimestamp: number, relays: any) {
+    let matchingRelay = null;
+    let matchingRelayHash = '';
+
+    for (const [transactionHash, relay] of relays) {
+        if (relay.timestamp > rngTimestamp && (nextRngTimestamp === Number.MAX_SAFE_INTEGER || relay.timestamp < nextRngTimestamp)) {
+            if (!matchingRelay || relay.timestamp < matchingRelay.timestamp) {
+                matchingRelay = relay;
+                matchingRelayHash = transactionHash; // Store the matching transaction hash
+            }
+        }
+    }
+
+    return matchingRelay ? { ...matchingRelay, transactionHash: matchingRelayHash } : null;
+}
+
+
+async function fetchRecentLinkTransferEvents(provider = PROVIDERS.MAINNET, contractAddress: string): Promise<Map<string, { amount: ethers.BigNumber, timestamp: number, gasCost: ethers.BigNumber }>> {
+    const etherscanFetch = await fetch("https://api.etherscan.io/api?module=logs&action=getLogs&fromBlock=0&toBlock=latest&address="+ADDRESS_AUCTION.MAINNET.LINK+"&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic2=0x000000000000000000000000e3df5b001575a4ce800f6f3770b7f22cbe95d8f9&page=1&offset=1000&apikey="+ETHERSCAN_KEY);
+    const etherscanResult = await etherscanFetch.json();
+
+    const transfers = new Map<string, { amount: ethers.BigNumber, timestamp: number, gasCost: ethers.BigNumber }>();
+    etherscanResult.result.forEach((event:any) => {
+        // Decode the amount from the data field
+        const amount = ethers.BigNumber.from(event.data);
+        const timestamp = Number(event.timeStamp)
+        // Calculate gas cost
+        const gasPrice = ethers.BigNumber.from(event.gasPrice);
+        const gasUsed = ethers.BigNumber.from(event.gasUsed);
+        const gasCost = gasPrice.mul(gasUsed);
+        transfers.set(event.transactionHash, { amount, timestamp, gasCost });
+    });
+
+    return transfers;
+}
+
+
+async function fetchRelayEvents(){
+
+    const etherscanFetch = await fetch("https://api.etherscan.io/api?module=logs&action=getLogs&fromBlock=0&toBlock=latest&address="+ADDRESS_AUCTION.MAINNET.RNGAUCTIONRELAY+"&topic0=0x0aaaf9835b678c952fbddc44da49e66cffaa813453ff984c4b8d497a1e5708dc&page=1&offset=1000&apikey="+ETHERSCAN_KEY);
+    const etherscanResult = await etherscanFetch.json();
+
+    // console.log("relay events",etherscanResult)
+    const relays = new Map<string, { timestamp: number,  gasCost: ethers.BigNumber }>();
+    etherscanResult.result.forEach((event:any) => {
+        // Decode the amount from the data field
+        const timestamp = Number(event.timeStamp);
+
+        // Calculate gas cost
+        const gasPrice = ethers.BigNumber.from(event.gasPrice);
+        const gasUsed = ethers.BigNumber.from(event.gasUsed);
+        const gasCost = gasPrice.mul(gasUsed);
+
+    relays.set(event.transactionHash, { timestamp, gasCost });
+    });
+// console.log("relays",relays)
+    return relays;
+}
+

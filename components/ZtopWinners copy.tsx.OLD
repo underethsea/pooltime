@@ -1,0 +1,264 @@
+import React, { useEffect, useState, CSSProperties } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faAward, faArrowUp, faArrowDown, faCheck } from "@fortawesome/free-solid-svg-icons";
+import { GetChainName } from "../utils/getChain";
+import { TierColors } from "../constants/constants";
+import Image from "next/image";
+import Link from 'next/link';
+import { NumberWithCommas,CropDecimals } from "../utils/tokenMaths";
+import { ADDRESS } from "../constants/address";
+import {CONFIG} from "../constants/config"
+import { useAccount } from "wagmi";
+// import WhyPlay from "./whyPlay"; // Adjust the path based on where you put WhyPlay.tsx
+
+const chainProp = CONFIG.CHAINID;
+
+interface WinData {
+  p: string;
+  d: number;
+  v: number;
+}
+
+const TopWinners = () => {
+  const [wins, setWins] = useState<WinData[]>([]);
+  const [winStartIndex, setWinStartIndex] = useState<number>(0);
+  const [maxCards, setMaxCards] = useState<number>(3); // Maximum number of cards to display
+  const { address } = useAccount();
+
+
+  const handlePrevious = () => {
+    if (winStartIndex > 0) {
+      setWinStartIndex(winStartIndex - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (winStartIndex < wins.length - maxCards) {
+      setWinStartIndex(winStartIndex + 1);
+    }
+  };
+
+  useEffect(() => {
+    const fetchWins = async () => {
+      const response = await fetch(`https://poolexplorer.xyz/bigwinners-${chainProp}`);
+      const data = await response.json();
+      setWins(data);
+    };
+
+    fetchWins();
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      // Adjust the maximum number of cards based on the screen width
+      if (window.innerWidth >= 768) {
+        setMaxCards(4);
+      } else {
+        setMaxCards(3);
+      }
+    };
+
+    // Call the handleResize function initially and on window resize
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    // Clean up the event listener on component unmount
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  return (
+    <>
+      {wins.length > 0 ? (
+        <div style={styles.container}>
+          <div className="box-header">TOP WINS</div>
+          <div style={styles.contentContainer}>
+            <div style={styles.vaultGrid}>
+            {wins.slice(winStartIndex, winStartIndex + maxCards).map((win, index) => (
+  <Link 
+    key={index} 
+    href={`/winners?draw=${win.d}&chain=${chainProp}`} 
+    passHref
+  >
+    <div style={styles.vaultCard} className="hover-bgchange">
+      <div style={styles.vaultInfo}>
+        Draw {win.d}
+      </div>
+      {/* <div style={styles.address}>
+        &nbsp;&nbsp;{win.p.slice(0,6)}
+      </div> */}
+      <div style={styles.valueContainer}>
+        <Image
+          src={"/images/pool.png"}
+          className="emoji"
+          alt="r"
+          width={17}
+          height={17}
+        />
+        <div style={styles.value}>
+          {NumberWithCommas(CropDecimals(win.v / Math.pow(10, ADDRESS[GetChainName(chainProp)].PRIZETOKEN.DECIMALS)))}
+        </div>
+      </div>
+    </div>
+  </Link>
+))}
+
+            </div>
+            <div style={styles.arrowsContainer}>
+    <FontAwesomeIcon
+        icon={faArrowUp}
+        size="lg"
+        style={{
+            ...styles.arrowIcon,
+            ...(winStartIndex <= 0 ? styles.arrowIconHidden : {})
+        }}
+        onClick={handlePrevious}
+        className="arrowIcon"
+    />
+    <FontAwesomeIcon
+        icon={faArrowDown}
+        size="lg"
+        style={{
+            ...styles.arrowIcon,
+            ...(winStartIndex >= wins.length - maxCards ? styles.arrowIconHidden : {})
+        }}
+        onClick={handleNext}
+        className="arrowIcon"
+    />
+</div>
+
+          </div>
+        </div>
+      ):!address && <>
+      <div style={styles.container}>
+      <div style={styles.whyPlay}>
+        PoolTogether to Win<br />
+        <Image src="/images/pooltogethertowin.png" height={200} width={200} alt="poolerson" /><br />
+        <FontAwesomeIcon
+          icon={faCheck}
+          size="sm"
+          style={{
+            color: 'black',
+            height: '17px',
+            marginRight: '8px',
+          }}
+        />
+        Deposit to a Vault<br />
+        <FontAwesomeIcon
+          icon={faCheck}
+          size="sm"
+          style={{
+            color: 'black',
+            height: '17px',
+            marginRight: '8px',
+          }}
+        />
+        Receive Tickets<br />
+        <FontAwesomeIcon
+          icon={faCheck}
+          size="sm"
+          style={{
+            color: 'black',
+            height: '17px',
+            marginRight: '8px',
+          }}
+        />
+        Win Prizes<br />
+        <FontAwesomeIcon
+          icon={faCheck}
+          size="sm"
+          style={{
+            color: 'black',
+            height: '17px',
+            marginRight: '8px',
+          }}
+        />
+        Withdraw Anytime
+        <br />
+      </div>
+    </div>
+      </>}
+    </>
+  );
+};
+
+const styles: { [key: string]: CSSProperties } = {
+  container: {
+    marginTop: "10px",
+    backgroundColor: "#b4ccd1",
+    padding: "20px",
+    borderRadius: "10px",
+    // marginTop: "10px",
+    width: "350px",
+    display: 'inline-block',
+    ...({ '@media (min-width: 768px)': { display: 'inline-flex', minWidth: 'auto' } } as Partial<CSSProperties>),
+  },
+  header: {
+    color: "black",
+    fontSize: "18px",
+
+    fontWeight: "420",
+    marginBottom: "12px",
+  },
+  contentContainer: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+  vaultGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr",
+    gap: "10px",
+    maxWidth: "300px",
+    margin: "0 auto",
+  },
+  vaultCard: {
+    display: "flex", // Use flex layout for the vaultCard container
+    justifyContent: "space-between", // Align items with space between them
+    backgroundColor: "#fff",
+    padding: "10px",
+    borderRadius: "8px",
+    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+    width: "100%",
+    minWidth: "280px",
+  },
+  vaultInfo: {
+    marginRight: "8px",
+    display: "flex",
+    alignItems: "center",
+    width: "80px",
+  },
+  symbol: {
+    display: "flex",
+    alignItems: "center",
+    textAlign: "left",
+    flexBasis: 0, // Set flexBasis to 0 to allow symbol to take up all available space
+    marginRight: "5px",
+  },
+  address: {
+    // Left-align address to other cards
+    flex: 1,
+    textAlign: "left",
+    marginRight: "5px",
+  },
+  valueContainer: {
+    display: "flex",
+    alignItems: "center",
+    textAlign: "right", // Right-align the value (.v)
+  },
+  value: {
+    marginLeft: "5px", // Add some space between the symbol and the value
+  },
+  arrowsContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  arrowIcon: {
+    height: "16px",
+    marginTop: "5px",
+    marginBottom: "5px",
+  },
+};
+
+export default TopWinners;

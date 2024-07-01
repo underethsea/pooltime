@@ -1,0 +1,84 @@
+<div style={styles.contentContainer}>
+            <div style={styles.vaultGrid}>
+              {wins.slice(winStartIndex, winStartIndex + maxCards).map(
+                (win: AggregateWin, index) =>
+                  parseInt(win.totalPayout) > 0 && (
+                    <div
+                      key={index}
+                      style={styles.vaultCard}
+                      className="hover-bgchange"
+                      onClick={() => displayWinInModal(win)} // Note: updated parameters here as per requirements
+                    >
+                      <div style={styles.symbol}>
+                        {win.network &&
+                          GetChainIcon(win.network).length > 0 && (
+                            <Image
+                              src={GetChainIcon(win.network)}
+                              width={16}
+                              height={16}
+                              alt="Chain Icon"
+                            />
+                          )}
+                        &nbsp; Draw&nbsp;
+                        {win.draw}
+                        {/* <FontAwesomeIcon
+                      icon={faAward}
+                      size="sm"
+                      style={{
+                        color: 'TierColors[2]', // As an example, update accordingly
+                        height: "17px",
+                        marginRight: "8px",
+                      }}
+                    /> */}
+                        {/* {GetChainName(win.network)} */}
+                      </div>
+                      <div style={styles.earnings}>
+                        <Image
+                          src={
+                            ADDRESS[GetChainName(win.network)].PRIZETOKEN.ICON
+                          }
+                          width={16}
+                          height={16}
+                          alt="Chain Icon"
+                        />
+                        {/* <PrizeIcon size={16} /> */}
+                        &nbsp;
+                        {NumberWithCommas(
+                          CropDecimals(
+                            ethers.utils.formatUnits(win.totalPayout, 18)
+                          )
+                        )}
+                        {/* &nbsp;{win.network && GetChainIcon(win.network).length > 0 &&
+              <Image src={GetChainIcon(win.network)} width={16} height={16} alt="Chain Icon" /> } */}
+                        {/* {win.totalPayout} */}
+                      </div>
+                    </div>
+                  )
+              )}
+            </div>
+
+            <div style={styles.arrowsContainer}>
+              <FontAwesomeIcon
+                icon={faArrowUp}
+                size="lg"
+                style={
+                  winStartIndex > 0
+                    ? styles.arrowIcon
+                    : { ...styles.arrowIcon, opacity: 0, pointerEvents: "none" }
+                }
+                onClick={handlePrevious}
+                className="arrowIcon"
+              />
+              <FontAwesomeIcon
+                icon={faArrowDown}
+                size="lg"
+                style={
+                  winStartIndex < wins.length - maxCards
+                    ? styles.arrowIcon
+                    : { ...styles.arrowIcon, opacity: 0, pointerEvents: "none" }
+                }
+                onClick={handleNext}
+                className="arrowIcon"
+              />
+            </div>
+          </div>

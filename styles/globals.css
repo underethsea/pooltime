@@ -1,0 +1,2207 @@
+html,
+body {
+  /* background-color: #1f3c55; */
+  background-color: #1a415f;
+  /* background-color: #274b6a; */
+  padding: 0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  font-size: 19px;
+}
+
+.box-header {
+  color: black;
+  font-size: 18px;
+  font-weight: 420;
+  margin-bottom: 12px;
+  background-color: #7b68c4;
+  color: white;
+  border-radius: 14px;
+  border: 1 px solid #7b68c4;
+
+  padding: 4px 8px 4px 8px;
+}
+.box-container {
+  background-color: #b4ccd1;
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 10px;
+  width: 350px;
+  display: inline-block;
+}
+
+@media (min-width: 768px) {
+  .box-container {
+    display: inline-flex;
+    min-width: auto;
+  }
+}
+
+.box-contentContainer {
+  display: flex;
+  align-items: center;
+}
+
+/* styles.css */
+
+.modalContent {
+  background-color: #9eacc2;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 300px; /* Default width for non-desktop devices */
+
+  /* Media query for desktop (min-width: 768px) */
+  @media (min-width: 768px) {
+    width: 500px;
+  }
+}
+
+.box-vaultGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.tools {
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  color: white;
+}
+.eth-pricing {
+  padding-top: 10px;
+}
+.bubble-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  padding-top: 20px;
+  max-width: 1200px;
+  /* position: relative;
+  height: 100vh; */
+}
+
+.token {
+  width: 12px;
+}
+.stats {
+  margin-bottom: 20px;
+  display: inline-block;
+  /* padding-bottom: 20px; */
+  margin-right: 20px;
+  text-align: left; /* Align text and values to the left */
+}
+.stats-noright {
+  margin-right: 0px;
+  margin-bottom: 20px;
+  display: inline-block;
+  /* padding-bottom: 20px; */
+  text-align: left; /* Align text and values to the left */
+}
+
+.mobile-top-spacer {
+  height: 25px;
+}
+.stat {
+  background-color: #113054;
+  color: white;
+  border-radius: 5px;
+  padding: 15px;
+  font-size: 12px;
+  display: inline-block;
+}
+
+.stat-value {
+  font-weight: 500;
+  padding-top: 5px;
+  font-size: 28px;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  text-align: left; /* Align the value to the left */
+}
+
+.loading-animation {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.loading-animation img {
+  width: 280px;
+  animation: growImage 5s cubic-bezier(0.4, 0, 0.2, 1); /* Removed the 'infinite' keyword */
+}
+
+@keyframes growImage {
+  0% {
+    width: 280px;
+  }
+  100% {
+    width: 200px;
+  }
+}
+
+.faucet {
+  cursor: pointer;
+}
+.currency-toggle-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 8px;
+  /* margin-top:'4px'; */
+  background-color: #ecf0f6;
+  /* padding: 7px; */
+  height: 30px;
+  min-width: 33px;
+  max-width: 33px;
+  cursor: pointer;
+  border-radius: 6px;
+  color: black;
+}
+
+.wallet-connect-button {
+  position: absolute;
+  top: 13px;
+  right: 20px;
+  display: flex;
+  flex-direction: column; /* Stacks child elements vertically */
+  align-items: flex-end; /* Aligns child elements to the right */
+}
+
+.wallet-connect-button > * {
+  margin-bottom: 10px; /* Adds space between stacked elements */
+}
+
+.win-bubble {
+  margin-top: 5px;
+  padding: 5px 2px 5px 2px;
+  cursor: pointer;
+  display: flex;
+  align-items: center; /* Vertically centers the icon and text */
+  justify-content: center; /* Horizontally centers the content */
+}
+@media (max-width: 900px) {
+  .win-bubble {
+    margin-top: 0px;
+  }
+}
+
+.icon-container {
+  display: flex;
+  align-items: center; /* Vertically center the icon within the container */
+  margin-right: 6px; /* Space between the icon and text */
+}
+
+.icon-img {
+  width: 18px; /* Ensure the icon size matches the requirement */
+  height: 18px;
+}
+
+.loading-image {
+  width: 280px;
+  height: auto;
+}
+.button-container {
+  display: flex;
+  flex-direction: row;
+  gap: 10px; /* Optional: for spacing between buttons */
+}
+
+.bubble {
+  width: 250px; /* Adjust the width as needed */
+  padding: 10px;
+  margin: 10px;
+  background-color: #e1f5fe;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add a subtle box shadow */
+}
+.dollar {
+  cursor: pointer;
+}
+.bubble-wide {
+  width: 350px; /* Adjust the width as needed */
+  padding: 10px;
+  margin: 10px;
+  background-color: #e1f5fe;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add a subtle box shadow */
+}
+
+.bubble hr {
+  border: none;
+  height: 1px;
+  background-color: #0a0202;
+  margin: 10px 0;
+}
+.text {
+  margin-bottom: 10px;
+}
+.pay-receive {
+  font-size: 20px;
+  white-space: nowrap;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.bottom-right {
+  align-self: flex-end;
+  margin-top: auto;
+  margin-bottom: 5px;
+  right: 5px;
+  position: relative;
+}
+
+.footer-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end; /* Align items at the bottom */
+  padding: 10px;
+  margin-bottom: 5px;
+  position: relative;
+  margin-top: auto;
+}
+
+.powered-by-div {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center the content */
+  color: white;
+  font-size: 20px;
+  margin-left: 5px; /* Adjust as needed */
+}
+
+.boticon {
+  display: flex;
+  align-items: center;
+  margin-right: 5px; /* Adjust as needed */
+  margin-bottom: 10px;
+  gap: 25px;
+}
+
+.sponsor-images-container {
+  display: flex;
+  align-items: baseline;
+  margin-top: 15px;
+  margin-bottom: 10px;
+  gap: 20px;
+}
+
+.github {
+  height: auto;
+  width: 35px;
+}
+
+.farcaster {
+  height: auto;
+  max-width: 30px;
+}
+
+.twitter {
+  max-width: 20px;
+}
+
+.mirror {
+  max-width: 20px;
+}
+
+.discord {
+  max-width: 30px;
+}
+
+.docs {
+  margin-left: 7px;
+  width: 48px;
+}
+
+.pooltogether {
+  max-height: 30px;
+}
+
+.witnet {
+  max-height: 30px;
+}
+
+.sponsor-text-top {
+  font-size: 15px;
+  padding-bottom: 4px;
+}
+
+@media (max-width: 768px) {
+  .footer-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .sponsor-images-container {
+    display: flex;
+    flex-direction: row; /* Ensure images stay side by side */
+    justify-content: center; /* Center images in the container */
+    align-items: center;
+    gap: 5px; /* Add space between images */
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+  .pooltogether {
+    max-width: 80px;
+    height: auto;
+  }
+
+  .witnet {
+    max-width: 60px;
+    height: auto;
+  }
+  .farcaster {
+    max-width: 30px;
+  }
+
+  .twitter {
+    max-width: 25px;
+  }
+
+  .mirror {
+    max-width: 25px;
+  }
+
+  .discord {
+    max-width: 32px;
+  }
+
+  .boticon {
+    display: grid; /* Use grid layout */
+    grid-template-columns: repeat(4, 1fr); /* Create two columns */
+    gap: 20px; /* Adjust gap as needed */
+    justify-items: center; /* Center the items */
+    margin: 0 auto; /* Center grid in the container */
+    margin-bottom: 20px;
+  }
+}
+
+/* Responsive styling for screens smaller than 480px */
+@media (max-width: 480px) {
+  .powered-by-div {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+}
+
+@media (max-width: 360px) {
+  .powered-by-div {
+    font-size: 18px;
+  }
+}
+
+h3 {
+  color: white;
+  font-weight: 300;
+}
+h1 {
+  color: #f0f9fa;
+  font-size: 3rem;
+  text-align: center;
+  margin-top: 20px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 500px) {
+  h1 {
+    line-height: 42px !important;
+    font-size: 38px;
+  }
+}
+
+.win-table {
+  background-color: "white" !important;
+}
+.margin-top-bottom-20 {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.inline {
+  display: inline-block;
+}
+.win-table td {
+  padding: 5px 12px 5px 12px;
+}
+.win-table tbody,
+tr {
+  background-color: white;
+}
+
+@media (max-width: 500px) {
+  .hidden-mobile {
+    display: none;
+  }
+}
+.clickable {
+  color: #5c42c0;
+}
+.pointer {
+  cursor: pointer;
+}
+.chain-bubble {
+  font-size: 14px;
+  border-radius: 5px;
+  border: 1px solid white;
+  margin-left: 24px;
+  padding: 4px;
+}
+.poolerson {
+  display: absolute;
+  right: 10px;
+  bottom: 10px;
+}
+@media (min-width: 501px) {
+  .hidden-desktop {
+    display: none;
+  }
+}
+.mobile-vault-header {
+  display: none;
+}
+@media (max-width: 700px) {
+  .mobile-vault-header {
+    display: none;
+    /* font-size:12px; */
+  }
+}
+
+.wins-list-row {
+  display: "grid";
+  grid-template-columns: "1fr 1fr 1fr";
+  gap: "20px";
+  align-items: "center";
+  padding: "11px 0";
+}
+@media (max-width: 500px) {
+  .wins-list-row {
+    grid-template-columns: ".2fr 1fr 1fr";
+  }
+}
+.table-wrapper {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-gap: 10px;
+}
+
+@media (max-width: 400px) {
+  .table-wrapper {
+    grid-template-columns: 1fr;
+  }
+}
+.select-testnet {
+  width: 250px;
+}
+.select-testnet-chain {
+  width: 200px;
+}
+.select-chain {
+  width: 165px;
+}
+.select-draw {
+  width: 105px;
+}
+.time-number {
+  background-color: white;
+  display: inline-block;
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid black;
+}
+.bg-lightblue {
+  background-color: #cfdee7;
+}
+.winners {
+  border-radius: 10px;
+  padding: 5px 12px 5px 12px !important;
+}
+.hover-button:hover {
+  background-color: #b3e6ff;
+}
+.hover-bgchange:hover {
+  background-color: #e4daf1 !important;
+  cursor: pointer;
+}
+.top-container {
+  width: 350px;
+  border-radius: 10px;
+  margin-top: 15px;
+}
+.border-radius-20 {
+  border-radius: 20px;
+}
+.loading-button {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  padding: 8px 16px;
+  border: none;
+  background-color: #ccc;
+  color: #fff;
+  font-size: 17px;
+}
+.transaction-button {
+  font-size: "17px";
+  padding: "8px 16px";
+  border-radius: "8px";
+  border: "none";
+  background-color: "#7b68c4";
+  color: "#fff";
+  cursor: "pointer";
+  margin-top: "10px";
+}
+.max-small {
+  font-size: 12px;
+  padding: 2px;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: transparent;
+  /* background-color: #f3f2f4; */
+  border: none;
+  border-radius: 4px;
+  color: black;
+}
+.spinner-small {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  border-top-color: #888;
+  animation: spin 1s infinite linear;
+  display: inline-block;
+  margin-right: 8px;
+}
+.spinner-large {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid #ccc;
+  border-top-color: #b03dea;
+  animation: spin 1s infinite linear;
+  display: inline-block;
+  margin-right: 8px;
+}
+.spinner {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  border-top-color: #888;
+  animation: spin 1s infinite linear;
+  display: inline-block;
+  margin-right: 8px;
+}
+.no-cursor {
+  background-color: #ccc;
+  cursor: default !important;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.loading-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  background-color: #fff;
+  animation: loadingAnimation 1s infinite ease-in-out;
+}
+
+@keyframes loadingAnimation {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.container {
+  background-color: "#b4ccd1";
+  padding: "20px";
+  border-radius: "10px";
+  margin-top: "10px";
+  width: "350px";
+  display: "inline-block";
+  @media (min-width: 768px) {
+    display: "inline-flex";
+    min-width: "auto";
+  }
+}
+@media (min-width: 768px) {
+  .container {
+    display: "inline-flex";
+    min-width: "auto";
+  }
+}
+.clear-container {
+  background-color: #1a415f !important;
+}
+.win-container {
+  padding: 10px;
+  background-color: white;
+  border-radius: 10px;
+  display: inline-block;
+}
+.top-margin-10 {
+  margin-top: 10px;
+}
+.top-margin-16 {
+  margin-top: 16px;
+}
+
+.zindex-1 {
+  z-index: 1;
+}
+
+.connect-button {
+  align-items: "center";
+  justify-content: "center";
+  font-size: "19px";
+  padding: "8px 16px";
+  border-radius: "8px";
+  border: "none";
+  background-color: "rgb(123, 104, 196)";
+  color: "rgb(255, 255, 255)";
+  cursor: "pointer";
+  margin-top: "10px";
+}
+.pay-receive-smaller {
+  font-size: 13px;
+}
+.pay-receive-container {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.pay-receive-number {
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+.pay-receive-number-smaller {
+  font-size: 10px;
+}
+.poolerson {
+  height: 55px;
+}
+/* .token-smaller {
+  padding-right:5px!important;
+} */
+.swap-awesome-smaller {
+  height: 10px;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+.swap-awesome {
+  height: 15px;
+  padding-right: 5px;
+}
+
+.button {
+  padding: 6px 12px;
+  /* background-color: #b3e6ff; */
+  background-color: "rgb(123, 104, 196)";
+  color: "rgb(255, 255, 255)";
+  /* color: #1f3c55; */
+  border-radius: 4px;
+  cursor: pointer;
+  border: 2px solid #636392;
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  border: none;
+}
+
+.hover-button:hover {
+  background-color: #915ba1 !important;
+  color: white;
+  cursor: pointer;
+  /* border: 1px solid #1e3c54; */
+}
+
+.button:hover {
+  background-color: #318ebb;
+  color: white;
+  cursor: pointer;
+  /* border: 1px solid #1e3c54; */
+}
+.button-purple {
+  padding: 6px 12px;
+  /* background-color: #b3e6ff; */
+  background-color: #7362b2;
+  color: white;
+  /* color: #1f3c55; */
+  border-radius: 4px;
+  cursor: pointer;
+  border: 2px solid #636392;
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  border: none;
+  width: 105px;
+}
+.button-purps {
+  padding: 6px 12px;
+  /* background-color: #b3e6ff; */
+  background-color: #7362b2;
+  color: white;
+  /* color: #1f3c55; */
+  border-radius: 4px;
+  cursor: pointer;
+  border: 2px solid #636392;
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  border: none;
+}
+.width-250 {
+  width: 280px;
+  font-size: 12px;
+}
+
+.button-purple:hover {
+  background-color: #318ebb;
+  color: white;
+  cursor: pointer;
+  /* border: 1px solid #1e3c54; */
+}
+
+.button--block {
+  display: block;
+}
+
+.vault-name {
+  font-weight: 575;
+}
+.awesome-icon {
+  width: 15px;
+  display: inline-block;
+}
+
+.awesome-text {
+  display: inline-block;
+  color: white;
+  margin-left: 10px;
+}
+.gas {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+}
+.claims-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+}
+/* Default styles for table cells */
+.claims-table th,
+.claims-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ebebeb;
+}
+
+.claims-table th:first-child,
+.claims-table td:first-child {
+  padding-left: 16px;
+}
+
+.claims-table th:last-child,
+.claims-table td:last-child {
+  padding-right: 16px;
+  text-align: right;
+}
+
+/* Media query for screens less than 900px */
+@media screen and (max-width: 1000px) {
+  .claims-table th,
+  .claims-table td {
+    padding: 5px; /* Reduce padding by 50% */
+  }
+
+  .claims-table th:first-child,
+  .claims-table td:first-child {
+    padding-left: 8px; /* Adjust the left padding accordingly */
+  }
+
+  .claims-table th:last-child,
+  .claims-table td:last-child {
+    padding-right: 8px; /* Adjust the right padding accordingly */
+  }
+}
+
+.draw {
+  font-weight: bold;
+}
+
+.vaults {
+  display: flex;
+  align-items: center;
+}
+
+.vault-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+}
+
+.events {
+  text-align: right;
+}
+.clickable-amount {
+  cursor: "pointer";
+  margin-left: "200px";
+}
+.amount {
+  text-align: right;
+}
+
+.token-image {
+  width: 14px;
+  height: 14px;
+  margin-right: 4px;
+}
+
+.modalContent {
+  background-color: #9eacc2;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 300px;
+}
+.arrowIcon {
+  /* Default color */
+  color: #000000;
+  cursor: pointer;
+  /* Add any other styles you want for the icon here */
+}
+
+.arrowIcon:hover {
+  /* Color on hover */
+  color: #7b68c4; /* Replace with the color you want on hover */
+}
+@media (min-width: 768px) {
+  .modalContent {
+    width: 500px;
+  }
+}
+
+.tooltipContainer {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.tooltipContainer:hover .tooltipText {
+  visibility: visible;
+  opacity: 1;
+}
+
+.winCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  min-width: 280px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  border: 4px solid transparent;
+  transition: background-color 0.3s; /* smooth transition for background color change */
+}
+.deposit-button {
+  width: auto;
+  display: inline-block;
+  /* display: flex;
+  justify-content: space-between;
+  align-items: center; */
+  background-color: #fff;
+  padding: 4px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* width: 100%; */
+  /* min-width: 280px; */
+  /* margin-bottom: 10px; */
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: background-color 0.3s; /* smooth transition for background color change */
+  font-size: 17px;
+}
+
+.claimWin {
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: background-color 0.3s; /* smooth transition for background color change */
+}
+
+/* This is the hover state for the winCard */
+.winCard:hover {
+}
+/* .winCard:hover {
+  background-color: rgb(250, 211, 218); 
+  cursor:pointer;
+  border: none; 
+} */
+
+/* This changes the text color inside the winCard on hover */
+/* 
+.winCard:hover > * {
+  color: rgb(250, 246, 250); 
+} */
+
+/* This removes the animated effect from the winCard on hover */
+/* 
+.winCard:hover.animated { 
+  animation: none;
+  background:#cbbff8; 
+} */
+
+.beta {
+  color: #b3e6ff;
+  border: 1px solid rgb(96, 189, 228);
+  padding: 3px;
+  border-radius: 8px;
+  margin-left: 18px;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .beta {
+    margin-left: 80px;
+  }
+}
+.animated {
+  background-image: linear-gradient(white, white),
+    linear-gradient(
+      180deg,
+      cornflowerblue,
+      rgb(29, 61, 176) 50%,
+      cornflowerblue
+    );
+  /* linear-gradient(180deg, cornflowerblue, purple 50%, cornflowerblue); */
+
+  background-repeat: no-repeat;
+  background-size: 100% 100%, 100% 200%;
+  background-position: 0 0, 0 100%;
+  background-origin: padding-box, border-box;
+  animation: highlight 1s infinite alternate;
+}
+.animated:hover {
+  background-image: linear-gradient(white, white),
+    linear-gradient(
+      180deg,
+      rgb(128, 24, 123),
+      rgb(185, 97, 205) 50%,
+      rgb(111, 54, 149)
+    );
+}
+
+.claim-animated {
+  background-image: linear-gradient(rgb(219, 236, 251), rgb(233, 217, 246)),
+    linear-gradient(
+      180deg,
+      cornflowerblue,
+      rgb(29, 61, 176) 50%,
+      cornflowerblue
+    );
+  /* linear-gradient(180deg, cornflowerblue, purple 50%, cornflowerblue); */
+
+  background-repeat: no-repeat;
+  background-size: 100% 100%, 100% 200%;
+  background-position: 0 0, 0 100%;
+  background-origin: padding-box, border-box;
+  animation: highlight 1s infinite alternate;
+}
+.claim-animated:hover {
+  background-image: linear-gradient(rgb(219, 236, 251), rgb(233, 217, 246)),
+    linear-gradient(
+      180deg,
+      rgb(128, 24, 123),
+      rgb(185, 97, 205) 50%,
+      rgb(111, 54, 149)
+    );
+}
+.vaults-font-small {
+  font-size: 14px;
+}
+@keyframes highlight {
+  100% {
+    background-position: 0 0, 0 0;
+  }
+}
+.grey {
+  color: grey;
+}
+
+.tooltipTextPrizes {
+  visibility: hidden;
+  width: 250px;
+  background-color: #edeafb;
+  color: #4c4b4b;
+  text-align: center;
+  padding: 6px;
+  border-radius: 6px;
+  font-size: 14px;
+
+  /* Position the tooltip text */
+  position: absolute;
+  z-index: 1;
+  bottom: 125%; /* Position it above the icon */
+  left: 50%;
+  margin-left: -60px; /* half of the tooltip's width to center it */
+
+  /* Fade in tooltip */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.tooltipText {
+  visibility: hidden;
+  width: 180px;
+  background-color: #edeafb;
+  color: #4c4b4b;
+  text-align: center;
+  padding: 6px;
+  border-radius: 6px;
+  font-size: 14px;
+
+  /* Position the tooltip text */
+  position: absolute;
+  z-index: 1;
+  bottom: 125%; /* Position it above the icon */
+  left: 50%;
+  margin-left: -60px; /* half of the tooltip's width to center it */
+
+  /* Fade in tooltip */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.toolTipWide {
+  width: 250px;
+}
+/* Tooltip arrow */
+.tooltipText::after {
+  content: "";
+  position: absolute;
+  top: 100%; /* Arrow will be at the bottom of tooltip */
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #edeafb transparent transparent transparent;
+}
+.tooltipPrizes::after {
+  content: "";
+  position: absolute;
+  top: 100%; /* Arrow will be at the bottom of tooltip */
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #edeafb transparent transparent transparent;
+}
+.trade-option {
+  display: flex;
+  justify-content: stretch;
+  align-items: stretch; /* ensures vertical centering */
+  padding: 5px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.trade-option > div {
+  white-space: nowrap; /* to prevent text wrapping inside divs */
+}
+
+.trade-option > div:nth-child(1) {
+  flex: 1.3;
+}
+
+.trade-option > div:nth-child(2) {
+  flex: 2; /* Make it the largest */
+}
+
+.trade-option > div:nth-child(3),
+.trade-option > div:nth-child(4),
+.trade-option > div:nth-child(5) {
+  flex: 0.6; /* Keep the last three divs smaller */
+}
+
+.percentage-text {
+  font-size: 14px;
+}
+.assetName {
+  font-size: 13px;
+}
+.trade-option > div,
+.trade-option > button {
+  flex: 1;
+  text-align: center;
+  margin: 0 0.5rem;
+}
+
+.no-wrap {
+  white-space: nowrap;
+}
+
+.history-modal-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Container for the toggle switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 35px;
+  height: 18px;
+}
+
+/* The actual toggle switch - the checkbox input */
+.switch input {
+  display: none;
+}
+
+/* The slider part of the toggle switch */
+.switch-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  border-radius: 34px;
+  transition: 0.4s;
+}
+
+/* The circle part of the toggle switch */
+.switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 10px;
+  width: 10px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.4s;
+}
+
+/* When the checkbox is checked, update the background color and move the circle to the right */
+.switch input:checked + .switch-slider {
+  background-color: #2196f3; /* Change this to your preferred color */
+}
+
+.switch input:checked + .switch-slider:before {
+  transform: translateX(16px);
+}
+
+.custom-link:hover {
+  color: rgb(229, 251, 252) !important;
+}
+
+.no-right-margin {
+  margin-right: 0px;
+}
+
+/* vault.css */
+.vault-container {
+  display: flex;
+  justify-content: center;
+  /* align-items: center; */
+  /* height: 100vh; */
+  padding-top: 10px;
+  /* background-color: #f4f4f4; */
+  margin: 0px;
+  padding: 0px;
+  position: relative;
+}
+
+.vault-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 320px;
+  padding: 30px;
+  background-color: #e7eceb;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+/* Media query to change width for screens larger than 500px */
+@media (min-width: 501px) {
+  .vault-content {
+    width: 500px;
+  }
+}
+
+.vault-label {
+  /* font-weight: bold; */
+  text-align: left;
+}
+
+.vault-balance {
+  font-size: 15px;
+}
+
+.vault-data {
+  background-color: #f3fdfd;
+  padding: 4px;
+  border-radius: 4px;
+  padding-right: 8px;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  justify-content: center;
+}
+
+.select-chain {
+  font-size: 16px;
+  padding: 4px;
+  border-radius: 8px;
+}
+/* Add this to your vault.css */
+.data-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 5px 0;
+}
+
+.balance-data-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0;
+}
+
+.address-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vault-label {
+  flex: 1;
+  /* font-weight: bold; */
+  text-align: left;
+  font-size: 15px;
+}
+.address-label {
+  flex: 1;
+  font-size: 14px;
+  /* font-weight: bold; */
+  text-align: left;
+}
+.chances {
+  font-size: 12px;
+}
+
+.chance-header {
+  font-size: 15px;
+  margin-bottom: 5px;
+}
+.vault-data {
+  flex: 1;
+  text-align: right;
+}
+.vault-two {
+  flex: 2;
+  text-align: right;
+}
+
+.error-message {
+  color: black;
+  font-weight: bold;
+}
+.full-width-header {
+  width: 100%;
+  text-align: center; /* Optional, for centering the text */
+  /* Add any additional styling you need here */
+}
+.sub-light-flex {
+  margin: 10px;
+  padding: 10px;
+  background-color: #1a416012;
+  border-radius: 10px;
+}
+.small-font {
+  font-size: 12px; /* Adjust as needed */
+}
+.contract-label {
+  flex-grow: 1;
+  text-align: left;
+}
+.contract-data {
+  flex-grow: 2;
+  text-align: right;
+}
+
+.address-data {
+  flex: 1;
+  text-align: right;
+  white-space: nowrap; /* Added to prevent text from wrapping */
+  flex-wrap: nowrap;
+  margin-right: 10px; /* Ensure the flex container doesn't wrap items */
+}
+
+.address-data a {
+  display: inline-block; /* Ensure the anchor remains inline with the text */
+}
+
+.condensed-hr {
+  margin-top: 2px;
+  margin-bottom: 2px;
+  border: 0;
+  border-top: 1px solid #dcdcdc; /* You can adjust the color as needed */
+  display: block;
+  width: 100%;
+  clear: both;
+}
+.font-16 {
+  font-size: 16px;
+}
+
+.input-button-group {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+  width: 100%;
+}
+.contract-input-field {
+  background-color: #f3fdfd;
+  height: 25px;
+  padding-right: 5px; /* The space for the button */
+  box-sizing: border-box;
+  border-radius: 8px;
+  border-color: #dbfbfa;
+  font-size: 16px;
+  padding-left: 10px;
+  margin-right: 10px;
+  text-align: right;
+}
+
+.width-130 {
+  width: 130px;
+}
+
+.vault-input-field {
+  width: 100%;
+  background-color: #f3fdfd;
+  height: 50px;
+  padding-right: 60px; /* The space for the button */
+  box-sizing: border-box;
+  border-radius: 8px;
+  border-color: #dbfbfa;
+  font-size: 16px;
+  padding-left: 10px;
+}
+.input-button-group {
+  position: relative;
+
+  justify-content: flex-end;
+}
+
+.vault-input-field:focus {
+  outline: none; /* remove default browser outline */
+  border: 1px solid purple; /* change border to purple */
+  box-shadow: 0 0 5px purple; /* optional: add a subtle glow for a more pronounced focus effect */
+}
+.vault-button {
+  position: absolute;
+  right: 10px; /* a bit of margin from the right edge */
+  top: 50%;
+  height: 30px;
+  transform: translateY(-50%); /* center it vertically */
+  background-color: #7b68c4;
+  border: none;
+  border-radius: 4px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  border: none;
+}
+/* .vault-button {
+    padding: 10px 20px;
+    background-color: #7b68c4;
+    border: none;
+    border-radius: 4px;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  } */
+
+.vault-button:hover {
+  background-color: #74427d;
+}
+
+.vault-modal-overlay {
+  background: rgba(0, 0, 0, 0.7);
+  padding: 10px;
+}
+
+.vault-modal-content {
+  /* background: linear-gradient(135deg, #1c3b5f 0%, #225073 50%, #094058 100%); */
+
+  position: relative;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.vault-view-bubble {
+  background: linear-gradient(135deg, #0b315d 0%, #225073 50%, #c4a9d0 100%);
+  /* background-color:#6f7cb7; */
+
+  margin-top: 30px;
+  align-items: center;
+  /* position: relative; */
+  padding: 20px;
+  max-width: 600px;
+  border-radius: 5px;
+  /* box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); */
+}
+.back-to-vaults {
+  background-color: #1a4160;
+  align-items: left;
+  width: 200px;
+  color: white;
+  cursor: pointer;
+}
+
+.modal-close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: none;
+  background: none;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 1001;
+  box-shadow: none;
+  color: white;
+}
+.vault-right-align {
+  text-align: right;
+}
+
+.input-container {
+  display: flex;
+  justify-content: center;
+}
+
+.vaultsearch {
+  border: 2px solid #7b68c4; /* Set the initial border color to blue */
+
+  text-align: left;
+
+  width: 350px;
+  height: 38px;
+  font-size: 20px;
+  border-radius: 10px;
+  padding: 8px 15px 8px 15px;
+}
+@media (max-width: 600px) {
+  .vaultsearch {
+    width: 100%;
+    height: 33px;
+  }
+}
+
+.vault-table {
+  width: 1100px;
+  table-layout: fixed;
+}
+
+.vault-table-header-row {
+  font-size: 15px;
+  color: #173d5a;
+  /* color: #12334c; */
+}
+
+/* 
+@media (max-width: 600px) {
+  .vault-table, .vault-thead, .vault-tbody, .vault-th, .vault-td, .vault-tr {
+    display: block;
+  }
+
+  .vault-table {
+    border: 0;
+  }
+
+  .vault-tr {
+    margin-bottom: 0.625em;
+  }
+
+  .vault-td {
+    border: none;
+    position: relative;
+    padding-left: 50%;
+  }
+
+  .vault-td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0;
+    width: 50%;
+    padding-left: 10px;
+    font-weight: bold;
+    text-align: left;
+  }
+} */
+
+.vault-td {
+  padding: 23px !important;
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .vault-table,
+  .vault-thead,
+  .vault-tr {
+    display: block;
+  }
+
+  .vault-td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px !important;
+    border-bottom: 1px solid #eee;
+    position: relative;
+    font-size: 16px;
+    vertical-align: top !important;
+  }
+
+  .vault-td:before {
+    content: attr(data-label);
+    /* font-weight: bold; */
+    padding-right: 10px;
+  }
+
+  .vault-tr {
+    margin-bottom: 10px;
+    padding: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+  }
+}
+.mobile-spacer {
+  display: none;
+  height: 20px; /* or whatever size you prefer */
+  background-color: transparent;
+}
+
+@media (max-width: 600px) {
+  .mobile-spacer {
+    display: block;
+  }
+}
+
+.vault-table-small-text {
+  font-size: 17px;
+}
+
+.vault-table th.deposits,
+.vault-table td.deposits {
+  text-align: right;
+}
+.clickable-row {
+  cursor: pointer;
+}
+.vault-hover tr:hover {
+  background-color: rgb(192, 214, 255);
+}
+.bonus {
+  color: rgb(245, 68, 68);
+  font-size: 13px;
+  border-radius: 5px;
+  /* border: 1.5px solid rgb(126, 15, 15); */
+  padding: 2px;
+  margin-left: 4px;
+}
+.deposits-dollar-value {
+  text-align: right;
+}
+
+.vaults-rewards {
+  text-align: right;
+}
+
+/* .skeleton-loader {
+  animation: shimmer 1.5s infinite;
+  background: linear-gradient(to right, #eeeeee 8%, #dddddd 18%, #eeeeee 33%);
+  background-size: 1000px 100%;
+  border-radius: 4px;
+  height: 16px;
+  margin: 6px 0;
+} */
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .contribution-content-container {
+    flex-direction: "row";
+    justify-content: "space-between";
+  }
+
+  .chart-container {
+    flex: 1;
+    margin-right: "20px";
+  }
+
+  .table-container {
+    flex: 1;
+  }
+}
+
+/* loading circle square thingy */
+/* loading circle square thingy */
+
+.lds-grid {
+  display: inline-block;
+
+  position: relative;
+
+  width: 120px;
+
+  height: 120px;
+}
+
+@media (max-width: 600px) {
+  .lds-grid {
+    display: inline-block;
+
+    position: relative;
+
+    width: 90px;
+
+    height: 90px;
+  }
+}
+
+.lds-grid div {
+  position: absolute;
+  width: 20%;
+  height: 20%;
+  border-radius: 50%;
+  background: #abeaee;
+  animation: lds-grid 1.2s linear infinite;
+}
+
+.lds-grid div:nth-child(1) {
+  top: 10%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.lds-grid div:nth-child(2) {
+  top: 10%;
+  left: 40%;
+  animation-delay: -0.4s;
+}
+
+.lds-grid div:nth-child(3) {
+  top: 10%;
+  left: 70%;
+  animation-delay: -0.8s;
+}
+
+.lds-grid div:nth-child(4) {
+  top: 40%;
+  left: 10%;
+  animation-delay: -0.4s;
+}
+
+.lds-grid div:nth-child(5) {
+  top: 40%;
+  left: 40%;
+  animation-delay: -0.8s;
+}
+
+.lds-grid div:nth-child(6) {
+  top: 40%;
+  left: 70%;
+  animation-delay: -1.2s;
+}
+
+.lds-grid div:nth-child(7) {
+  top: 70%;
+
+  left: 10%;
+
+  animation-delay: -0.8s;
+}
+
+.lds-grid div:nth-child(8) {
+  top: 70%;
+  left: 40%;
+  animation-delay: -1.2s;
+}
+
+.lds-grid div:nth-child(9) {
+  top: 70%;
+  left: 70%;
+  animation-delay: -1.6s;
+}
+@keyframes lds-grid {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.page-option {
+  display: inline-block;
+  color: white;
+  font-size: 15px;
+  border: none;
+  margin: 8px;
+  padding: 8px;
+  cursor: pointer;
+  background-color: #7b68c4;
+  border-radius: 10px;
+}
+.page-option-selected {
+  border: 2px solid #c4f2f2;
+  border-radius: 10px;
+  background-color: #7b68c4;
+}
+
+.vault-cell {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.prize-bubble {
+  background-color: #113054;
+  border-radius: 10px;
+  /* padding:10px; */
+}
+@media (min-width: 767px) {
+  .app-container-desktop {
+    height: 420px;
+  }
+}
+
+@media (min-width: 767px) {
+  .app-container {
+    width: 375px;
+  }
+}
+
+/* For devices less than or equal to 768px */
+@media (max-width: 768px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 768px) {
+  .app-container {
+    display: inline-flex;
+    min-width: auto;
+    min-height: 420px;
+  }
+}
+
+.app-container {
+  margin-top: 10px;
+  background-color: #b4ccd1;
+
+  padding: 20px;
+  border-radius: 10px;
+  width: 350px;
+  display: inline-block;
+}
+
+.prize-state-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px; /* Adjust the gap between items as needed */
+  max-width: 1000px;
+}
+
+.more {
+  width: 80px;
+  font-size: 12px;
+  padding: 1px 2px 2px 2px;
+  border-radius: 10px;
+  text-align: center;
+  color: white;
+  border: 2px solid #7b68c4;
+  margin-top: 16px;
+  cursor: pointer;
+  background-color: #7b68c4;
+  display: inline-block;
+}
+
+.prize-state-div {
+  flex: 0 0 auto; /* Do not grow, do not shrink, be automatically sized by content */
+  width: auto; /* Width should be determined by content up to max-width */
+  max-width: 320px; /* Maximum width for the flex items */
+  min-width: 320px;
+  max-height: 190px;
+  height: auto; /* Height is determined by the content */
+  padding: 10px;
+}
+.grand-prize-div {
+  max-height: none;
+  min-width: 320px;
+  padding: 10px;
+  background-color: #2f1a3f;
+}
+
+/* Media query for mobile screens */
+@media (max-width: 767px) {
+  .prize-state-container {
+    flex-direction: column;
+  }
+
+  .prize-state-div {
+    flex-basis: auto; /* Take the full width on mobile */
+  }
+}
+
+.div-text {
+  /* 
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "stretch", // This will make the child items fill the div
+    justifyContent: "space-between", */
+  background-color: #e5f3f5;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  min-width: 280px;
+}
+
+.heatmapContainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 100vw; /* Maximum width of the viewport */
+  max-height: 100vh; /* Maximum height of the viewport */
+  overflow: auto; /* Add scrollbars if content overflows */
+  padding: 10px; /* Optional: to prevent content from touching the edges */
+  box-sizing: border-box; /* Include padding in the width calculation */
+}
+
+.heatmapTile {
+  flex: 1 1 10%; /* Flex grow, flex shrink, and base width */
+  height: auto; /* Height of the tile can adjust based on its width */
+  max-width: 100px; /* Maximum tile width */
+  margin: 5px; /* Space between tiles */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@media (max-width: 600px) {
+  .heatmapTile {
+    flex-basis: 20%; /* Increase base width percentage on smaller screens */
+  }
+}
+
+@media (max-width: 400px) {
+  .heatmapTile {
+    flex-basis: 30%; /* Further increase base width percentage on very small screens */
+  }
+}
+
+/* Add this to your global stylesheet */
+.cellContentCentered {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* or 'center' if you want it centered horizontally as well */
+  height: 100%; /* This might be necessary to fill the cell's height */
+}
+
+.vault-tooltip-container {
+  position: relative;
+  display: inline-block;
+  z-index: 999;
+}
+
+.vault-tooltip-text {
+  visibility: hidden;
+  width: 220px; /* Adjusted width for better alignment */
+  background-color: rgb(238, 235, 235);
+  color: #26223e;
+  text-align: center;
+  border-radius: 6px;
+  padding: 10px;
+  position: absolute;
+  font-size: 16px;
+  z-index: 1;
+  bottom: 100%;
+  left: 50%;
+  margin-left: -110px; /* Adjust to half of width to center the tooltip */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.vault-tooltip-container:hover .vault-tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+.vault-tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vault-tooltip-hr {
+  margin: 4px 0;
+  border: none;
+  height: 1px;
+  background-color: #fff;
+}
+
+.my-table th {
+  text-align: left;
+}
+@media (min-width: 768px) {
+  .my-table .deposits-tvl {
+    /* Target the specific header by class or index */
+    text-align: right;
+  }
+}
+
+@media (min-width: 1111px) {
+  .vaults-header-container {
+    max-width: 1150px;
+  }
+}
+.vaults-chain-toggle {
+  display: flex;
+  position: relative;
+  margin-left: 14px;
+  gap: 10px; /* Adjust gap as needed */
+  /* background-color: #abc3d5; */
+  color: white;
+  border-radius: 8px;
+  padding: 4px 6px 2px 6px;
+}
+
+@media (max-width: 768px) {
+  .vault-search-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .search-and-toggle {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .vaults-chain-toggle {
+    margin-top: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+  }
+}
+
+.vaults-chain-option {
+  padding: 4px 5px 2px 5px;
+  cursor: pointer;
+  background-color: #ecf0f6;
+  border-radius: 5px;
+  transition: opacity 0.3s;
+}
+
+.vaults-chain-option img {
+  width: 24px; /* Adjust size as needed */
+  height: 24px;
+}
+
+.vaults-chain-option.active {
+  opacity: 1;
+}
+
+.vaults-chain-option:not(.active) {
+  opacity: 0.4;
+}
+
+.rainbowkit-chain-icon {
+  width: 35px !important; /* Set your desired width */
+  height: 35px !important; /* Set your desired height */
+}
+
+.iconcontainer {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  vertical-align: bottom; /* Aligns the container to the bottom of the <td> */
+}
+
+.icon {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-left: -5px;
+  background: white;
+  border: 1px solid #ddd;
+}
+
+.icon:first-child {
+  margin-left: 0;
+}
+
+/* modal  */
+
+.liquidation-history-table {
+  background-color: red;
+  border-collapse: collapse;
+    border: none;
+}
+.liquidation-modal-container {
+  position: fixed;
+  min-height:300px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: flex-start; /* Align to the start, so when it overflows, the top of the content is always visible */
+  justify-content: center;
+  width: 70%;
+  max-width: 850px;
+  max-height: 90vh; /* vh unit will use 90% of the viewport height, leaving some margin for the top and bottom */
+  height: auto;
+  overflow-y: auto; /* Adds scrollbar when necessary */
+  background-color: #cdc8e0;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.liquidation-modal-content {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.left-column,
+.right-column {
+  flex: 1;
+  padding: 0 10px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.label {
+  font-weight: bold;
+  margin-right: 15px;
+}
+
+.value {
+  color: #333;
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.close-button-liquidation {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.history-modal-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stats-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 10px;
+  /* margin-bottom: 20px; */
+}
+
+.liquidation-history-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.liquidation-history-table th,
+.liquidation-history-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}

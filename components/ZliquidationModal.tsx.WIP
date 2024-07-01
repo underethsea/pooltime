@@ -1,0 +1,811 @@
+import React, { useEffect, useState } from "react";
+import { ethers } from "ethers";
+import { FetchPriceForAsset,SingleTokenPrice } from "../utils/tokenPrices";
+import { GetChainName } from "../utils/getChain";
+import { CONTRACTS } from "../constants/contracts";
+import { useWriteContract, useWaitForTransactionReceipt, useSimulateContract } from "wagmi";
+
+import { ADDRESS, ABI, CONFIG} from "../constants"
+import { Multicall } from "../utils/multicall";
+import { GetLiquidationEvents } from "../utils/getLiquidationEvents";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { LiquidationHistoryModal } from "./liquidationHistoryModal";
+// import { SingleTokenPrice } from "../utils/tokenPrices";
+import {
+  faRefresh,
+  faUpRightFromSquare,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Approve from "../components/approve";
+// import { useAccount } from "wagmi";
+// import { Bar } from 'react-chartjs-2';
+// import { Chart, BarController, LinearScale, CategoryScale } from 'chart.js';
+
+// Chart.register(BarController, LinearScale, CategoryScale);
+
+const GASLIMIT = 500000;
+function withSlippage(amount: ethers.BigNumber | undefined) {
+  const slippagePercentage = 2; // % slippage
+  const slippageFactor = ethers.utils.parseUnits(
+    (100 + slippagePercentage).toString(),
+    2
+  );
+  if (amount) {
+    return amount.mul(slippageFactor).div(100);
+  } else {
+    return ethers.BigNumber.from(0);
+  }
+}
+
+function dec(input: any, significantFigures = 3) {
+  if (typeof input !== "number" && typeof input !== "string") {
+    console.error("dec received a non-numeric input:", input);
+    return "Invalid Input";
+  }
+
+  const number = parseFloat(input.toString());
+
+  if (isNaN(number)) {
+    console.error("Converted number is NaN. Original input:", input);
+    return "Invalid Number";
+  }
+
+  if (number === 0) {
+    return "0";
+  }
+
+  // Calculate the magnitude of the number
+  const magnitude = Math.floor(Math.log10(Math.abs(number)));
+
+  // Scale the number based on desired significant figures
+  const scale = Math.pow(10, significantFigures - magnitude - 1);
+  const scaledNumber = number * scale;
+
+  // Round and then unscale
+  const rounded = Math.round(scaledNumber);
+  const result = rounded / scale;
+
+  // Ensure correct number of decimals
+  const decimals = Math.max(
+    0,
+    Math.min(significantFigures - magnitude - 1, 100)
+  );
+  if (decimals > 0) {
+    return result.toFixed(decimals);
+  }
+  return String(result);
+}
+
+function OneMinuteFromNow() {
+  const now = new Date();
+  const oneMinuteFromNow = new Date(now.getTime() + 60000); // Add 60,000 milliseconds (1 minute)
+  const unixTimestamp = Math.floor(oneMinuteFromNow.getTime() / 1000); // Convert to UNIX timestamp
+  return unixTimestamp;
+}
+
+interface TradeOption {
+  amountOut: ethers.BigNumber;
+  amountIn: ethers.BigNumber;
+  liquidationPair: string;
+}
+
+interface SwapInfo {
+  symbol: string;
+  maxAmountOut: ethers.BigNumber;
+  decimals: number;
+  liquidationPairContract: ethers.Contract | null;
+  liquidationPair: string; // Add this property to the SwapInfo interface
+  vaultAddress: string;
+  outTokenPrice: string;
+  inTokenPrice: string;
+}
+type LiquidationData = {
+  amountOut: ethers.BigNumber;
+  amountIn: ethers.BigNumber[];
+  liquidationPair: string;
+};
+
+const LiquidationModal: React.FC<any> = ({
+  chain,
+  address,
+  currentPair,
+  contracts,
+  isHistoryModal,
+  pricing,
+  router,
+  onClose,
+  hasApproval,
+}) => {
+  const [optionToSwap, setOptionToSwap] = useState()
+  const [loading, setLoading] = useState(false);
+  const [currentChain, setCurrentChain] = useState("");
+  // const [tokenPricing, setTokenPricing] = useState([]);
+  // const [tokenPricesFetched, setTokenPricesFetched] = useState<
+  //   SingleTokenPrice[]
+  // >([]);
+
+  // const [currentVaultData, setCurrentVaultData] = useState(null);
+  const [tradeOptions, setTradeOptions] = useState<LiquidationData[]>([]);
+
+  const [liquidations, setLiquidations] = useState<[]>([]);
+  // const [userAmountIn, setUserAmountIn] = useState(0);
+  // const [computedAmountOut, setComputedAmountOut] = useState(0);
+  const [refresh, setRefresh] = useState(true);
+  const [historyPair, setHistoryPair] = useState();
+
+  // console.log("has approval?",hasApproval/1e18)
+  const [swapInfo, setSwapInfo] = useState<SwapInfo>({
+    symbol: "",
+    maxAmountOut: ethers.BigNumber.from("0"),
+    decimals: 0,
+    liquidationPair: "",
+    liquidationPairContract: null,
+    vaultAddress: "",
+    outTokenPrice: "",
+    inTokenPrice: "",
+  });
+
+ 
+
+
+  // const { data: swapSimulate } = useSimulateContract({
+  //   address: currentChain && ADDRESS[currentChain].LIQUIDATIONROUTER as any,
+  //   abi: ABI.LIQUIDATIONROUTER,
+  //   functionName: "swapExactAmountOut",
+  //   args: [
+  //     optionToSwap ? optionToSwap?.liquidationPair:"",
+  //     address,
+  //     optionToSwap ? optionToSwap.amountOut:"",
+  //     optionToSwap ? withSlippage(optionToSwap.amountIn).toString():"",
+  //     OneMinuteFromNow(),
+  //   ],
+  // })
+
+  const {
+    data: swapData,
+    isPending: swapIsLoading,
+    isSuccess: swapIsSuccess,
+    writeContract: writeSwap,
+  } = useWriteContract();
+
+
+  const { isLoading: swapWaitIsLoading, isSuccess: swapWaitSuccess, isFetching: swapWaitIsFetching } = useWaitForTransactionReceipt({hash:swapData})
+ 
+  useEffect(() => {
+    if (swapWaitSuccess) {
+      const toastId = "swap-success";
+      if (!toast.isActive(toastId)) {
+        const etherscanLink = `ADDRESS[CONFIG.CHAINNAME].ETHERSCAN/tx/${swapData}`;
+        toast(
+          <>
+            Swap success! &nbsp;
+            <a href={etherscanLink} target="_blank" rel="noopener noreferrer">
+              <FontAwesomeIcon
+                icon={faUpRightFromSquare}
+                height={15}
+                width={15}
+              />
+            </a>
+          </>,
+          { position: toast.POSITION.BOTTOM_LEFT }
+        );
+        onClose();
+      }
+    }
+  }, [swapWaitSuccess]);
+
+  const findVaultContractByAddress = (address: any, chain: any) => {
+    const vaults = contracts.VAULTS[chain];
+    const foundVault = vaults.find(
+      (vault: any) =>
+        vault.LIQUIDATIONPAIR.address.toLowerCase() === address.toLowerCase()
+    );
+
+    if (foundVault) {
+      return foundVault.LIQUIDATIONPAIR;
+    }
+
+    // If not found in VAULTS, search in BOOSTS
+    const boosts = CONTRACTS.BOOSTS[chain];
+    // console.log("boooosts?", boosts);
+    const foundBoost = boosts.find(
+      (boost: any) =>
+        boost.LIQUIDATIONPAIR.address.toLowerCase() === address.toLowerCase()
+    );
+    console.log("found boost?", foundBoost);
+    if (foundBoost) {
+      return foundBoost.LIQUIDATIONPAIR;
+    } // This will return undefined if not found in BOOSTS either
+  };
+
+  const findVaultByAddress = (address: any, chain: any) => {
+    const vaults = ADDRESS[chain].VAULTS;
+    console.log("vaults", vaults);
+    const foundVault = vaults.find(
+      (vault: any) =>
+        vault.LIQUIDATIONPAIR.toLowerCase() === address.toLowerCase()
+    );
+    if (foundVault) {
+      return foundVault;
+    }
+    // If not found in VAULTS, search in BOOSTS
+    const boosts = ADDRESS[chain].BOOSTERS;
+    // console.log("boooosts?", boosts);
+    const foundBoost = boosts.find(
+      (boost: any) =>
+        boost.LIQUIDATIONPAIR.toLowerCase() === address.toLowerCase()
+    );
+    return foundBoost; // This will return undefined if not found in BOOSTS either
+  };
+
+  // const findPriceByVaultAddress = (vaultAddress: any, tokenPrices: any) => {
+  //   console.log("prices in function", tokenPrices);
+  //   const priceInfo = tokenPrices.find(
+  //     (prices: any) => prices.vaultAddress === vaultAddress
+  //   );
+  //   return priceInfo;
+  // };
+  // const computeAmountOutForUserInput = async (amountIn: ethers.BigNumber) => {
+  //   // Assuming tradeOptions is an array with 'amountIn' as BigNumber properties
+  //   const amountInString = amountIn.toString();
+  //   const maxAmountInBigNumber = tradeOptions.flatMap(option => option.amountIn).reduce(
+  //     (prev, current) => (current.gt(prev) ? current : prev),
+  //     ethers.BigNumber.from(0)
+  //   );
+
+  //   // Use ethers' utilities to parse the float string with appropriate decimals
+  //   const userAmountInBigNumber = ethers.utils.parseUnits(
+  //     amountInString,
+  //     ADDRESS[chain].PRIZETOKEN.DECIMALS
+  //   );
+
+  //   if (userAmountInBigNumber.gt(maxAmountInBigNumber)) {
+  //     console.error("User input exceeds the maximum allowed amountIn");
+  //     return;
+  //   }
+
+  //   if (swapInfo.liquidationPairContract) {
+  //     try {
+  //       const amountOut =
+  //         await swapInfo.liquidationPairContract.callStatic.estimateAmountOut(
+  //           userAmountInBigNumber,
+  //           { from: CONFIG.WALLET }
+  //         );
+  //       setComputedAmountOut(amountOut);
+  //     } catch (error) {
+  //       console.error(
+  //         "Failed to compute amount out for amount in",
+  //         userAmountInBigNumber.toString(),
+  //         error
+  //       );
+  //     }
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   fetchMaxAmountOutAndTradeOptions();
+  // }, [liquidationPairContract]);
+
+  useEffect(() => {
+    const fetchDataForVault = async () => {
+      setLoading(true);
+      let chainEffect = currentChain;
+      try {
+        if (chain) {
+          chainEffect = GetChainName(chain.id);
+          setCurrentChain(chainEffect);
+        }
+        // console.log("UPDATING PRIMARY DATA");
+        // console.log("current pair?", currentPair);
+        if (address && chain && !isHistoryModal) {
+          const vaultData: any = await fetchVaultData(currentPair, chainEffect);
+          // setCurrentVaultData(vaultData);
+        } else if (isHistoryModal) {
+          const history = await fetchHistory(currentPair, chainEffect);
+        }
+
+        setLoading(false);
+      } catch (error) {
+        setLoading(false);
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchDataForVault();
+  }, [currentPair, refresh, historyPair]);
+
+  const fetchHistory = async (vault: any, chainEffect: any) => {
+    try {
+      const thisVaultInfo = findVaultByAddress(vault, chainEffect);
+
+      if (thisVaultInfo?.LIQUIDATIONPAIR) {
+        const liquidationEventsPromise = GetLiquidationEvents(
+          thisVaultInfo.LIQUIDATIONPAIR,
+          chainEffect
+        );
+        const events = await liquidationEventsPromise;
+        if (events) {
+          // console.log("setting events", events);
+          setHistoryPair(thisVaultInfo as any);
+          setLiquidations(events as any);
+          // console.log("chain for fetch", chain);
+        }
+      }
+    } catch (e) {
+      console.log("error fetching event history", e);
+    }
+  };
+
+  const fetchVaultData = async (vault: any, chainEffect: any) => {
+    // console.log("fetching vault data for swaps");
+    try {
+      // console.log("vault", vault);
+      const thisPairContract = findVaultContractByAddress(vault, chainEffect);
+      // console.log("searching for vault", vault);
+      const thisVaultInfo = findVaultByAddress(vault, chainEffect);
+      // console.log("this vault info", thisVaultInfo);
+
+      let tokenPricesPromise;
+
+      if (thisVaultInfo) {
+        tokenPricesPromise = FetchPriceForAsset(
+          [ADDRESS[chainEffect].PRIZETOKEN.GECKO, thisVaultInfo.GECKO],
+          "usd"
+        );
+      }
+
+      const maxAmountOutPromise = thisPairContract?.callStatic.maxAmountOut();
+
+      const [tokenPricesFetched, maxAmountOut] = await Promise.all([
+        tokenPricesPromise,
+        maxAmountOutPromise,
+      ]);
+
+      const swapDetails = {
+        maxAmountOut,
+        symbol: thisVaultInfo?.SYMBOL || "",
+        decimals: Number(thisVaultInfo?.DECIMALS) || 0,
+        liquidationPairContract: thisPairContract || null,
+        liquidationPair: thisVaultInfo?.LIQUIDATIONPAIR || "",
+        vaultAddress: thisVaultInfo?.VAULT || "",
+        outTokenPrice:
+          (tokenPricesFetched as SingleTokenPrice[])[0]?.price?.toString() ||
+          "0",
+        inTokenPrice:
+          (tokenPricesFetched as SingleTokenPrice[])[1]?.price?.toString() ||
+          "0",
+      };
+      // console.log("this pair contract", thisPairContract);
+      // console.log("vault", currentPair);
+      if (thisPairContract && maxAmountOut.gt(0)) {
+        const increments = [
+          { numerator: 10, denominator: 10 },
+          { numerator: 9, denominator: 10 },
+          { numerator: 8, denominator: 10 },
+          { numerator: 7, denominator: 10 },
+          { numerator: 6, denominator: 10 },
+          { numerator: 5, denominator: 10 },
+          { numerator: 4, denominator: 10 },
+          { numerator: 3, denominator: 10 },
+          { numerator: 2, denominator: 10 },
+          { numerator: 1, denominator: 10 },
+        ];
+
+        const contractCalls = increments.map(({ numerator, denominator }) => {
+          const adjustedMaxAmountOut = maxAmountOut
+            .mul(numerator)
+            .div(denominator);
+          return thisPairContract.callStatic.computeExactAmountIn(
+            adjustedMaxAmountOut,
+            { from: CONFIG.WALLET }
+          );
+        });
+
+        const amountsIn = await Multicall(contractCalls, chainEffect);
+
+        const results = increments.map((_, index) => {
+          const amountOut = maxAmountOut
+            .mul(increments[index].numerator)
+            .div(increments[index].denominator);
+          const amountIn = amountsIn[index];
+          const amountOutAsFloat = parseFloat(amountOut.toString());
+          const amountInAsFloat = parseFloat(amountIn.toString());
+
+          const outTokenPrice = parseFloat(swapDetails.outTokenPrice);
+          const inTokenPrice = parseFloat(swapDetails.inTokenPrice);
+
+          const profit =
+            amountOutAsFloat * outTokenPrice - amountInAsFloat * inTokenPrice;
+          return {
+            amountOut,
+            amountIn,
+            liquidationPair: thisPairContract.address,
+            profit,
+          };
+        });
+
+        // Sort results by profitability
+        const sortedResults = results.sort((a, b) => b.profit - a.profit);
+        const mostProfitableSwap = sortedResults[0];
+        // AI did this
+        const zoomIncrements = [
+          { numerator: 955, denominator: 1000 },
+          { numerator: 960, denominator: 1000 },
+          { numerator: 965, denominator: 1000 },
+          { numerator: 970, denominator: 1000 },
+          { numerator: 975, denominator: 1000 },
+          { numerator: 980, denominator: 1000 },
+          { numerator: 985, denominator: 1000 },
+          { numerator: 990, denominator: 1000 },
+          { numerator: 995, denominator: 1000 },
+          { numerator: 1005, denominator: 1000 },
+          { numerator: 1010, denominator: 1000 },
+          { numerator: 1015, denominator: 1000 },
+          { numerator: 1020, denominator: 1000 },
+          { numerator: 1025, denominator: 1000 },
+          { numerator: 1030, denominator: 1000 },
+          { numerator: 1035, denominator: 1000 },
+          { numerator: 1040, denominator: 1000 },
+          { numerator: 1045, denominator: 1000 },
+        ];
+
+        const zoomedContractCalls = zoomIncrements.map(
+          ({ numerator, denominator }) => {
+            const adjustedMaxAmountOut = mostProfitableSwap.amountOut
+              .mul(numerator)
+              .div(denominator);
+            return thisPairContract.callStatic.computeExactAmountIn(
+              adjustedMaxAmountOut,
+              { from: CONFIG.WALLET }
+            );
+          }
+        );
+
+        const zoomedAmountsIn = await Multicall(
+          zoomedContractCalls,
+          chainEffect
+        );
+
+        const zoomedResults = zoomIncrements
+          .map((_, index) => {
+            const amountOut = mostProfitableSwap.amountOut
+              .mul(zoomIncrements[index].numerator)
+              .div(zoomIncrements[index].denominator);
+            const amountIn = zoomedAmountsIn[index];
+            const amountOutAsFloat = parseFloat(amountOut.toString());
+            const amountInAsFloat = parseFloat(amountIn.toString());
+
+            const outTokenPrice = parseFloat(swapDetails.outTokenPrice);
+            const inTokenPrice = parseFloat(swapDetails.inTokenPrice);
+
+            const profit =
+              amountOutAsFloat * outTokenPrice - amountInAsFloat * inTokenPrice;
+            return {
+              amountOut,
+              amountIn,
+              liquidationPair: thisPairContract.address,
+              profit,
+            };
+          })
+          .sort((a, b) => b.profit - a.profit)
+          .slice(0, 3); // Take the top 3 most profitable from the zoomed results
+
+        const finalResults = [...sortedResults, ...zoomedResults]
+          .sort((a, b) => b.amountOut - a.amountOut)
+          .slice(0, 13);
+
+        setTradeOptions(finalResults);
+        // console.log("results of 10% increments", results);
+      }
+      // console.log("details", swapDetails);
+      setSwapInfo(swapDetails);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  const totalAmountIn = liquidations.reduce((acc, liquidation: any) => {
+    const amountIn = parseFloat(
+      ethers.utils.formatUnits(
+        liquidation.amountIn,
+        ADDRESS[chain].PRIZETOKEN.DECIMALS
+      )
+    );
+    return acc + amountIn;
+  }, 0);
+
+  const totalAmountOut = liquidations.reduce((acc, liquidation: any) => {
+    const amountOut = parseFloat(
+      ethers.utils.formatUnits(liquidation.amountOut, swapInfo.decimals)
+    );
+    return acc + amountOut;
+  }, 0);
+  const tradeData = {
+    labels: tradeOptions.map((option, index) => "Trade " + (index + 1)), // Name trades as Trade 1, Trade 2, etc.
+    datasets: [
+      {
+        label: "Profit/Loss",
+        data: tradeOptions.map((option: any) => {
+          const amountInFormatted = ethers.utils.formatUnits(
+            option.amountIn,
+            ADDRESS[chain].PRIZETOKEN.DECIMALS
+          );
+          const amountOutFormatted = ethers.utils.formatUnits(
+            option.amountOut,
+            swapInfo.decimals
+          );
+          const profit =
+            Number(amountOutFormatted) * Number(swapInfo.inTokenPrice) -
+            Number(amountInFormatted) * Number(swapInfo.outTokenPrice);
+          return profit;
+        }),
+        backgroundColor: function (context: any) {
+          const value = context.dataset.data[context.dataIndex];
+          return value > 0 ? "rgba(0, 255, 0, 0.6)" : "rgba(255, 0, 0, 0.6)";
+        },
+      },
+    ],
+  };
+
+  return (
+    <>
+      {" "}
+      <div className="liquidation-modal-container">
+        <div className="liquidation-modal-content">
+          {loading ? (
+            <div className="spinner-large"></div>
+          ) : (
+            <>
+              {swapInfo && !isHistoryModal && (
+                <div className="left-column">
+                  <div className="info-row">
+                    {swapInfo.maxAmountOut.gt(0) && (
+                      <>
+                        <div className="label">Max Yield Avail</div>
+                        <div className="value">
+                          {dec(
+                            ethers.utils.formatUnits(
+                              swapInfo.maxAmountOut,
+                              swapInfo.decimals
+                            )
+                          )}{" "}
+                          {swapInfo.symbol}
+                        </div>{" "}
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        <span
+                          style={{ cursor: "pointer" }}
+                          onClick={async () => {
+                            setRefresh(!refresh);
+                          }}>
+                          {" "}
+                          <FontAwesomeIcon
+                            icon={faRefresh}
+                            style={{ height: "16px" }}
+                          />
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <div className="info-row">
+                    <span className="percentage-text">
+                      note, pricing from Coingecko, and profitability does not
+                      include gas. use at your own risk.
+                    </span>
+
+                    {/*                 
+  <div className="label">Enter your amount</div>
+  <div className="value">
+  <input 
+  type="text" 
+  style={styles.input} 
+  onChange={(e) => {
+    const amount = e.target.value;
+
+    // Convert amount string to a number once here
+    const numberAmount = Number(amount);
+
+    // Check if the value is a positive number
+    if (!isNaN(numberAmount) && numberAmount > 0) {
+      setUserAmountIn(numberAmount);
+      computeAmountOutForUserInput(numberAmount);
+    } else {
+      // Handle invalid input, e.g., reset the state or show an error message
+      setUserAmountIn(0);
+    }
+  }} 
+/>
+
+<button onClick={async () => {
+  console.log("Button clicked");
+  console.log(swapInfo.vaultAddress, address, computedAmountOut, userAmountIn, OneMinuteFromNow());
+  
+  try {
+      const result = await write({
+          args: [
+              swapInfo.liquidationPair,
+              address,
+              computedAmountOut,
+              withSlippage(ethers.utils.parseUnits(userAmountIn.toString(),ADDRESS[chain].PRIZETOKEN.DECIMALS)),  
+              OneMinuteFromNow()
+          ],
+      });
+      console.log("Result from write:", result);
+  } catch (error) {
+      console.error("Error calling write:", error);
+  }
+}}>
+  SWAP
+</button>
+
+  </div>*/}
+                  </div>
+                  {/* {computedAmountOut > 0 && (
+                <div>
+                  <p>
+                    For {userAmountIn}{" "}
+                    {ADDRESS[CONFIG.CHAINNAME].PRIZETOKEN.NAME} you will receive{" "}
+                    {ethers.utils.formatUnits(
+                      computedAmountOut,
+                      swapInfo.decimals
+                    )}{" "}
+                    {swapInfo.symbol}
+                    &nbsp;= $
+                    {(
+                      Number(
+                        ethers.utils.formatUnits(
+                          computedAmountOut,
+                          swapInfo.decimals
+                        )
+                      ) *
+                        Number(swapInfo.inTokenPrice) -
+                      Number(userAmountIn) * Number(swapInfo.outTokenPrice)
+                    ).toFixed(2)}
+                  </p>
+                </div>
+              )} */}
+
+                  {/* 
+              <div className="info-row">
+                <div className="label">decimals for token out</div>
+                <div className="value">
+                  {tokenPricing.length > 0 &&
+                    findPriceByVaultAddress(
+                      tokenPricing,
+                      swapInfo.vaultAddress
+                    )}
+                </div>
+              </div> */}
+
+                  <div className="trade-options-container">
+                    {tradeOptions.map((option: any, index) => {
+                      const amountOutFormatted = dec(
+                        ethers.utils.formatUnits(
+                          option.amountOut,
+                          swapInfo.decimals
+                        )
+                      );
+                      const amountInFormatted = dec(
+                        ethers.utils.formatUnits(
+                          option.amountIn.toString(),
+                          ADDRESS[chain].PRIZETOKEN.DECIMALS
+                        )
+                      );
+                      const profit =
+                        Number(amountOutFormatted) *
+                          Number(swapInfo.inTokenPrice) -
+                        Number(amountInFormatted) *
+                          Number(swapInfo.outTokenPrice);
+                      const profitAsPercentage =
+                        profit /
+                        (Number(amountInFormatted) *
+                          Number(swapInfo.outTokenPrice));
+
+                      return (
+                        <div className="trade-option" key={index}>
+                          <div>{amountInFormatted} {ADDRESS[CONFIG.CHAINNAME].PRIZETOKEN.SYMBOL}</div>
+                          <div style={{ textAlign: "left" }}>
+                            {amountOutFormatted} {swapInfo.symbol}
+                          </div>
+                          <div style={{ textAlign: "right" }}>
+                            ${profit.toFixed(2)}
+                          </div>
+                          <div style={{ textAlign: "right" }}>
+                            <span className="percentage-text">
+                              {(profitAsPercentage * 100).toFixed(2)}%
+                            </span>
+                          </div>
+                          {hasApproval.lt(option.amountIn) ? (
+                            <Approve
+                              chainProp={currentChain}
+                              onClose={onClose}
+                            />
+                          ) : (
+                            <button
+                              className="button"
+                              onClick={async () => {
+                                console.log("Button clicked");
+                                console.log(
+                                  "swap parmas?",
+                                  option.liquidationPair,
+                                  address,
+                                  option.amountOut.toString(),
+                                  withSlippage(option.amountIn).toString(),
+                                  OneMinuteFromNow()
+                                );
+                                try {
+                                  // setOptionToSwap(option)
+                                  // const result = await writeSwap(swapSimulate!.request);
+                                  writeSwap(
+                                  {
+                                    address: currentChain && ADDRESS[currentChain].LIQUIDATIONROUTER as any,
+                                    abi: ABI.LIQUIDATIONROUTER,
+                                    functionName: "swapExactAmountOut",
+                                    args: [
+                                      option?.liquidationPair,
+                                      address,
+                                      option.amountOut.toString(),
+                                      withSlippage(option.amountIn).toString(),
+                                      OneMinuteFromNow(),
+                                    ],
+                                  })
+                                  console.log("Result from write");
+                                } catch (error) {
+                                  console.error("Error calling write:", error);
+                                }
+                              }}>
+                               {swapIsLoading ? "SEE WALLET" : swapWaitIsFetching ? "SWAPPING" : "SWAP"}
+
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {isHistoryModal
+                ? historyPair && (
+                    //  {isHistoryModal && (
+
+                    <LiquidationHistoryModal
+                      liquidations={liquidations}
+                      historyPair={historyPair}
+                      chain={chain}
+                    />
+                  )
+                : ""}
+
+              <button className="close-button-liquidation" onClick={onClose}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="black">
+                  <path d="M0 0h24v24H0z" fill="none" />
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" />
+                </svg>
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </>
+  );
+  <ToastContainer />;
+};
+const styles = {
+  input: {
+    fontSize: "17px",
+    padding: "8px",
+    borderRadius: "8px",
+    border: "1px solid #ccc",
+    width: "100%",
+    height: "50px",
+    marginBottom: "15px",
+    paddingTop: "15px",
+  },
+};
+
+export default LiquidationModal;

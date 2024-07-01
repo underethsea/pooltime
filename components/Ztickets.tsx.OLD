@@ -1,0 +1,398 @@
+import { useEffect, useState, CSSProperties } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faArrowUp,
+  faArrowDown,
+  faTicket,
+  faCheck,
+  faGift,
+} from "@fortawesome/free-solid-svg-icons";
+import { useAccount } from "wagmi";
+import { GetVaultTokenBalances } from "../utils/vaultTokenBalances";
+import { formatUnits } from "viem";
+import { CropDecimals, NumberWithCommas } from "../utils/tokenMaths";
+import Image from "next/image";
+import VaultModal from "./vaultModal.tsx.OLD";
+
+interface TicketProps {
+  addressProp: string;
+  // refreshTickets: number;
+}
+
+const determineLabelAndValue = (balance: any, delegatedBalance: any) => {
+  if (delegatedBalance.lt(balance)) {
+    return {
+      label: (
+        <FontAwesomeIcon
+          icon={faGift}
+          size="sm"
+          style={{
+            color: "black",
+            height: "10px",
+            marginLeft: "8px",
+          }}
+        />
+      ),
+      value: balance,
+    };
+  } else if (delegatedBalance.gt(balance)) {
+    return {
+      label: (
+        <FontAwesomeIcon
+          icon={faGift}
+          size="sm"
+          style={{
+            color: "black",
+            height: "10px",
+            marginLeft: "8px",
+          }}
+        />
+      ),
+      value: delegatedBalance,
+    };
+  } else {
+    return {
+      label: <></>,
+      value: balance,
+    };
+  }
+};
+
+const Tickets: React.FC<TicketProps> = ({  addressProp }) => {
+  const [vaultStartIndex, setVaultStartIndex] = useState(0);
+  const [maxCards, setMaxCards] = useState(3); // Maximum number of cards to display
+  const [filteredVaults, setFilteredVaults] = useState<any>(null);
+  const [oldVaults, setOldVaults] = useState([]);
+  const [initialLoad, setInitialLoad] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalAddress, setModalAddress] = useState("");
+
+  // Function to open the modal
+  const openModal = (address: any) => {
+    setModalAddress(address);
+    setIsModalOpen(true);
+  };
+
+  // Function to close the modal
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const { address } = useAccount();
+
+  useEffect(() => {
+    const fetchTickets = async () => {
+      if (addressProp) {
+        const vaultTokenBalances = await GetVaultTokenBalances(
+          addressProp
+        );
+
+        // console.log("vault token balances delegated", vaultTokenBalances);
+        const newVaults: any = vaultTokenBalances.filter(
+          (vault) =>
+            parseInt(vault.delegatedBalance.toString()) > 0 ||
+            parseInt(vault.balance.toString()) > 0
+        );
+        newVaults.forEach((vault: any) => {
+          // Find the old vault (if it exists)
+          const oldVault: any = oldVaults.find(
+            (oldVault: any) => oldVault.id === vault.id
+          ); // Use appropriate property for comparison
+
+          // Mark as new if the ticket wasn't there before or the balance has increased
+          vault.isNew =
+            !initialLoad &&
+            (!oldVault ||
+              (oldVault && parseInt(oldVault.balance.toString()) === 0) ||
+              (oldVault &&
+                parseInt(oldVault.balance.toString()) <
+                  parseInt(vault.balance.toString())));
+        });
+
+        // Sort tickets to put new ones on top
+        newVaults.sort((a: any, b: any) => b.isNew - a.isNew);
+
+        setFilteredVaults(newVaults);
+
+        // If it's not the initial load, turn off isNew property after 10 seconds
+        if (!initialLoad) {
+          setTimeout(() => {
+            newVaults.forEach((vault: any) => {
+              vault.isNew = false;
+            });
+            setFilteredVaults([...newVaults]);
+          }, 10000);
+        }
+      }
+    };
+
+    fetchTickets();
+
+    // Set initialLoad to false after the first load
+    if (initialLoad) {
+      setInitialLoad(false);
+    }
+  }, [address]);
+
+  // useEffect(() => {
+  //   // Update oldVaults whenever vaultTokenBalances changes, including vaults with a balance of 0
+  //   const updateOldVaults = async () => {
+  //     if (addressProp) {
+  //       const vaultTokenBalances: any = await GetVaultTokenBalances(
+  //         addressProp
+  //       );
+  //       setOldVaults(vaultTokenBalances);
+  //     }
+  //   };
+
+  //   updateOldVaults();
+  // }, [filteredVaults, address]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      // Adjust the maximum number of cards based on the screen width
+      if (window.innerWidth >= 768) {
+        setMaxCards(5);
+      } else {
+        setMaxCards(5);
+      }
+    };
+
+    // Call the handleResize function initially and on window resize
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    // Clean up the event listener on component unmount
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  // Function to handle moving to the previous set of vaults
+  const handlePreviousVault = () => {
+    if (vaultStartIndex > 0) {
+      setVaultStartIndex(vaultStartIndex - 1);
+    }
+  };
+
+  // Function to handle moving to the next set of vaults
+  const handleNextVault = () => {
+    if (vaultStartIndex < Math.max(filteredVaults.length - maxCards, 0)) {
+      setVaultStartIndex(vaultStartIndex + 1);
+    }
+  };
+  return (
+    <>
+      {filteredVaults === null ? null : filteredVaults.length > 0 ? (
+        <>
+          {/* // <div style={styles.container}> */}
+          <div className="box-header" style={{ width: "175px" }}>
+            YOUR TICKETS
+          </div>
+          <div style={styles.contentContainer}>
+            <div style={styles.vaultGrid}>
+              {filteredVaults
+                .slice(vaultStartIndex, vaultStartIndex + maxCards)
+                .map((vault: any, index: any) => {
+                  if (!vault) return null; // Ensure that 'vault' exists before processing
+
+                  const { label, value } = determineLabelAndValue(
+                    vault.balance,
+                    vault.delegatedBalance
+                  );
+
+                  return (
+                    <div
+                      key={index}
+                      style={
+                        vault.isNew ? styles.newVaultCard : styles.vaultCard
+                      }
+                      onClick={() => openModal(vault.vault)}
+                      className={`hover-bgchange ${
+                        vault.isNew ? "newVault" : ""
+                      }`}>
+                      <div style={styles.symbol}>
+                        <FontAwesomeIcon
+                          icon={faTicket}
+                          size="sm"
+                          style={{
+                            color: "black",
+                            height: "17px",
+                            marginRight: "8px",
+                          }}
+                        />
+                        {vault.symbol} {label && <span> {label}</span>}
+                      </div>
+                      <div style={styles.alignBottom}>
+                        <Image
+                          src={vault.icon ? vault.icon : "/images/noIcon.svg"}
+                          alt={vault.symbol}
+                          height={17}
+                          width={17}
+                        />
+                        &nbsp;
+                        {NumberWithCommas(
+                          CropDecimals(formatUnits(value, vault.decimals))
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}>
+              {vaultStartIndex > 0 && (
+                <FontAwesomeIcon
+                  icon={faArrowUp}
+                  size="lg"
+                  style={styles.arrowIcon}
+                  onClick={handlePreviousVault}
+                  className="arrowIcon"
+                />
+              )}
+              {vaultStartIndex + maxCards < filteredVaults.length && (
+                <FontAwesomeIcon
+                  icon={faArrowDown}
+                  size="lg"
+                  style={styles.arrowIcon}
+                  onClick={handleNextVault}
+                  className="arrowIcon"
+                />
+              )}
+            </div>
+          </div>
+          {/* </div> */}
+        </>
+      ) : (
+        filteredVaults && (
+          <div style={styles.whyPlayContainer}>
+            <div style={styles.whyPlayImage}>
+              <Image
+                src="/images/pooltogethertowin.png"
+                height={100}
+                width={100}
+                alt="poolerson"
+              />
+            </div>
+            <div style={styles.whyPlayText}>
+              Deposit to a vault and receive tickets for your chance to win
+            </div>
+          </div>
+        )
+      )}
+
+      <VaultModal
+        vaultAddress={modalAddress}
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        vaultPropData={{}}
+      />
+    </>
+  );
+};
+
+const styles: { [key: string]: CSSProperties } = {
+  container: {
+    marginTop: "10px",
+    backgroundColor: "#b4ccd1",
+    padding: "20px",
+    borderRadius: "10px",
+    width: "350px",
+    display: "inline-block",
+    ...({
+      "@media (min-width: 768px)": { display: "inline-flex", minWidth: "auto" },
+    } as Partial<CSSProperties>),
+  },
+  arrowIcon: {
+    height: "16px",
+    marginTop: "5px",
+    marginBottom: "5px",
+  },
+  vaultGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr",
+    gap: "10px",
+    maxWidth: "300px",
+    margin: "0 auto",
+  },
+  vaultCard: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    padding: "10px",
+    borderRadius: "8px",
+    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+    width: "100%",
+    minWidth: "280px",
+  },
+  newVaultCard: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    padding: "10px",
+    borderRadius: "8px",
+    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+    border: "2px solid #b534ff",
+    animation: "highlight 10s ease-in-out",
+    width: "100%",
+    minWidth: "280px",
+  },
+  symbol: {
+    marginRight: "12px",
+    display: "flex",
+    alignItems: "center",
+  },
+  alignBottom: {
+    display: "flex",
+    alignItems: "center",
+  },
+  contentContainer: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  whyPlay: {
+    backgroundColor: "#e5f3f5",
+    padding: "20px 9px 20px 9px",
+    borderRadius: "8px",
+    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+    width: "100%",
+    minWidth: "280px",
+    fontSize: "19px",
+    marginBottom: "5px",
+    marginTop: "11px",
+  },
+  whyPlayContainer: {
+    display: "flex",
+    alignItems:
+      "center" /* This will vertically center align the text and the image */,
+    gap: "10px" /* This will create some space between the image and the text */,
+    backgroundColor: "#e5f3f5",
+    padding: "10px 5px 10px 5px",
+    borderRadius: "8px",
+    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+    width: "100%",
+    minWidth: "280px",
+    fontSize: "19px",
+    marginBottom: "5px",
+    marginTop: "11px",
+  },
+
+  whyPlayImage: {
+    flexShrink: 0 /* Prevent the image from shrinking */,
+  },
+
+  whyPlayText: {
+    marginLeft: "-15px",
+    flexGrow: 1 /* Allow the text to take up the remaining space */,
+  },
+};
+
+export default Tickets;

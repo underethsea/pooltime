@@ -1,0 +1,403 @@
+import React, { useState, useEffect } from "react";
+import Select, { ActionMeta } from "react-select";
+import { useRouter } from 'next/router';
+import { ethers } from "ethers";
+import Image from "next/image";
+import Layout from "./index";
+import { ADDRESS } from "../constants/address";
+import { GetClaimEvents } from "../utils/getClaimEvents";
+import { TierColors } from "../constants/constants";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faAward, } from "@fortawesome/free-solid-svg-icons";
+import donut from "/public/images/pooltogether.png"
+import {NumberWithCommas, CropDecimals} from "../utils/tokenMaths"
+interface Transaction {
+  n: number | string;
+  p: string;
+  v: string;
+  t: string[];
+  w: number;
+}
+
+const explorerURL = "https://poolexplorer.xyz";
+
+function separator(numb: number): string {
+  var str = numb.toString().split(".");
+  str[0] = str[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return str.join(".");
+}
+
+const chainNameMap: Record<number, string> = {
+  // 11155111: "SEPOLIA", // onload chain
+  // 80001: "MUMBAI",
+  // 420: "OPGOERLI",
+  10: "OPTIMISM"
+};
+
+function getVaultName(vaultAddress: string, chainLabel: string): any {
+  return ADDRESS[chainLabel].VAULTS.find((findVault) => findVault.VAULT.toLowerCase() === vaultAddress.toLowerCase())?.NAME.replace(/PoolTogether|Prize Token/g, "").trim();
+}
+
+const emoji = (amount: number): string => {
+  let emojiIcon = "";
+  amount = parseFloat(amount.toString());
+  if (amount > 2499) {
+    emojiIcon = "whale";
+  } else if (amount > 499) {
+    emojiIcon = "dolphin";
+  } else if (amount > 199) {
+    emojiIcon = "octopus";
+  } else if (amount > 99) {
+    emojiIcon = "lobster";
+  } else if (amount > 9) {
+    emojiIcon = "fis";
+  } else {
+    emojiIcon = "fish";
+  }
+  return emojiIcon;
+};
+
+function Winners(): JSX.Element {
+  const router = useRouter();
+
+  const [totalPrizeValueCounter, setTotalPrizeValueCounter] = useState<number>(0);
+  const [popup, setPopup] = useState<boolean>(true);
+  const [options, setOptions] = useState<{ label: number; value: number }[]>([]);
+  const [draw, setDraw] = useState<{ label: number; value: number }>({
+    label: 0,
+    value: 0
+  });
+  const [unique, setUnique] = useState<number>(0);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [tierValues, setTierValues] = useState<Record<number, number[]>>({});
+  const [chain, setChain] = useState<{ label: string; value: number }>();
+  const [chainOptions, setChainOptions] = useState<{
+    label: string;
+    value: number;
+  }[]>([]);
+  const [firstRender,setFirstRender] = useState<boolean>(true)
+
+  const [selectedVault, setSelectedVault] = useState<string>();
+const [transactionsByVault, setTransactionsByVault] = useState<{ [key: string]: Transaction[] }>({});
+const [vaultOptions, setVaultOptions] = useState<{ label: string; value: string }[]>([]);
+
+useEffect(() => {
+  const grouped = groupByVault(transactions);
+  setTransactionsByVault(grouped);
+
+  const sortedVaults = Object.keys(grouped).sort((a, b) => 
+    grouped[b].reduce((sum:any, t:any) => sum + t.w, 0) - grouped[a].reduce((sum, t) => sum + t.w, 0)
+  );
+
+  const options = sortedVaults.map(vault => ({
+    label: getVaultName(vault, chain.label), 
+    value: vault
+  }));
+
+  const sortedVaultNames = sortedVaults.map(vaultAddress => getVaultName(vaultAddress, chain.label));
+
+    setVaultOptions(options);
+
+  setSelectedVault(sortedVaultNames[0]);
+}, [transactions]);
+
+const onChangeVault = (selectedOption: any) => {
+  setSelectedVault(selectedOption.value);
+};
+
+
+  const onChange = (newValue: any, actionMeta: ActionMeta<{ label: number; value: number; }>) => {
+    if (newValue) {
+      const selectedOption = newValue as { label: number; value: number; };
+      setDraw(selectedOption);
+    }
+  };
+
+  const onChangeChain = (selectedOption: any, actionMeta: ActionMeta<{ label: string; value: number; }>) => {
+    setChain(selectedOption as { label: string; value: number; });
+    // console.log(`Chain Option selected:`, selectedOption);
+  };
+
+  // console.log("options state", options);
+
+  const fetchWins = async (fetchChain: number, fetchDraw: number): Promise<void> => {
+    try {
+      const [currentDrawResponse, drawsResponse] = await Promise.all([
+        fetch(explorerURL + "/" + fetchChain + "-draw" + fetchDraw ),
+        fetch(explorerURL + "/" + fetchChain + "-draws")
+      ]);
+
+      let currentDrawResult = await currentDrawResponse.json();
+      let drawsFetch = await drawsResponse.json();
+
+      const drawData = drawsFetch.find((item: any) => item.chain === fetchChain);
+      const lastDrawNumber = drawData.draws[drawData.draws.length - 1];
+
+      if (fetchChain) {
+        const tiers = currentDrawResult.tiers[fetchChain];
+
+        const individualWins = currentDrawResult.wins.flatMap((win: any) => {
+          return win.i.map((index: number) => ({
+            n: win.n,
+            p: win.p,
+            v: win.v,
+            w: tiers[win.t] / 1e18,
+            t: win.t,
+            i: index // Store the winning index for tooltip
+          }));
+        });
+
+        individualWins.sort((a: any, b: any) => b.w - a.w);
+
+        setTierValues(tiers);
+        setTotalPrizeValueCounter(individualWins.reduce((sum, win) => sum + win.w, 0));
+        setTransactions(individualWins);
+
+        const uniqueAddresses = new Set(currentDrawResult.wins.map((obj: any) => obj.p));
+        setUnique(uniqueAddresses.size);
+      }
+    } catch (error) {
+      console.log("fetch error", error);
+      setUnique(0);
+    }
+};
+  useEffect(() => {
+    setPopup(true);
+    
+    const fetchInitialData = async () => {
+      try {
+        const loadChain = Object.keys(chainNameMap)[0]
+        const drawsFetch = await fetch(explorerURL + "/" + loadChain + "-draws");
+        const drawsData = await drawsFetch.json();
+        const chainZero = drawsData[0];
+        const numbersDraw = chainZero.draws.map(Number);
+        const chainList = drawsData.map((chain: any) => ({
+          label: chainNameMap[chain.chain],
+          value: chain.chain
+        }));
+  
+   
+      // Check URL parameters and override if they exist
+let initialDrawValue: number | undefined;
+let initialChainValue: number | undefined;
+
+// Default values
+
+initialDrawValue = Math.max(...numbersDraw);
+console.log("initial draw",initialDrawValue)
+initialChainValue = chainZero.chain;
+
+if (router.query.draw) {
+    initialDrawValue = parseInt(Array.isArray(router.query.draw) ? router.query.draw[0] : router.query.draw, 10);
+}
+
+if (router.query.chain) {
+    initialChainValue = parseInt(Array.isArray(router.query.chain) ? router.query.chain[0] : router.query.chain, 10);
+}
+
+// Ensure values are set
+if (initialDrawValue !== undefined && initialChainValue !== undefined) {
+    setChain({ label: chainNameMap[initialChainValue], value: initialChainValue });
+    setDraw({ label: initialDrawValue, value: initialDrawValue });
+
+    setChainOptions(chainList);
+    setOptions(numbersDraw.map((number: number) => ({ label: number, value: number })).reverse());
+
+    await fetchWins(initialChainValue, initialDrawValue);
+    setFirstRender(false);
+    setPopup(false);
+} else {
+    // Handle the case where values are not defined if necessary
+    console.error("Initial values are not set");
+}
+
+      } catch (error) {
+        console.log(error);
+      }
+    };
+  
+    // console.log("useeffect1")
+    fetchInitialData();
+  }, [router]);
+  
+  useEffect(() => {
+    const fetchData = async () => {
+    
+      if ( !firstRender && draw && chain && draw.value && chain.value) {
+        setPopup(true);
+        await fetchWins(chain.value, draw.value);
+        setPopup(false);
+        // console.log("useeffect2")
+      }
+    }
+    fetchData();
+  }, [draw, chain]);
+
+  const customStyles = {
+    control: (provided: any) => ({
+      ...provided,
+      borderRadius: '10px', // Change the border radius value as per your needs
+    }),
+  };
+
+  function groupByVault(transactions) {
+    return transactions.reduce((acc, transaction) => {
+      const vault = transaction.v;
+      if (!acc[vault]) acc[vault] = [];
+      acc[vault].push(transaction);
+      return acc;
+    }, {});
+  }
+  
+  return (
+      <Layout>
+        <center>
+        
+        {!popup  ? <>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+        <Image
+            src={`/images/net.png`}
+            height={120}
+            width={120}
+            alt="liquidator"
+            style={{ verticalAlign: "middle" }}
+          />
+          <h1 style={{ margin: "0 0 0 10px", lineHeight: "120px" }}>
+            WINS
+            
+          </h1></div>
+       
+          <div className="clear-container padding-top-bottom-20 border-radius-20" style={{ backgroundColor: 'white' }}>
+            <div style={{ padding: '5px' }}>
+              {/* <span className="hidden-mobile"> */}
+                <div style={{ width: '165px', display: 'inline-block', paddingRight: '10px' }}>
+                  <Select styles={customStyles} options={chainOptions} className="select-winners" onChange={onChangeChain} value={chain} />
+                </div>
+              {/* </span> */}
+              &nbsp;&nbsp;&nbsp;&nbsp;
+              <div style={{ width: '105px', display: 'inline-block' }}>
+                <Select styles={customStyles} options={options} onChange={onChange} className="select-draw" value={draw} />
+              </div>
+              <div style={{ width: '105px', display: 'inline-block' }}>
+  <Select styles={customStyles} options={vaultOptions} onChange={onChangeVault} className="select-vault" value={{ label: selectedVault, value: selectedVault }} />
+</div>
+
+              <span className="hidden-mobile"> &nbsp; &nbsp; &nbsp;</span>
+            </div>
+          </div>
+        {/* <div>  prizes {transactionsByVault[selectedVault].length}</div> */}
+          {transactions.length > 0 && (
+          <div className="win-container">
+            <div style={{ maxWidth: "1100px" }}>
+              <table className="claims-table">
+                <thead>
+                  <tr>
+                  <th>Tier</th>
+                        <th>Address</th>
+                        <th className="hidden-mobile">Vault</th>
+                        <th className="hidden-mobile">Index</th>
+                        <th style={{ textAlign: "right" }}>Amount&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                    {/* <th style={{ textAlign: "left" }}>Draw</th>
+                    <th style={{ textAlign: "left" }} className="hidden-mobile">Vaults</th> */}
+                    {/* <th style={{ textAlign: "left" }}>Events</th> */}
+                    {/* <th style={{ textAlign: "right" }} className="hidden-mobile">Yield</th>
+                    <th style={{ textAlign: "right" }}>Wins</th>
+                    <th style={{ textAlign: "right" }}>Prize</th> */}
+
+                  </tr>
+                </thead>
+                <tbody>
+                {(transactionsByVault[selectedVault] || []).map((item, index) => (
+
+  // {transactions.map((item, index) => (
+    <tr key={index}>
+      <td>
+        <FontAwesomeIcon
+          icon={faAward}
+          size="sm"
+          style={{ color: TierColors[item.t], height: "20px", marginRight: "8px" }}
+        />
+      </td>
+      <td>
+        <div className="addressText">
+          {/* <ChainLogo chainId={item.n} style={{ marginRight: "8px" }} /> */}
+          <span>
+            {item.p.slice(0, 6) + "..." + item.p.slice(-4)}
+          </span>
+        </div>
+      </td>
+      <td className="hidden-mobile">{ADDRESS[chain.label].VAULTS.find((findVault) => findVault.VAULT.toLowerCase() === item.v.toLowerCase())?.NAME.replace(/PoolTogether|Prize Token/g, "").trim()}</td>
+      <td style={{ textAlign: "right" }}>{item.i}</td>
+      <td style={{ textAlign: "right" }}>
+        
+          {separator(NumberWithCommas(CropDecimals(item.w, 2)))}
+
+      </td>
+    </tr>
+  ))}
+</tbody>
+
+              </table>
+            </div>
+          </div>
+        )}
+
+        <style jsx>{`
+        .amount{
+          white-space:nowrap;
+        }
+          .win-container {
+            margin-top: 40px;
+          }
+
+          .claims-table {
+            border-collapse: collapse;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 1500px;
+          }
+
+          .claims-table th,
+          .claims-table td {
+            padding: 16px;
+            text-align: left;
+            background-color: #f7f7f7;
+            border-bottom: 1px solid #ebebeb;
+          }
+
+          .claims-table th:first-child,
+          .claims-table td:first-child {
+            padding-left: 24px;
+          }
+
+          .claims-table th:last-child,
+          .claims-table td:last-child {
+            padding-right: 24px;
+          }
+
+          .amount-header,
+          .amount {
+            text-align: right;
+          }
+        `}</style>
+        
+          </>  : <div className="loading-animation">
+              <div className="loading-image">
+                <Image src={donut} alt="Loading" priority={true} />
+              </div>
+            </div>
+        }       </center>
+      </Layout>
+ 
+  );
+}
+
+export default Winners;

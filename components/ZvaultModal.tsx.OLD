@@ -1,0 +1,26 @@
+import React from 'react';
+import Vault from './vaultView';
+
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  vaultAddress: string;
+  vaultPropData: any;
+}
+
+const VaultModal: React.FC<ModalProps> = ({ isOpen, onClose, vaultAddress, vaultPropData }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="vault-modal-overlay" onClick={onClose}>
+      <div className="vault-modal-content" onClick={(e) => e.stopPropagation()}>
+        <button className="modal-close-button" onClick={onClose}>
+          &times;
+        </button>       
+        <Vault vaultChainId = {vaultPropData.c} vAddress={vaultAddress} vaultPropData={vaultPropData} />
+      </div>
+    </div>
+  );
+};
+
+export default VaultModal;

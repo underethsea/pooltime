@@ -1,0 +1,368 @@
+import { CONTRACTS } from "../constants/contracts";
+import { PROVIDERS, ABI, ADDRESS, ADDRESS_AUCTION, CONFIG } from "../constants";
+import PrizeIcon from "./prizeIcon";
+import { ethers } from "ethers";
+import { useEffect, useState } from "react";
+import { FetchPriceForAsset } from "../utils/tokenPrices";
+import {
+  useAccount,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+  useChainId,
+} from "wagmi";
+import { CropDecimals } from "../utils/tokenMaths";
+// import { Multicall } from "../utils/multicall"
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Image from "next/image";
+
+import {
+  faRefresh,
+  faUpRightFromSquare,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
+const profitMarginUsd = 0.5;
+
+interface RelayFetchedInfo {
+  rngAuctionEstimateReward: number;
+  relayEstimateReward: number;
+  relayPoolRewardUsd: number;
+  gasPrice: number;
+  reserveNetOfRngAuction: number;
+  totalReserve: number;
+}
+
+const DEFAULT_RELAY_INFO: RelayFetchedInfo = {
+  rngAuctionEstimateReward: 0,
+  relayEstimateReward: 0,
+  relayPoolRewardUsd: 0,
+  gasPrice: 0,
+  reserveNetOfRngAuction: 0,
+  totalReserve: 0,
+};
+interface RelayAuctionProps {
+  reserve: number; // Define the type of reserve appropriately
+}
+
+async function getRelayEvents() {
+  const relayFilter = {
+    address: ADDRESS_AUCTION["MAINNET"].RNGAUCTIONRELAY,
+    topics: [
+      "0x0aaaf9835b678c952fbddc44da49e66cffaa813453ff984c4b8d497a1e5708dc",
+    ],
+    fromBlock: -100, //blocks to search for events
+    toBlock: "latest",
+  };
+
+  const relayLogs = await PROVIDERS["MAINNET"].getLogs(relayFilter);
+
+  return relayLogs.length;
+}
+
+export const RelayAuction: React.FC<RelayAuctionProps> = ({ reserve }) => {
+  const { address } = useAccount();
+  const chainId = useChainId();
+  const relayAddress = ADDRESS_AUCTION["MAINNET"].RNGAUCTIONRELAY;
+  const [relayFetchedInfo, setRelayFetchedInfo] =
+    useState<RelayFetchedInfo>(DEFAULT_RELAY_INFO);
+  const [refresh, setRefresh] = useState(true);
+
+  const {
+    data: relayData,
+    isLoading: relayIsLoading,
+    isSuccess: relayIsSuccess,
+    write: relayWrite,
+  } = useWriteContract({
+    address: relayAddress ? `0x${relayAddress.substring(2)}` : undefined,
+    abi: ABI.RNGAUCTIONRELAY,
+    functionName: "relay",
+  });
+
+  const { isLoading: relayWaitLoading, isSuccess: relayWaitSuccess } =
+    useWaitForTransactionReceipt({
+      hash: relayData?.hash,
+      onSuccess(data) {
+        const etherscanLink = `https://optimistic.etherscan.io/tx/${relayData?.hash}`;
+        toast(
+          <>
+            Relay success! &nbsp;
+            <a href={etherscanLink} target="_blank" rel="noopener noreferrer">
+              <FontAwesomeIcon
+                icon={faUpRightFromSquare}
+                height={15}
+                width={15}
+              />
+            </a>
+          </>,
+          { position: toast.POSITION.BOTTOM_LEFT }
+        );
+      },
+    });
+
+  async function checkRelay(reserve: ethers.BigNumber) {
+    console.log("checking relay", reserve);
+
+    // console.log("pool price",poolPrice)
+
+    const [reserveNow, reserveForOpenDraw, mainnetGasNow, relayAuction, prices] = await Promise.all([
+      CONTRACTS.PRIZEPOOL[CONFIG.CHAINNAME].reserve(),
+      CONTRACTS.PRIZEPOOL[CONFIG.CHAINNAME].pendingReserveContributions(),
+      PROVIDERS.MAINNET.getGasPrice(),
+      relayRewards(),
+      FetchPriceForAsset(["pooltogether", "weth"])
+    ]);
+  
+    // console.log("reserve", reserveNow);
+    // console.log("reserve for open draw", reserveForOpenDraw);
+    // console.log("mainnet gas price", mainnetGasNow);
+    const poolPrice = (prices as any)[0].price;
+    const ethPrice = (prices as any)[1].price;
+  
+    // console.log("reserve", reserveNow);
+    // console.log("reserve for open draw", reserveForOpenDraw);
+    const totalReserve = reserveNow.add(reserveForOpenDraw);
+    // console.log(
+    //   "total reserve",
+    //   ethers.utils.formatUnits(
+    //     totalReserve,
+    //     ADDRESS[CONFIG.CHAINNAME].PRIZETOKEN.DECIMALS
+    //   )
+    // );
+    const totalReserveFormatted = ethers.utils.formatUnits(
+      totalReserve,
+      ADDRESS[CONFIG.CHAINNAME].PRIZETOKEN.DECIMALS
+    );
+    //console.log(poolPrice)
+    //console.log(ethPrice)
+    //console.log(linkPrice)
+    // console.log("token pricing - POOL $", poolPrice, " ETH $", ethPrice);
+
+    const relayFraction = relayAuction?.relayFraction / 1e18;
+
+    const reserveRemaining =
+      Number(totalReserveFormatted) - relayAuction?.lastAuction / 1e18;
+    // console.log("reserve remaining", reserveRemaining);
+    const relayEstimateReward = reserveRemaining * relayFraction;
+
+    // console.log("estimated POOL reward for relay", relayEstimateReward);
+    // console.log("pool price??", poolPrice);
+    const poolRewardUsd = relayEstimateReward * poolPrice;
+    // console.log("pool value for relay $", poolRewardUsd);
+
+    const relayInfo: RelayFetchedInfo = {
+      rngAuctionEstimateReward: relayAuction?.lastAuction / 1e18,
+      relayEstimateReward: relayEstimateReward,
+      relayPoolRewardUsd: poolRewardUsd,
+      gasPrice: Number(mainnetGasNow) / 1e9,
+      reserveNetOfRngAuction: reserveRemaining,
+      totalReserve: totalReserve,
+    };
+    return relayInfo;
+  }
+  async function relayRewards() {
+    try {
+      const recentRngEvent = await getMostRecentEvent();
+      if (!recentRngEvent) {
+        console.log("error fetching recent rng events");
+        return;
+      }
+  
+      // console.log("most recent event block number", recentRngEvent.blockNumber);
+  
+      // Fetching eventBlock and lastResult concurrently
+      const [eventBlock, lastResult] = await Promise.all([
+        getTimestampForBlock(recentRngEvent.blockNumber),
+        CONTRACTS.RNGAUCTION.MAINNET.getLastAuctionResult(),
+      ]);
+  
+      const timeElapsed = Math.round(Date.now() / 1000 - eventBlock);
+      const rewardFraction = await CONTRACTS.RNGRELAYAUCTION[CONFIG.CHAINNAME].computeRewardFraction(timeElapsed);
+      // console.log("reward fraction:", rewardFraction.toString(), parseInt(rewardFraction) / 1e18);
+  
+      const auctionResults = [lastResult, {
+        rewardFraction: rewardFraction,
+        recipient: CONFIG.WALLET,
+      }];
+  
+      const reward = await CONTRACTS.RNGRELAYAUCTION[CONFIG.CHAINNAME].computeRewards(auctionResults);
+      const results = {
+        lastAuction: reward[0],
+        newAuction: reward[1],
+        relayFraction: rewardFraction,
+      };
+  
+      // console.log("relay results0", results.lastAuction.toString());
+      // console.log("relay results1", results.newAuction.toString());
+  
+      return results;
+    } catch (e) {
+      console.log("error getting relay reward fraction", e);
+    }
+  }
+  
+
+  async function getMostRecentEvent() {
+    const RNGAUCTION_ADDRESS = ADDRESS_AUCTION["MAINNET"].RNGAUCTION;
+    const topic =
+      "0xf037bfa85a373d893a047acc295492dfc8adaa0e779a717827e4ac1f67aca9b5";
+
+    const logs = await PROVIDERS.MAINNET.getLogs({
+      address: RNGAUCTION_ADDRESS,
+      topics: [topic],
+      fromBlock: -200000, // adjust as needed
+      toBlock: "latest",
+    });
+
+    if (logs.length === 0) return null;
+    const mostRecentEvent = logs[logs.length - 1];
+    //    console.log(mostRecentEvent)
+    return mostRecentEvent;
+  }
+
+  async function getTimestampForBlock(blockNumber: any) {
+    const block = await PROVIDERS.MAINNET.getBlock(blockNumber);
+    return block.timestamp;
+  }
+
+  useEffect(() => {
+    async function fetchData() {
+      const recentRelay = await getRelayEvents();
+      if (recentRelay > 0) {
+        console.log("there is a recent relay");
+      } else {
+        const data = await checkRelay(
+          ethers.BigNumber.from(reserve.toString())
+        );
+        const mergedData = { ...DEFAULT_RELAY_INFO, ...data };
+        setRelayFetchedInfo(mergedData);
+      }
+    }
+    fetchData();
+  }, [refresh]);
+
+  return (
+    <>
+      <ToastContainer />
+      <center>
+        <br />
+        {relayFetchedInfo.gasPrice > 0 && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              backgroundColor: "#dfecfa",
+              borderRadius: "10px",
+              padding: "12px",
+              maxWidth: "310px",
+            }}>
+            <center>
+              <div style={{ fontSize: "24px", marginBottom: "15px" }}>
+                Relay Auction&nbsp;
+                <div className="tooltipContainer">
+                  <Image
+                    src="/images/moreInfo.svg"
+                    alt="i"
+                    width={16}
+                    height={16}
+                  />
+                  &nbsp;
+                  <span className="tooltipText toolTipWide">
+                    This auction rewards anyone for covering the costs to
+                    message the random number to the prize pool. The reward is
+                    calculated as a percentage of the remaining POOL in the
+                    reserve and accounts for the RNG auction having already
+                    secured its reward. POOL is paid out to the sender on the
+                    chain where the prize pool lives. To win, be sure the value
+                    of the reward is greater than the gas cost.
+                  </span>
+                </div>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <span
+                  style={{ cursor: "pointer" }}
+                  onClick={async () => {
+                    setRefresh(!refresh);
+                  }}>
+                  <FontAwesomeIcon
+                    icon={faRefresh}
+                    style={{ height: "16px" }}
+                  />
+                </span>
+              </div>
+            </center>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                width: "100%",
+                justifyContent: "space-between",
+                marginTop: "1px",
+              }}>
+              <div style={{ textAlign: "left" }}>
+                {/* <span style={{ display: 'block' }}>Total Reserve</span> */}
+                {/* <span style={{ display: 'block' }}>Reserve remaining</span> */}
+                <span style={{ display: "block" }}>POOL Reward</span>
+                <span style={{ display: "block" }}>Reward in USD</span>
+                <span style={{ display: "block" }}>Gas Price</span>
+              </div>
+
+              <div style={{ textAlign: "right" }}>
+                {/* <span style={{ display: 'block' }}>{CropDecimals(relayFetchedInfo.totalReserve / 1e18)} POOL</span> */}
+                {/* <span style={{ display: 'block' }}><PrizeIcon size={16}/>&nbsp;{CropDecimals(relayFetchedInfo.reserveNetOfRngAuction)} POOL</span> */}
+                <span style={{ display: "block" }}>
+                <PrizeIcon size={16}/>
+                  &nbsp;{CropDecimals(relayFetchedInfo.relayEstimateReward)}{" "}
+                  POOL
+                </span>
+                <span style={{ display: "block" }}>
+                  ${CropDecimals(relayFetchedInfo.relayPoolRewardUsd)}{" "}
+                </span>
+                <span style={{ display: "block" }}>
+                  {CropDecimals(relayFetchedInfo.gasPrice)}gwei
+                </span>
+              </div>
+            </div>
+            <br></br>
+            {chainId && chainId === 1 ? (
+              <button
+                className="button button-purps"
+                onClick={async () => {
+                  const recentRelay = await getRelayEvents();
+
+                  if (recentRelay > 0) {
+                    console.log("There is a recent relay. Aborting the send.");
+                    return; // exit early if there is a recent relay
+                  }
+
+                  if (relayFetchedInfo && chainId === 1) {
+                    console.log("sending relay");
+                    relayWrite({
+                      args: [
+                        ADDRESS_AUCTION.MAINNET.MESSAGEDISPATCHER,
+                        CONFIG.CHAINID.toString(),
+                        ADDRESS[CONFIG.CHAINNAME].REMOTEOWNER,
+                        ADDRESS[CONFIG.CHAINNAME].RNGRELAYAUCTION,
+                        address,
+                        50000,
+                      ],
+                    });
+                  } else {
+                    console.log("error sending relay, maybe wrong chain");
+                  }
+                }}>
+                SEND RELAY
+              </button>
+            ) : (
+              <p style={{ textAlign: "center", marginTop: "10px" }}>
+                <button className="button-purps">SWITCH TO ETHEREUM</button>
+              </p>
+            )}
+          </div>
+        )}
+      </center>
+    </>
+  );
+};
+
+export default RelayAuction;

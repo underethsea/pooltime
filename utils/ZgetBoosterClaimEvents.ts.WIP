@@ -1,0 +1,44 @@
+import { PROVIDERS, ADDRESS, CONFIG, ABI } from "../constants/";
+import { ethers } from "ethers";
+import { CONTRACTS } from "../constants/contracts";
+
+export async function GetBoosterEvents(userAddress: string, chain: string) {
+  const contract = CONTRACTS.WINBOOST[chain]
+  const chainName = chain;
+  const claimFilter = {
+    address: ADDRESS[CONFIG.CHAINNAME].WINBOOSTER,
+    topics: [
+      "0x547bfce71085c9bcdd017f760571cfac13309002f69ae45e04330bb698903488",
+    ],
+    fromBlock: -2000000,
+    toBlock: "latest",
+  };
+  try {
+    const claimLogs = await PROVIDERS[chainName].getLogs(claimFilter);
+    console.log("claim log", claimLogs);
+
+    const decodedClaimLogs = claimLogs
+      .map((claim, index) => {
+        // Decode the log
+        const decodedLog = contract.interface.parseLog(claim);
+        // console.log("claim log #", decodedLog);
+        // Extract args for easier access
+        const args = decodedLog.args;
+
+        // Return an object that includes the transaction hash
+        return {
+          vault: args.vault,
+          tier: args.tier,
+          winners: args.winners,
+          indices: args.prizeIndices,
+          fees: args.totalFees,
+          transactionHash: claim.transactionHash,
+        };
+      })
+      .filter((log) => log !== null); // Remove null entries
+
+    return decodedClaimLogs.reverse();
+  } catch (e) {
+    console.log("error getting claim events from claim fund contract", e);
+  }
+}

@@ -1,0 +1,163 @@
+// types.ts - Define TypeScript types for the API data
+// types.ts
+// types.ts
+export interface TierData {
+    value: string;
+    totalWins: string;
+    totalClaims: string;
+    totalPrize: number; // Changed from optional to required
+}
+
+  // types.ts
+export interface Tiers {
+    [key: string]: TierData;
+  }
+  
+  export interface DrawData {
+    draw: number;
+    tiers: Tiers;
+    totalWins: number;
+    totalClaims: number;
+    totalValueWon: number;
+    totalValueClaimed: number;
+  }
+  
+  
+  
+  // PrizeHistoryPage.tsx - Main page component
+  import React, { useEffect, useState } from "react";
+  
+  const PrizeHistoryPage: React.FC = () => {
+    const [draws, setDraws] = useState<DrawData[]>([]);
+    const [maxPrize, setMaxPrize] = useState<number>(0);
+  
+    useEffect(() => {
+      fetch("https://poolexplorer.xyz/10-prizeresults")
+        .then((response) => response.json())
+        .then((data) => {
+          processAndSetData(data);
+        })
+        .catch((error) => console.error("Error fetching data:", error));
+    }, []);
+    const processAndSetData = (data: DrawData[]) => {
+        let max = 0;
+        const processedData = data.map((draw) => {
+          let totalWins = 0, totalClaims = 0, totalValueWon = 0, totalValueClaimed = 0;
+      
+          const tiers = Object.entries(draw.tiers).reduce<Tiers>((acc, [tier, tierData]) => {
+            const valueInPool = Number(tierData.value) / 1e18;
+            const totalPrize = valueInPool * Number(tierData.totalWins);
+            max = Math.max(max, totalPrize);
+      
+            totalWins += Number(tierData.totalWins);
+            totalClaims += Number(tierData.totalClaims);
+            totalValueWon += totalPrize;
+            totalValueClaimed += (Number(tierData.totalClaims) * valueInPool);
+      
+            acc[tier] = { ...tierData, value: valueInPool.toString(), totalPrize };
+            return acc;
+          }, {});
+      
+          return { 
+            ...draw, 
+            tiers, 
+            totalWins, 
+            totalClaims, 
+            totalValueWon, 
+            totalValueClaimed 
+          };
+        });
+      
+        setDraws(processedData);
+        setMaxPrize(max);
+      };
+      
+  
+    return (
+      <div>
+        <h1>Prize History</h1>
+        {draws.map((draw) => (
+          <DrawComponent key={draw.draw} drawData={draw} maxPrize={maxPrize} />
+        ))}
+      </div>
+    );
+  };
+  
+  // DrawComponent.tsx
+  interface DrawComponentProps {
+    drawData: DrawData;
+    maxPrize: number;
+  }
+  const DrawComponent: React.FC<DrawComponentProps> = ({ drawData, maxPrize }) => {
+    return (
+      <div>
+        <h2>Draw {drawData.draw}</h2>
+        <p>Total Wins: {drawData.totalWins}, Total Claims: {drawData.totalClaims}</p>
+        {drawData.totalValueWon !== undefined && drawData.totalValueClaimed !== undefined && (
+          <p>
+            Total Value Won: {drawData.totalValueWon.toFixed(2)} POOL, 
+            Total Value Claimed: {drawData.totalValueClaimed.toFixed(2)} POOL
+          </p>
+        )}
+        {Object.entries(drawData.tiers).map(([tierNumber, tierData]) => (
+          <TierComponent key={tierNumber} tierNumber={tierNumber} tierData={tierData} maxPrize={maxPrize} />
+        ))}
+      </div>
+    );
+  };
+  
+  
+
+
+   
+  interface TierComponentProps {
+    tierNumber: string;
+    tierData: TierData;
+    maxPrize: number;
+  }
+  
+  const TierComponent: React.FC<TierComponentProps> = ({ tierNumber, tierData, maxPrize }) => {
+    const boxes = [];
+  for (let i = 0; i < Number(tierData.totalWins); i++) {
+    const isClaimed = i < Number(tierData.totalClaims);
+    const prizeSize = Math.sqrt(tierData.value / maxPrize) * 100; // Example scaling factor
+
+    boxes.push(
+      <div
+        key={i}
+        style={{
+          width: `${prizeSize}px`,
+          height: `${prizeSize}px`,
+          backgroundColor: isClaimed ? getTierColor(tierNumber) : 'gray',
+          display: 'inline-block',
+          margin: '2px'
+        }}
+      ></div>
+    );
+  }
+    
+  return (
+    <div style={{ margin: '10px 0' }}>
+      <p>Tier {tierNumber} - {parseFloat(tierData.value).toFixed(2)} POOL x {tierData.totalWins} wins = {tierData.totalPrize.toFixed(2)} POOL</p>
+      <p>Claims: {tierData.totalClaims}, Value Claimed: {(parseFloat(tierData.totalClaims) * parseFloat(tierData.value)).toFixed(2)} POOL</p>
+      <div style={{ display: 'flex' }}>{boxes}</div>
+    </div>
+  );
+
+  };
+  
+  
+  // Function to get color based on tier
+  const getTierColor = (tier: string) => {
+    const colors = {
+      '1': 'darkpurple', // Replace with actual color codes
+      '2': 'lightpurple',
+      '3': 'lightblue',
+      // Add more colors for other tiers
+    };
+  
+    return colors[tier] || 'defaultColor'; // Replace 'defaultColor' with a fallback color
+  };
+  
+  export default PrizeHistoryPage;
+  

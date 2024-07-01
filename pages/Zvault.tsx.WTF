@@ -1,0 +1,827 @@
+// vault.tsx
+import React, { useEffect, useState } from "react";
+import { ethers } from "ethers";
+import { ABI } from "../constants/abi";
+import { PROVIDERS } from "../constants/providers";
+import { CONFIG } from "../constants/config";
+import { Multicall } from "../utils/multicall";
+import { useChainId, useAccount, useSimulateContract } from "wagmi";
+import Layout from "./index";
+import { NumberWithCommas, CropDecimals } from "../utils/tokenMaths";
+import { useRouter } from "next/router";
+import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Image from "next/image";
+
+interface VaultProps {
+  vAddress: string;
+}
+
+interface VaultData {
+  name: string;
+  address: string;
+  symbol: string;
+  decimals: number;
+  asset: string;
+  liquidationPair: string;
+  totalAssets: string;
+  assetName: string;
+  assetSymbol: string;
+  owner: string;
+  userAssetBalance: ethers.BigNumber;
+  userAssetAllowance: ethers.BigNumber;
+  userVaultBalance: ethers.BigNumber;
+
+  // balance: number;
+}
+
+const etherscan = "https://optimistic.etherscan.io/address/";
+
+const Vault: React.FC<VaultProps> = ({
+  vAddress = "0x29Cb69D4780B53c1e5CD4D2B817142D2e9890715",
+}) => {
+  const router = useRouter();
+  const queriedVaultAddress = router.isReady
+    ? (router.query.address as string)
+    : vAddress;
+
+  // Use the queriedVaultAddress if it exists, otherwise fallback to the default prop.
+  const activeVaultAddress = queriedVaultAddress || vAddress;
+  const [vaultData, setVaultData] = useState<VaultData | null>(null);
+  const [isInvalidVault, setIsInvalidVault] = useState<boolean>(false);
+  const [buyAmount, setBuyAmount] = useState<string>("");
+  const [redeemAmount, setRedeemAmount] = useState<string>("");
+  const [urlChain, setUrlChain] = useState<string>("");
+  const chainId = useChainId();
+  const { address } = useAccount();
+
+  const handleBuyAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    console.log("handling change");
+    // Check if the new input value is either empty or a valid number format
+    if (inputValue === "" || /^\d*\.?\d*$/.test(inputValue)) {
+      setBuyAmount(inputValue);
+      console.log("handling change buy amt", buyAmount);
+    }
+  };
+
+  const handleRedeemAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    // Check if the new input value is either empty or a valid number format
+    if (inputValue === "" || /^\d*\.?\d*$/.test(inputValue)) {
+      setRedeemAmount(inputValue);
+    }
+  };
+
+  const { data: buySimulate } = useSimulateContract({
+    address: vaultData?.address as any,
+    abi: ABI.VAULT,
+    functionName: "deposit",
+
+    args: [
+      buyAmount &&
+        parseFloat(buyAmount) > 0 &&
+        ethers.utils.parseUnits(buyAmount, vaultData?.decimals).toString(),
+      address,
+    ],
+  });
+  const {
+    data: buyData,
+    // isLoading: dripIsLoading,
+    isSuccess: buyIsSuccess,
+    writeContract: writeBuy,
+  } = useWriteContract({
+    mutation: {
+      onSuccess: () => {
+        toast("Buying tickets!", {
+          position: toast.POSITION.BOTTOM_LEFT,
+        });
+      },
+    },
+  });
+
+  // const {
+  //   data: buyData,
+  //   isLoading: buyIsLoading,
+  //   isSuccess: buyIsSuccess,
+  //   isError: buyIsError,
+  //   write: writeBuy,
+  // } = useWriteContract({
+  //   chainId: chain?.id,
+  //   address: vaultData?.address as any,
+  //   abi: ABI.VAULT,
+  //   functionName: "deposit",
+
+  //   args: [
+  //     buyAmount && parseFloat(buyAmount) > 0 && ethers.utils.parseUnits(buyAmount, vaultData?.decimals).toString(),
+  //     address,
+  //   ],
+
+  //   onSuccess(data) {
+  //     toast("Buying tickets!", {
+  //       position: toast.POSITION.BOTTOM_LEFT,
+  //     });
+  //   },
+  // });
+
+  // const {
+  //   data: redeemData,
+  //   isLoading: redeemIsLoading,
+  //   // isSuccess: redeemIsSuccess,
+  //   // isError: redeemIsError,
+  //   write: writeRedeem,
+  // } = useWriteContract({
+  //   chainId: chainId,
+  //   address: vaultData?.address as any,
+  //   abi: ABI.VAULT,
+  //   functionName: "redeem",
+
+  //   args: [
+  //     redeemAmount &&
+  //       parseFloat(redeemAmount) > 0 &&
+  //       ethers.utils.parseUnits(redeemAmount, vaultData?.decimals).toString(),
+  //     address,
+  //     address,
+  //   ],mutation:{onSuccess(data) {
+  //     //   setRefreshTickets((prevKey) => prevKey + 1);
+  //     toast("You have new tickets!", {
+  //       position: toast.POSITION.BOTTOM_LEFT,
+  //     });
+  //   }}
+  // });
+
+  const {
+    isLoading: buyWaitIsLoading,
+    isSuccess: buyWaitIsSuccess,
+    isFetching: buyWaitIsFetching,
+  } = useWaitForTransactionReceipt({
+    hash: buyData,
+    
+  });
+
+  // console.log("Redeem transaction hash:", redeemData?.hash);
+
+  // const {
+  //   isLoading: redeemWaitIsLoading,
+  //   isSuccess: redeemWaitIsSuccess,
+  //   isFetching: redeemWaitIsFetching,
+  // } = useWaitForTransactionReceipt({
+  //   hash: redeemData?.hash,
+  //   onSuccess(data) {
+  //     console.log("Redeem success callback triggered");
+  //     //   setRefreshTickets((prevKey) => prevKey + 1);
+  //     toast("Redeem success!", {
+  //       position: toast.POSITION.BOTTOM_LEFT,
+  //     });
+  //   },
+  // });
+
+
+  const { data: approveSimulate } = useSimulateContract({
+    address: `0x${vaultData?.asset.substring(2)}`,
+      abi: ABI.POOL,
+      functionName: "approve",
+      args: [
+        vaultData.address,
+        ethers.utils.parseUnits(
+          buyAmount,
+          vaultData.decimals
+        ),
+      ],
+  });
+  const {
+    data: approveData,
+    // isLoading: approveIsLoading,
+    isSuccess: approveIsSuccess,
+    writeContract: writeApprove,
+  } = useWriteContract({
+    mutation: {
+      onSuccess: () => {
+        toast("Approving tokens", {
+          position: toast.POSITION.BOTTOM_LEFT,
+        });
+      },
+    },
+  });
+  // const {
+  //   data: approveData,
+  //   isLoading: approveIsLoading,
+  //   isSuccess: approveIsSuccess,
+  //   write: writeApprove,
+  // } = useWriteContract({
+  //   address: `0x${vaultData?.asset.substring(2)}`,
+  //   abi: ABI.POOL,
+  //   functionName: "approve",
+  //   onSuccess(data) {
+  //     toast("Approving!", {
+  //       position: toast.POSITION.BOTTOM_LEFT,
+  //     });
+  //   },
+  // });
+
+  // const {
+  //   isLoading: approveWaitIsLoading,
+  //   isSuccess: approveWaitIsSuccess,
+  //   isFetching: approveWaitIsFetching,
+  // } = useWaitForTransactionReceipt({
+  //   hash: approveData?.hash,
+  //   onSuccess(data) {
+  //     toast("approve success!", {
+  //       position: toast.POSITION.BOTTOM_LEFT,
+  //     });
+  //   },
+  // });
+
+  //   const handleUpdateBalances = () => {
+  //     setUpdateBalances((prev) => !prev);
+  //   };
+
+  const handleRedeem = () => {
+    try {
+      if (!chainId || !address) {
+        toast("error, see console", {
+          position: toast.POSITION.BOTTOM_LEFT,
+        });
+        console.log("error deposit / redeem, wrong chain or address ");
+        return;
+      }
+      if (parseFloat(redeemAmount) > 0) {
+        if (chainId === CONFIG.CHAINID) {
+          // if (writeRedeem) {
+          //   writeRedeem();
+          // } else {
+          //   console.log("writeRedeem is not defined");
+          //   toast("error, see console", {
+          //     position: toast.POSITION.BOTTOM_LEFT,
+          //   });
+          // }
+        } else {
+          toast("wrong chain, see console", {
+            position: toast.POSITION.BOTTOM_LEFT,
+          });
+          console.log("invalid redeem conditions, wrong chain");
+        }
+      } else {
+        console.log("invalid redeem amount");
+      }
+    } catch (err) {
+      console.log("error on redeem", err);
+      toast("error on redeem, see console", {
+        position: toast.POSITION.BOTTOM_LEFT,
+      });
+    }
+  };
+
+  const handleBuy = () => {
+    try {
+      if (!chainId || !address) {
+        toast("error, see console", {
+          position: toast.POSITION.BOTTOM_LEFT,
+        });
+        console.log("error deposit , wrong chain or address ");
+        return;
+      }
+      if (parseFloat(buyAmount) > 0) {
+        if (chainId === CONFIG.CHAINID) {
+          if (writeBuy) {
+            writeBuy(buySimulate!.request);
+          } else {
+            console.log("writeBuy is not defined");
+            toast("error, see console", {
+              position: toast.POSITION.BOTTOM_LEFT,
+            });
+          }
+        } else {
+          toast("wrong chain, see console", {
+            position: toast.POSITION.BOTTOM_LEFT,
+          });
+          console.log("invalid deposit conditions, wrong chain");
+        }
+      } else {
+        console.log("invalid deposit amount");
+      }
+    } catch (err) {
+      console.log("error on deposit", err);
+      toast("error on deposit, see console", {
+        position: toast.POSITION.BOTTOM_LEFT,
+      });
+    }
+  };
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const queriedChain = router.isReady
+          ? (router.query.chain as string)
+          : "";
+        setUrlChain(queriedChain);
+        const contract = new ethers.Contract(
+          activeVaultAddress,
+          ABI.VAULT,
+          PROVIDERS[CONFIG.CHAINNAME]
+        );
+        const userAddress = address || "";
+        console.log("vault address", activeVaultAddress);
+        console.log("user address", userAddress);
+
+        // Create base calls for the vault contract
+        const vaultCalls = [
+          contract.name(),
+          contract.symbol(),
+          contract.decimals(),
+          contract.asset(),
+          contract.liquidationPair(),
+          contract.totalAssets(),
+          contract.owner(),
+        ];
+
+        // If userAddress is available, add balanceOf call for the vault contract
+        if (userAddress.length > 0) {
+          vaultCalls.push(contract.balanceOf(userAddress));
+        }
+
+        // Execute multicall for vault contract
+        const vaultResults = await Multicall(vaultCalls, CONFIG.CHAINNAME);
+        let [
+          name,
+          symbol,
+          decimals,
+          asset,
+          liquidationPair,
+          totalAssets,
+          owner,
+          userVaultBalance, // This will be undefined if userAddress is not present
+        ] = vaultResults;
+
+        // Now you can handle the case when userVaultBalance is undefined
+        if (typeof userVaultBalance === "undefined") {
+          userVaultBalance = ethers.BigNumber.from(0) as any;
+        }
+
+        const assetContract = new ethers.Contract(
+          asset.toString(),
+          ABI.POOL,
+          PROVIDERS[CONFIG.CHAINNAME]
+        );
+        // Create base calls for the asset contract
+        const assetCalls = [assetContract.name(), assetContract.symbol()];
+
+        // If address is available, add balanceOf and allowance calls for the asset contract
+        if (userAddress.length > 0) {
+          assetCalls.push(assetContract.balanceOf(address));
+          assetCalls.push(assetContract.allowance(address, activeVaultAddress));
+        }
+
+        // Execute multicall for asset contract
+        const assetResults = await Multicall(assetCalls, CONFIG.CHAINNAME);
+        let [assetName, assetSymbol, userAssetBalance, userAssetAllowance] =
+          assetResults;
+
+        if (typeof userAssetBalance === "undefined") {
+          userAssetBalance = ethers.BigNumber.from(0) as any;
+        }
+        if (typeof userAssetAllowance === "undefined") {
+          userAssetAllowance = ethers.BigNumber.from(0) as any;
+        }
+
+        // Check if symbol exists, else it's not a valid vault.
+        if (!symbol) {
+          setIsInvalidVault(true);
+          return;
+        }
+
+        const fetchedData: VaultData = {
+          name: name.toString(),
+          address: activeVaultAddress.toString(),
+          symbol: symbol.toString(),
+          decimals: Number(decimals),
+          asset: asset.toString(),
+          liquidationPair: liquidationPair.toString(),
+          totalAssets: totalAssets.toString(),
+          assetName: assetName.toString(),
+          assetSymbol: assetSymbol.toString(),
+          userVaultBalance: userVaultBalance as any,
+          userAssetBalance: userAssetBalance as any,
+          userAssetAllowance: userAssetAllowance as any,
+          owner: owner.toString(),
+        };
+
+        setVaultData(fetchedData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setIsInvalidVault(true);
+      }
+    }
+
+    fetchData();
+  }, [
+    activeVaultAddress,
+    address,
+    router.isReady,
+    buyWaitIsSuccess,
+    // redeemWaitIsSuccess,
+    // approveWaitIsSuccess,
+  ]);
+
+  return (
+    <>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}>
+        <Image
+          src={`/images/diving.png`}
+          height={105}
+          width={105}
+          alt="poolers"
+          style={{ verticalAlign: "middle" }}
+        />
+        <h1 style={{ margin: "0 0 0 10px", lineHeight: "120px" }}>VAULT</h1>
+      </div>
+      <br></br>
+      <div className="vault-container">
+        <div className="vault-content">
+          {isInvalidVault ? (
+            <div className="error-message">Invalid Vault Address</div>
+          ) : (
+            <>
+              {vaultData ? (
+                <>
+                  <div className="data-row">
+                    <span className="vault-label">Vault</span>
+                    <span className="vault-data">
+                      {vaultData.name}
+                      {/* {vaultData.symbol} */}
+                    </span>
+                  </div>
+                  <div className="data-row">
+                    <span className="vault-label">Total Deposits</span>
+                    <span className="vault-data">
+                      {NumberWithCommas(
+                        CropDecimals(
+                          ethers.utils.formatUnits(
+                            vaultData.totalAssets,
+                            vaultData.decimals
+                          )
+                        )
+                      )}{" "}
+                      {vaultData.assetSymbol}
+                    </span>
+                  </div>
+                  {vaultData.userVaultBalance &&
+                    vaultData.userVaultBalance.gt(0) && (
+                      <>
+                        <br></br>
+                        <div className="balance-data-row">
+                          <span className="vault-label">
+                            &nbsp;Your Tickets
+                          </span>
+                          <span className="vault-data">
+                            {NumberWithCommas(
+                              CropDecimals(
+                                ethers.utils.formatUnits(
+                                  vaultData.userVaultBalance,
+                                  vaultData.decimals
+                                )
+                              )
+                            )}{" "}
+                            {vaultData.symbol}{" "}
+                            <button
+                              className="max-small"
+                              onClick={() =>
+                                setRedeemAmount(
+                                  ethers.utils.formatUnits(
+                                    vaultData.userVaultBalance,
+                                    vaultData.decimals
+                                  )
+                                )
+                              }>
+                              max
+                            </button>
+                          </span>
+                        </div>
+                      </>
+                    )}
+
+                  <div className="vault-input-container">
+                    {vaultData && vaultData.userVaultBalance.gt(0) && (
+                      <div className="input-button-group">
+                        <input
+                          type="text"
+                          placeholder="Amount"
+                          className="vault-input-field"
+                          onChange={handleRedeemAmountChange}
+                          value={redeemAmount}
+                        />
+                        {/* <button className="vault-button">REDEEM TICKETS</button> */}
+
+                        <>
+                          {vaultData.userVaultBalance && !chainId ? (
+                            <button className="vault-button no-cursor">
+                              CONNECT WALLET
+                            </button>
+                          ) : chainId !== CONFIG.CHAINID ? (
+                            <button className="vault-button no-cursor">
+                              WRONG CHAIN
+                            </button>
+                          ) 
+                          // : redeemIsLoading ? (
+                          //   <button className="vault-button">
+                          //     <div className="spinner-small"></div>
+                          //     SEE WALLET
+                          //   </button>
+                          // )
+                           : parseFloat(redeemAmount) >
+                            parseFloat(
+                              ethers.utils.formatUnits(
+                                vaultData.userVaultBalance || 0,
+                                vaultData?.decimals || 0
+                              )
+                            ) ? (
+                            <button className="vault-button">
+                              INSUFFICIENT BALANCE
+                            </button>
+                          )
+                          //  : redeemWaitIsFetching ? (
+                          //   <button className="vault-button">
+                          //     <div className="spinner-small"></div>
+                          //     PROCESSING
+                          //   </button>
+                          // )
+                           : parseFloat(
+                              ethers.utils.formatUnits(
+                                vaultData.userVaultBalance || 0,
+                                vaultData.decimals || 0
+                              )
+                            ) >= parseFloat(redeemAmount) ? (
+                            <button
+                              onClick={handleRedeem}
+                              className="vault-button">
+                              REDEEM
+                            </button>
+                          ) : (
+                            <button
+                              onClick={handleRedeem}
+                              className="vault-button no-cursor">
+                              REDEEM
+                            </button>
+                          )}
+                        </>
+                      </div>
+                    )}
+                  </div>
+
+                  {vaultData.userAssetBalance &&
+                    vaultData.userAssetBalance.gt(0) && (
+                      <div className="data-row">
+                        <span className="vault-label">
+                          &nbsp;Your Deposit Tokens
+                        </span>
+                        <span className="vault-data">
+                          {NumberWithCommas(
+                            CropDecimals(
+                              ethers.utils.formatUnits(
+                                vaultData.userAssetBalance,
+                                vaultData.decimals
+                              )
+                            )
+                          )}{" "}
+                          {vaultData.assetSymbol}{" "}
+                          <button
+                            className="max-small"
+                            onClick={() =>
+                              setBuyAmount(
+                                ethers.utils.formatUnits(
+                                  vaultData.userAssetBalance,
+                                  vaultData.decimals
+                                )
+                              )
+                            }>
+                            max
+                          </button>
+                        </span>
+                      </div>
+                    )}
+
+                  <div className="vault-input-container">
+                    {vaultData && vaultData.userAssetBalance.gt(0) && (
+                      <div className="input-button-group">
+                        <input
+                          type="text"
+                          placeholder="Amount"
+                          className="vault-input-field"
+                          value={buyAmount}
+                          onChange={handleBuyAmountChange}
+                        />
+                        {/* <button className="vault-button">BUY TICKETS</button> */}
+
+                        {!chainId ? (
+                          <button className="vault-button no-cursor">
+                            CONNECT WALLET
+                          </button>
+                        ) : chainId !== CONFIG.CHAINID ? (
+                          <button className="vault-button no-cursor">
+                            SWITCH NETWORKS
+                          </button>
+                        )
+                        //  : buyIsLoading ? (
+                        //   <button className="vault-button">
+                        //     <div className="spinner-small"></div>
+                        //     SEE WALLET
+                        //   </button>
+                        // ) 
+                        // : approveIsLoading ? (
+                        //   <button className="vault-button">
+                        //     <div className="spinner-small"></div>
+                        //     SEE WALLET
+                        //   </button>
+                        // ) 
+                        // : buyWaitIsFetching || approveWaitIsFetching ? (
+                        //   <button className="vault-button">
+                        //     <div className="spinner-small"></div>
+                        //     PROCESSING
+                        //   </button>
+                        // )
+                         : vaultData.userAssetBalance === undefined ? (
+                          ""
+                        ) : parseFloat(buyAmount) >
+                          parseFloat(
+                            ethers.utils.formatUnits(
+                              vaultData.userAssetBalance,
+                              vaultData.decimals || 0
+                            )
+                          ) ? (
+                          <button className="vault-button hover-button no-cursor">
+                            INSUFFICIENT BALANCE
+                          </button>
+                        ) : vaultData.userAssetAllowance &&
+                          vaultData.decimals !== undefined &&
+                          parseFloat(
+                            ethers.utils.formatUnits(
+                              vaultData.userAssetAllowance,
+                              vaultData.decimals
+                            )
+                          ) >= parseFloat(buyAmount) ? (
+                          <button onClick={handleBuy} className="vault-button">
+                            DEPOSIT FOR TICKETS
+                          </button>
+                        ) : parseFloat(buyAmount) > 0 ? (
+                          // <button
+                          //   onClick={() => {
+                          //     console.log("trying to approve",chainId)
+                          //     if (chainId && chainId === CONFIG.CHAINID) {
+                          //       console.log("approving mate")
+                          //       writeApprove(approveSimulate!.request);
+
+                          //     } else {
+                          //       toast("please switch to " + CONFIG.CHAINNAME);
+                          //     }
+                          //   }}
+                          //   className="vault-button">
+                          //   APPROVE
+                          // </button>
+                          <button onClick={() => console.log('Button clicked')}>Test</button>
+                        ) : (
+                          <button className="vault-button no-cursor">
+                            DEPOSIT FOR TICKETS
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {vaultData &&
+                    vaultData.userAssetBalance.eq(0) &&
+                    vaultData.userVaultBalance.eq(0) && (
+                      <>
+                        Go get ya some {vaultData.assetSymbol} to hop in the
+                        pool<br></br>
+                      </>
+                    )}
+                  <br></br>
+
+                  <div className="data-row">
+                    <span className="address-label">Vault Address </span>
+                    <span className="address-data small-font">
+                      {activeVaultAddress} &nbsp; &nbsp;
+                      <a
+                        href={
+                          "https://optimistic.etherscan.io/address/" +
+                          activeVaultAddress
+                        }
+                        target="_blank"
+                        rel="noreferrer">
+                        <Image
+                          src="/images/etherscan.svg"
+                          height={14}
+                          width={14}
+                          alt="etherscan"
+                        />
+                      </a>
+                    </span>
+                  </div>
+                  <hr className="condensed-hr" />
+                  <div className="address-row">
+                    <span className="address-label">Owner</span>
+                    <span className="address-data small-font">
+                      {vaultData.owner}&nbsp; &nbsp;
+                      <a
+                        href={
+                          "https://optimistic.etherscan.io/address/" +
+                          vaultData.owner
+                        }
+                        target="_blank"
+                        rel="noreferrer">
+                        <Image
+                          src="/images/etherscan.svg"
+                          height={14}
+                          width={14}
+                          alt="etherscan"
+                        />
+                      </a>
+                    </span>
+                  </div>
+                  <hr className="condensed-hr" />
+
+                  {/* <div className="data-row">
+                                    <span className="vault-label">Decimals</span>
+                                    <span className="vault-data">{vaultData.decimals}</span>
+                                </div> */}
+
+                  {/* <div className="address-row">
+    <span className="address-label">Asset</span>
+    <span className="address-data small-font">
+        {vaultData.asset} &nbsp; &nbsp;
+        <a href={"https://optimistic.etherscan.io/address/"+vaultData.asset} target="_blank" rel="noreferrer"><Image src="/images/etherscan.svg" height={14} width={14} alt="etherscan" /></a>
+    </span>
+</div> */}
+                  {/* <hr className="condensed-hr"/> */}
+
+                  <div className="address-row">
+                    <span className="address-label">Liquidation Pair</span>
+                    <span className="address-data small-font">
+                      {vaultData.liquidationPair} &nbsp; &nbsp;
+                      <a
+                        href={
+                          "https://optimistic.etherscan.io/address/" +
+                          vaultData.liquidationPair
+                        }
+                        target="_blank"
+                        rel="noreferrer">
+                        <Image
+                          src="/images/etherscan.svg"
+                          height={14}
+                          width={14}
+                          alt="etherscan"
+                        />
+                      </a>
+                    </span>
+                  </div>
+                  <hr className="condensed-hr" />
+
+                  <div className="address-row">
+                    <span className="address-label">Deposit Token</span>
+                    <span className="address-data small-font">
+                      {vaultData.asset} &nbsp; &nbsp;
+                      <a
+                        href={
+                          "https://optimistic.etherscan.io/address/" +
+                          vaultData.asset
+                        }
+                        target="_blank"
+                        rel="noreferrer">
+                        <Image
+                          src="/images/etherscan.svg"
+                          height={14}
+                          width={14}
+                          alt="etherscan"
+                        />
+                      </a>
+                    </span>
+                  </div>
+
+                  {/* <div className="data-row">
+                                    <span className="vault-label">Asset Symbol</span>
+                                    <span className="vault-data"></span>
+                                </div> */}
+
+                  {/* <div className="data-row">
+                                    <span className="vault-label">Balance</span>
+                                    <span className="vault-data">{vaultData.balance}</span>
+                                </div> */}
+                </>
+              ) : (
+                <div className="spinner-large" />
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default Vault;

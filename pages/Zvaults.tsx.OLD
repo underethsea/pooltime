@@ -1,0 +1,238 @@
+import React, { useEffect, useState, CSSProperties } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faAward, faArrowUp, faArrowDown } from "@fortawesome/free-solid-svg-icons";
+import { GetChainName } from "../utils/getChain";
+import { TierColors } from "../constants/constants";
+import { GetVaultTvl } from "../utils/getVaultTvl";
+import { NumberWithCommas } from "../utils/tokenMaths";
+import Image from "next/image";
+import Layout from ".";
+
+interface Vault {
+    tvl: number;
+    icon: string;
+    vault: string;
+    value: number;
+    symbol: string;
+    name: string;
+    decimals: number;
+  }
+interface VaultProps {
+  chainProp: string | undefined;
+  setVaultTvl: React.Dispatch<React.SetStateAction<Vault | undefined>>;
+  refreshTickets: number;
+}
+
+const Vaults: React.FC<VaultProps> = ({ chainProp, setVaultTvl, refreshTickets }) => {
+    const [vaults, setVaults] = useState<Vault[]>([]);
+    const [vaultStartIndex, setVaultStartIndex] = useState(0);
+  const [maxCards, setMaxCards] = useState(3); // Maximum number of cards to display
+
+  const handlePrevious = () => {
+    if (vaultStartIndex > 0) {
+      setVaultStartIndex(vaultStartIndex - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (vaultStartIndex < vaults.length - maxCards) {
+      setVaultStartIndex(vaultStartIndex + 1);
+    }
+  };
+
+  
+
+  useEffect(() => {
+    const fetchVaults = async () => {
+      const tvl = await GetVaultTvl(Number(chainProp))
+      // console.log("tvl",tvl)
+      tvl.sort((a, b) => b.value - a.value);
+        setVaults(tvl)
+        setVaultTvl(tvl as any)
+    };
+
+    fetchVaults();
+  }, []);
+
+  const totalTVL = vaults.reduce((sum, vault) => sum + vault.value, 0);
+
+
+  useEffect(() => {
+    const handleResize = () => {
+      // Adjust the maximum number of cards based on the screen width
+      if (window.innerWidth >= 768) {
+        setMaxCards(4);
+      } else {
+        setMaxCards(3);
+      }
+    };
+
+    // Call the handleResize function initially and on window resize
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    // Clean up the event listener on component unmount
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [refreshTickets]);
+
+  const totalVaults = vaults.length;
+//   const winsText = totalWins === 1 ? "YOUR WIN" : `YOUR ${totalWins} WINS`;
+
+  return (
+    <Layout>
+    <>
+      {vaults.length > 0 && (
+        <div style={styles.container}>
+          <div className="box-header">VAULTS</div>
+          <div style={styles.contentContainer}>
+            <div style={styles.vaultGrid}>  
+            <div style={styles.whyPlay}>
+    <div style={styles.symbol}> <Image
+                        src="/images/blank.png"
+                        alt="TVL"
+                        height={18}
+                        width={18}
+                      />&nbsp;TVL</div>
+    <div style={styles.alignBottom}>${NumberWithCommas(totalTVL.toFixed(0))}</div>
+  </div>
+              {vaults.slice(vaultStartIndex, vaultStartIndex + maxCards).map((vault: any, index) => (
+                <div key={index} style={styles.vaultCard} className="hover-bgchange">
+                  <div style={styles.symbol}>
+                  <Image
+                        src={vault?.icon || ''}
+                        alt={vault?.symbol || ''}
+                        height={18}
+                        width={18}
+                      />&nbsp;{vault.symbol}
+                    {/* {GetChainName(vault.network)} DRAW&nbsp;{vault.draw} */}
+                  </div>
+                  <div style={styles.alignBottom}>${NumberWithCommas(vault.value.toFixed(0))}</div>
+                </div>
+              ))}
+            </div>
+            <div style={styles.arrowsContainer}>
+  <div style={styles.arrowWrapper}>
+    <FontAwesomeIcon
+      icon={faArrowUp}
+      size="lg"
+      style={vaultStartIndex > 0 ? styles.arrowIcon : styles.arrowIconHidden}
+      onClick={handlePrevious}
+      className="arrowIcon"
+    />
+  </div>
+  <div style={styles.arrowWrapper}>
+    <FontAwesomeIcon
+      icon={faArrowDown}
+      size="lg"
+      style={vaultStartIndex < vaults.length - maxCards ? styles.arrowIcon : styles.arrowIconHidden}
+      onClick={handleNext}
+      className="arrowIcon"
+    />
+  </div>
+</div>
+
+
+          </div>
+        </div>
+      )}
+    </></Layout>
+  );
+};
+
+
+const styles : { [key: string]: CSSProperties } = {
+  container: {
+    marginTop: "10px",
+
+      backgroundColor: "#b4ccd1",
+      padding: "20px",
+      borderRadius: "10px",
+      width: "350px",
+      display: 'inline-block',
+      ...({ '@media (min-width: 768px)': { display: 'inline-flex', minWidth: 'auto' } } as Partial<CSSProperties>),
+  },
+
+  contentContainer: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+  vaultGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr",
+    gap: "10px",
+    maxWidth: "300px",
+    margin: "0 auto",
+  },
+  vaultCard: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    padding: "10px",
+    borderRadius: "8px",
+    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+    width: "100%",
+    minWidth: "280px"
+  },
+  symbol: {
+    marginRight: "12px",
+    display: "flex",
+    alignItems: "center",
+  },
+  alignBottom: {
+    display: "flex",
+    alignItems: "center",
+  },
+
+  arrowsContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    height: '100%', 
+
+}, arrowWrapper: {
+  height: "26px", // Whatever height you feel is right; this should include the icon height plus any margins you've applied
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+},
+arrowIcon: {
+  height: "16px",
+  // marginTop: "5px", // You can adjust these values if needed
+  // marginBottom: "5px",
+},
+arrowIconHidden: {
+  height: "16px",
+  opacity: 0, // make it invisible
+  pointerEvents: 'none', // ensure it doesn't intercept clicks
+},
+whyPlay: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  backgroundColor: "#e5f3f5",
+  padding: "10px",
+  borderRadius: "8px",
+  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+  width: "100%",
+  minWidth: "280px"}
+// },
+// whyPlay: {
+//   backgroundColor: "#e5f3f5",
+//   padding: "9px",
+//   borderRadius: "8px",
+//   boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+//   width: "100%",
+//   minWidth: "280px",
+//   fontSize: "19px",
+//   marginBottom: "5px",
+// }
+}
+
+  
+  
+
+export default Vaults;

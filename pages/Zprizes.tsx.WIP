@@ -1,0 +1,133 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, TooltipProps } from 'recharts';
+
+interface Tier {
+  value: string;
+  prizes: string;
+}
+
+interface Draw {
+  draw: number;
+  tiers: Record<string, Tier>;
+}
+
+// Define a type for the dynamic tier data
+type TierData = {
+  [key in `tier${string}`]: number;
+};
+const CustomTooltip = ({ active, payload, label, data }: TooltipProps<number, string> & { data: Draw[] }) => {
+    if (active && payload && payload.length) {
+      const drawNumber = parseInt(label.replace('Draw ', ''), 10);
+      const drawData = data.find(draw => draw.draw === drawNumber);
+      if (!drawData) return null;
+  
+      // Calculate the total value and total number of prizes for the draw
+      const totalPrizesForDraw = Object.values(drawData.tiers).reduce((acc, tier) => {
+        return acc + parseInt(tier.prizes, 10);
+      }, 0);
+      const totalValueForDraw = Object.values(drawData.tiers).reduce((acc, tier) => {
+        return acc + (parseFloat(tier.value) / 1e18) * parseInt(tier.prizes, 10);
+      }, 0);
+  
+      return (
+        <div style={{ backgroundColor: '#f4f4f4', padding: '10px', border: '1px solid #ccc' }}>
+          <p style={{ textAlign: 'center', fontWeight: 'bold' }}>
+            Draw {drawNumber} | {totalPrizesForDraw} x {totalValueForDraw.toFixed(2)} POOL
+          </p>
+          {payload.map((entry, index) => {
+            const tierNumber = entry.name?.replace('tier', '');
+            if (!tierNumber) return null;
+  
+            const tier = drawData.tiers[tierNumber];
+            if (!tier || parseInt(tier.prizes, 10) === 0) return null;
+  
+            const prizeValue = parseFloat(tier.value) / 1e18;
+            const totalValue = prizeValue * parseInt(tier.prizes, 10);
+  
+            return (
+              <p key={`item-${index}`} style={{ margin: 0 }}>
+                T{tierNumber}: {tier.prizes} x {prizeValue.toFixed(2)} = {totalValue.toFixed(2)} POOL
+              </p>
+            );
+          })}
+        </div>
+      );
+    }
+  
+    return null;
+  };
+  
+  
+const PrizeChart: React.FC = () => {
+  const [data, setData] = useState<Draw[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    fetch('https://poolexplorer.xyz/10-prizeresults')
+      .then(response => response.json())
+      .then((fetchedData: Draw[]) => {
+        setData(fetchedData);
+        setLoading(false);
+      })
+      .catch((fetchError: Error) => {
+        console.error('Error fetching data:', fetchError);
+        setError(fetchError);
+        setLoading(false);
+      });
+  }, []);
+
+  const getAllTiers = useMemo(() => {
+    const allTiers = new Set<string>();
+    data.forEach(draw => {
+      Object.keys(draw.tiers).forEach(tier => allTiers.add(tier));
+    });
+    return Array.from(allTiers);
+  }, [data]);
+
+  const processedData = useMemo(() => {
+    return data.map(draw => {
+      const totalValue = Object.values(draw.tiers).reduce((acc, tier) => {
+        return acc + (parseInt(tier.value, 10) / 1e18) * parseInt(tier.prizes, 10);
+      }, 0);
+
+      const tierData: TierData = Object.entries(draw.tiers).reduce((acc, [tier, { value, prizes }]) => {
+        acc[`tier${tier}` as keyof TierData] = (parseInt(value, 10) / 1e18) * parseInt(prizes, 10);
+        return acc;
+      }, {} as TierData);
+
+      return { draw: `Draw ${draw.draw}`, totalValue, ...tierData };
+    });
+  }, [data]);
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
+  if (error) {
+    return <p>Error loading data!</p>;
+  }
+
+  const purpleShades = ['#6a0dad', '#9b30ff', '#a74ac7', '#d8bfd8', '#dda0dd'];
+
+  return (
+    <ResponsiveContainer width="50%" height={400}>
+      <BarChart data={processedData}>
+        <XAxis dataKey="draw" />
+        <YAxis />
+        <Tooltip content={<CustomTooltip data={data} />} />
+        <Legend />
+        {getAllTiers.map((tier, index) => (
+          <Bar
+            key={tier}
+            dataKey={`tier${tier}`}
+            stackId="a"
+            fill={purpleShades[index % purpleShades.length]}
+          />
+        ))}
+      </BarChart>
+    </ResponsiveContainer>
+  );
+};
+
+export default PrizeChart;

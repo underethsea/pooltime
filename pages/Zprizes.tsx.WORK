@@ -1,0 +1,492 @@
+import React, { useEffect, useState } from "react";
+import { GetClaimEvents } from "../utils/getClaimEvents";
+import { PrizeTierResults } from "../components/prizeTierResults";
+
+import Image from "next/image";
+import Layout from "./index";
+import { ADDRESS } from "../constants/address"
+import { CONFIG } from "../constants/config";
+import { CONTRACTS } from "../constants/contracts";
+import PrizeMiners from "../components/prizeMiners";
+import PrizeState from "../components/prizeState";
+import Claims from "../components/claims";
+import { Multicall } from "../utils/multicall";
+import { PrizeToke } from "../utils/tokenMaths";
+
+function toBigInt(
+  value: bigint | { type: string; hex: string } | string | number
+): bigint {
+  if (typeof value === "bigint") {
+    return value;
+  } else if (typeof value === "object" && value !== null && "hex" in value) {
+    return BigInt(value.hex);
+  } else {
+    return BigInt(value);
+  }
+}
+interface GroupedDataEntry {
+  fee: bigint;
+  payout: bigint;
+  // claimCount: number;
+  canaryClaimCount: number;
+  awardedPrizes: number;
+  canaryPrizes: number;
+  claims: any[]; // Replace 'any' with a more specific type if possible
+  txHash: string;
+  highestTier: number;
+}
+
+interface GroupedData {
+  [drawId: string]: GroupedDataEntry;
+}
+
+export const Prizes = () => {
+  const [uniqueMiners, setUniqueMiners] = useState<number>(0);
+  const [highestFee, setHighestFee] = useState<bigint>(BigInt(0));
+  const [minerWithMostFees, setMinerWithMostFees] = useState<string>("");
+  // const [averageFeePercentage, setAverageFeePercentage] = useState<number>(0);
+  const [totalFees, setTotalFees] = useState<bigint>(BigInt(0));
+  const [optionSelected, setOptionSelected] = useState<string>("pool");
+  // const [poolReserve,setPoolReserve] = useState<bigint>(BigInt(0))
+  const [minersData, setMinersData] = useState<
+    {
+      miner: string;
+      claimedPrizesCount: number;
+      totalClaimedPrizeValue: bigint;
+      totalFees: bigint;
+    }[]
+  >([]);
+  const [tierRemainingLiquidites, setTierRemainingLiquidities] = useState([]);
+  const [prizeSizes, setPrizeSizes] = useState([]);
+  const [chartData, setChartData] = useState({ labels: [], datasets: [] });
+
+  const [groupedByDraw, setGroupedByDraw] = useState<
+    {
+      drawId: string;
+      fee: bigint;
+      payout: bigint;
+      // claimCount: number;
+      canaryClaimCount: number;
+      awardedPrizes: number;
+      canaryPrizes: number;
+      expanded: boolean;
+      claims: any[];
+      txHash: string;
+    }[]
+  >([]);
+
+   
+  const [highestDrawInfo, setHighestDrawInfo] = useState({
+    
+  });
+  const[currentDraw,setCurrentDraw] = useState()
+
+  const selectPage = (option: string) => {
+    setOptionSelected(option);
+  };
+
+  const fetchData = async () => {
+   // const [lastDrawId, numberOfTiers, reserve] = (await Multicall(
+       const [lastDrawId, numberOfTiers] = (await Multicall(
+
+      [
+        CONTRACTS.PRIZEPOOL[CONFIG.CHAINNAME].getLastAwardedDrawId(),
+        CONTRACTS.PRIZEPOOL[CONFIG.CHAINNAME].numberOfTiers(),
+        // CONTRACTS.PRIZEPOOL[CONFIG.CHAINNAME].reserve()
+      ],
+      CONFIG.CHAINNAME
+    )) as any[];
+
+    let multicallRequests = [];
+
+    for (let tier = 0; tier < numberOfTiers; tier++) {
+      // multicallRequests.push(CONTRACTS.PRIZEPOOL[CONFIG.CHAINNAME].calculateTierTwabTimestamps(tier, { blockTag: block }));
+      multicallRequests.push(
+        CONTRACTS.PRIZEPOOL[CONFIG.CHAINNAME].getTierAccrualDurationInDraws(
+          tier
+        )
+      );
+      multicallRequests.push(
+        CONTRACTS.PRIZEPOOL[CONFIG.CHAINNAME].getTierPrizeSize(tier)
+      );
+      // multicallRequests.push(CONTRACTS.PRIZEPOOL[CONFIG.CHAINNAME].getTierPrizeCount(tier));
+      // multicallRequests.push(CONTRACTS.CLAIMER[CONFIG.CHAINNAME].computeMaxFee(tier));
+      multicallRequests.push(
+        CONTRACTS.PRIZEPOOL[CONFIG.CHAINNAME].getTierRemainingLiquidity(tier)
+      );
+    }
+    //   let tierTimestamps = []
+    let prizeSizes = [];
+    // let prizesForTier = []
+    let maxFee = [];
+    let tierRemainingLiquidites = [];
+    // Make the multicall
+    const historyUrl = `https://poolexplorer.xyz/${CONFIG.CHAINID}-${ADDRESS[CONFIG.CHAINNAME].PRIZEPOOL}-drawhistory`;
+    console.log("history url",historyUrl)
+    const [history, multicallResult] = await Promise.all([
+      fetch(historyUrl),
+      Multicall(multicallRequests, CONFIG.CHAINNAME),
+    ]);
+
+    const historyResult = await history.json();
+
+    //   const drawClosesAt = await CONTRACTS.PRIZEPOOL[CONFIG.CHAINNAME].drawClosesAt(lastDrawId);
+    for (let i = 0; i < numberOfTiers; i++) {
+      const startIndex = i * 3;
+
+      // Adjust the indices to correctly map to the multicall results
+      const prizeSize = multicallResult[startIndex + 1];
+      //   const prizeCount = multicallResult[startIndex + 2];
+      //   const tierMaxClaimFee = multicallResult[startIndex + 3];
+      const tierRemainingLiquidity = multicallResult[startIndex + 2];
+      // console.log("tier ", i, " prize size ", (Number(prizeSize) / 1e18).toFixed(4), " remaining liquidity ", (Number(tierRemainingLiquidity)/ 1e18).toFixed(4));
+
+      // tierTimestamps.push({ startTimestamp, endTimestamp });
+      prizeSizes.push(prizeSize);
+      // prizesForTier.push(prizeCount)
+      // maxFee.push(tierMaxClaimFee)
+      tierRemainingLiquidites.push(tierRemainingLiquidity);
+    }
+
+    const lineChartData = historyResult.map(
+      ({ draw, tiervalues }: { draw: any; tiervalues: any }) => ({
+        drawId: draw,
+        amount: PrizeToke(tiervalues[0]), 
+      })
+    );
+
+    const highestDrawId = lineChartData.reduce((max:any, item:any) => item.drawId > max ? item.drawId : max, lineChartData[0].drawId);
+console.log("highest draw id",highestDrawId)
+setCurrentDraw(highestDrawId)
+
+    // Set the new chart data
+    setChartData(lineChartData as any);
+    // setPoolReserve(reserve)
+
+    setPrizeSizes(prizeSizes as any);
+    setTierRemainingLiquidities(tierRemainingLiquidites as any);
+  };
+
+  useEffect(() => {
+    async function getPrizeResults() {
+      try {
+        const url = `https://poolexplorer.xyz/${CONFIG.CHAINID}-${ADDRESS[CONFIG.CHAINNAME].PRIZEPOOL}-prizeresults`;
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error("Fetching prize data failed:", error);
+        return null; // Proceed even if fetch fails
+      }
+    }
+
+    async function getter() {
+      console.log("runnning getter")
+      let dataPrizes, claims, prizeData;
+      try {
+        [dataPrizes, claims, prizeData] = await Promise.all([
+          fetchData(),
+          GetClaimEvents(CONFIG.CHAINID),
+          getPrizeResults(),
+        ]);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+      console.log("getter prize data",prizeData)
+      console.log("claims",claims)
+      if (!claims) {
+        console.log("no claims found");
+        return;
+      }
+      const calculatePrizes = (drawData: any) => {
+        const tierNumbers = Object.keys(drawData.tiers)
+          .map(Number)
+          .sort((a, b) => a - b);
+        const highestTier = tierNumbers[tierNumbers.length - 1];
+        console.log("highest tier tierNumbers",highestTier)
+
+        let awardedPrizes = 0,
+          canaryPrizes = 0;
+        Object.entries(drawData.tiers).forEach(
+          ([tier, info]: [string, any]) => {
+            const totalWins = parseInt(info.totalWins, 10);
+            if (Number(tier) === highestTier) {
+              canaryPrizes = totalWins;
+            } else {
+              awardedPrizes += totalWins;
+            }
+          }
+        );
+
+        return { awardedPrizes, canaryPrizes, highestTier };
+      };
+
+      const groupedData: GroupedData = {};
+      const uniqueFeeRecipients = new Set();
+      interface FeesPerMiner {
+        [feeRecipient: string]: bigint;
+      }
+      const feesPerMiner: FeesPerMiner = {};
+      // Process claims
+      claims.forEach((item) => {
+        const { drawId, fee, payout, feeRecipient, tier, txHash } = item;
+
+        uniqueFeeRecipients.add(feeRecipient);
+
+        if (!groupedData[drawId]) {
+          groupedData[drawId] = {
+            fee: BigInt(0),
+            payout: BigInt(0),
+            // claimCount: 0,
+            canaryClaimCount: 0,
+            claims: [],
+            txHash,
+            awardedPrizes: 0,
+            canaryPrizes: 0,
+            highestTier: 0,
+          };
+        }
+
+        groupedData[drawId].fee += toBigInt(fee);
+        groupedData[drawId].payout += toBigInt(payout);
+        groupedData[drawId].claims.push(item);
+
+        if (feesPerMiner[feeRecipient]) {
+          feesPerMiner[feeRecipient] += toBigInt(fee);
+        } else {
+          feesPerMiner[feeRecipient] = toBigInt(fee);
+        }
+      });
+
+      // Process prize data
+      if (prizeData) {
+        prizeData.forEach((draw: any) => {
+          const { awardedPrizes, canaryPrizes, highestTier } =
+            calculatePrizes(draw);
+          if (groupedData[draw.draw]) {
+            groupedData[draw.draw].awardedPrizes = awardedPrizes;
+            groupedData[draw.draw].canaryPrizes = canaryPrizes;
+            groupedData[draw.draw].highestTier = highestTier;
+            console.log("setting highest tier",highestTier)
+          }
+        });
+          // Sort prizeData by draw number in descending order and get the first element
+          const sortedPrizeData = [...prizeData].sort((a, b) => b.draw - a.draw);
+          console.log("sorted dat",sortedPrizeData)
+
+          const highestDraw = sortedPrizeData[0];
+          console.log("high draw sorted",highestDraw)
+      
+          // Set the highest draw information
+          setHighestDrawInfo(highestDraw);
+
+      }
+      // Update claim counts based on the highest tier
+      claims.forEach((item) => {
+        const { drawId, tier } = item;
+        if (groupedData[drawId] && tier === groupedData[drawId].highestTier) {
+          groupedData[drawId].canaryClaimCount += 1;
+        } else {
+          // groupedData[drawId].claimCount += 1;
+        }
+      });
+
+      // Calculating additional statistics
+      // @ts-ignore
+      const totalPercentageSum = claims.reduce((acc: any, item: any) => {
+        const feePercentage =
+          (BigInt(item.fee) * BigInt(100)) /
+          (BigInt(item.fee) + BigInt(item.payout));
+        return acc + feePercentage;
+      }, BigInt(0) as any);
+
+      const averageFeePercentage = Number(totalPercentageSum) / claims.length;
+
+      // @ts-ignore
+      const totalFees = claims.reduce(
+        (acc: any, item: any) => acc + BigInt(item.fee),
+        BigInt(0)
+      );
+
+      // @ts-ignore
+      const maxFee = claims.reduce((max: any, item: any) => {
+        const fee = BigInt(item.fee);
+        return fee > max ? fee : max;
+      }, BigInt(0));
+
+      const minerWithMostFees = Object.entries(feesPerMiner).reduce(
+        (max, [miner, fee]) => (max[1] < fee ? [miner, fee] : max),
+        ["", BigInt(0)]
+      )[0];
+
+      const groupedSortedData = Object.entries(groupedData)
+        .sort((a, b) => Number(b[0]) - Number(a[0]))
+        .map(([drawId, values]) => ({
+          drawId,
+          ...values,
+          expanded: false,
+        }));
+
+      const minersInfo: {
+        [minerAddress: string]: {
+          claimedPrizesCount: number;
+          totalClaimedPrizeValue: bigint;
+          totalFees: bigint;
+        };
+      } = {};
+      // Process claims to populate minersInfo
+      claims.forEach((claim, index) => {
+        const { feeRecipient, payout, fee } = claim;
+
+        // Initialize the miner's data if it's the first time we're seeing this miner
+        if (!minersInfo[feeRecipient]) {
+          minersInfo[feeRecipient] = {
+            claimedPrizesCount: 0,
+            totalClaimedPrizeValue: toBigInt(0),
+            totalFees: toBigInt(0),
+          };
+        }
+
+        // Update miner's data
+        minersInfo[feeRecipient].claimedPrizesCount += 1;
+        minersInfo[feeRecipient].totalClaimedPrizeValue += toBigInt(payout);
+        minersInfo[feeRecipient].totalFees += toBigInt(fee);
+      });
+
+      // Convert minersInfo object to an array and set it to state
+      const minersDataArray = Object.entries(minersInfo).map(
+        ([miner, data]) => ({
+          miner,
+          claimedPrizesCount: data.claimedPrizesCount,
+          totalClaimedPrizeValue: data.totalClaimedPrizeValue,
+          totalFees: data.totalFees,
+        })
+      );
+      minersDataArray.sort((a, b) => {
+        if (a.totalFees > b.totalFees) {
+          return -1;
+        }
+        if (a.totalFees < b.totalFees) {
+          return 1;
+        }
+        return 0;
+      });
+
+      console.log("miners",minersDataArray)
+      setMinersData(minersDataArray);
+      setGroupedByDraw(groupedSortedData);
+      setUniqueMiners(uniqueFeeRecipients.size);
+      setTotalFees(totalFees);
+      setHighestFee(maxFee);
+      setMinerWithMostFees(minerWithMostFees);
+      // setAverageFeePercentage(averageFeePercentage);
+
+      // Log statements for debugging
+      console.log("max fee", maxFee);
+      console.log("miner with most fees", minerWithMostFees);
+      console.log("average fee percentage", averageFeePercentage);
+    }
+
+
+    getter();
+  }, []);
+
+
+  // const tableStyles = {
+  //   // width: "900px",
+  //   borderCollapse: "collapse" as "collapse",
+  //   backgroundColor: "white",
+  //   fontSize: "19px",
+  //   fontFamily: "Inter var, sans-serif",
+  //   // padding:"10px!important",
+  //   borderRadius: "5px",
+  // };
+
+  console.log("uniqueMiners", uniqueMiners);
+  return (
+    <Layout>
+      <>
+        <center>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
+            <Image
+              src={`/images/faucet.png`}
+              height={105}
+              width={105}
+              alt="liquidator"
+              style={{ verticalAlign: "middle" }}
+            />
+
+            <h1 style={{ margin: "0 0 0 10px", lineHeight: "50px" }}>
+              Prize{" "}
+              {optionSelected === "claims"
+                ? "Claims"
+                : optionSelected === "history"
+                ? "History"
+                : optionSelected === "miners"
+                ? "miners"
+                : optionSelected === "pool"
+                ? "Pool"
+                : ""}
+            </h1>
+          </div>
+          <br></br>
+          <div className="page-option-container">
+            <div
+              className={`page-option ${
+                optionSelected === "pool" ? "page-option-selected" : ""
+              }`}
+              onClick={() => selectPage("pool")}>
+              POOL
+            </div>
+            {/* <div
+              className={`page-option ${
+                optionSelected === "claims" ? "page-option-selected" : ""
+              }`}
+              onClick={() => selectPage("claims")}>
+              CLAIMS
+            </div>*/}
+            <div
+              className={`page-option ${
+                optionSelected === "history" ? "page-option-selected" : ""
+              }`}
+              onClick={() => selectPage("history")}>
+              HISTORY
+            </div> 
+            <div
+              className={`page-option ${
+                optionSelected === "miners" ? "page-option-selected" : ""
+              }`}
+              onClick={() => selectPage("miners")}>
+              MINERS
+            </div>
+          </div>
+          
+          {/* {optionSelected === "claims" && <Claims groupedByDraw = {groupedByDraw} highestFee={highestFee} minerWithMostFees={minerWithMostFees} totalFees={totalFees} />}
+*/}
+           {optionSelected === "history" && <PrizeTierResults />} 
+          {optionSelected === "miners" && minersData && (
+            <PrizeMiners minersData={minersData} />
+          )}
+          {optionSelected === "pool" && (
+            <PrizeState
+              prizeSizes={prizeSizes}
+              tierRemainingLiquidities={tierRemainingLiquidites}
+              chartData={chartData}
+              highestDraw={highestDrawInfo}
+              // reserve={poolReserve}
+            />
+          )}
+        </center>
+      </>
+    </Layout>
+  );
+};
+
+export default Prizes;

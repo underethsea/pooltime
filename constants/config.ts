@@ -1,0 +1,30 @@
+import { ADDRESS } from "./address";
+interface Config {
+  CHAINNAME: string;
+  CHAINID: number;
+  WALLET: string;
+  DEFAULT_CHAIN: string;
+  // PRIZEPOOL: string;
+}
+
+
+const CHAINNAME = "OPSEPOLIA"
+
+const CONFIG: Config = {
+  // CHAINNAME: "BASESEPOLIA",
+  // CHAINID: 84532,
+  // CHAINNAME: "BASE",
+  // CHAINID: 8453,
+    CHAINNAME: "OPTIMISM",
+  CHAINID: 10,
+  WALLET: "0x2cb2ae08f293b3ea657b1474f5529f652e241058",
+  DEFAULT_CHAIN: "OPTIMISM",
+  // PRIZEPOOL: "0x31547D3c38F2F8dC92421C54B173F3B27Ab26EbB"
+};
+
+export { CONFIG };
+
+// BASESEPOLIA 84532
+// MUMBAI 80001
+// SEPOLIA 11155111
+// OP GOERLI 420

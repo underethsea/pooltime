@@ -1,0 +1,601 @@
+import { useEffect, useState, CSSProperties } from "react";
+import { CONTRACTS } from "../constants/contracts";
+import { GetClaimEvents } from "../utils/getClaimEvents";
+import PrizeIcon from "./prizeIcon";
+import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+import { ABI, CONFIG, ADDRESS } from "../constants";
+import { ethers } from "ethers";
+import { CropDecimals } from "../utils/tokenMaths";
+import Image from "next/image";
+import { faTrophy, faCircleInfo } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
+interface Win {
+  v: string;
+  p: string;
+  t: number;
+  i: number[];
+  c: any[];
+}
+
+interface Claim {
+  drawId: number;
+  vault: string;
+  winner: string;
+  tier: number;
+  payout: number;
+}
+interface Props {
+  userAddress: string;
+}
+
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onClaim: () => void;
+  prizeValue: string;
+}
+
+const backdropStyles: React.CSSProperties = {
+  position: "fixed",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: "rgba(0, 0, 0, 0.5)", // semi-transparent black background
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  zIndex: 999,
+};
+
+const closeButtonStyles: React.CSSProperties = {
+  position: "absolute",
+  top: "10px",
+  right: "10px",
+  background: "none",
+  border: "none",
+  fontSize: "24px",
+  cursor: "pointer",
+};
+
+const ClaimableWins: React.FC<Props> = ({ userAddress }) => {
+  const claimerAddress = ADDRESS[CONFIG.CHAINNAME].CLAIMER;
+  const {
+    data: claimData,
+    isLoading: claimIsLoading,
+    isSuccess: claimIsSuccess,
+    write: claimWrite,
+  } = useWriteContract({
+    address: claimerAddress ? `0x${claimerAddress.substring(2)}` : undefined,
+    abi: ABI.CLAIMER,
+    functionName: "claimPrizes",
+  });
+
+  const { isLoading: claimWaitLoading, isSuccess: claimWaitSuccess } =
+    useWaitForTransactionReceipt({
+      hash: claimData?.hash,
+      onSuccess(data) {
+        toast("claim success!", {
+          position: toast.POSITION.BOTTOM_LEFT,
+        });
+      },
+    });
+
+  const [userWins, setUserWins] = useState<Win[]>([]);
+  const [tierValues, setTierValues] = useState<any>(null);
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [currentWin, setCurrentWin] = useState<Win>();
+
+  const fetchWins = async () => {
+    try {
+      const drawId = await CONTRACTS.PRIZEPOOL[
+        CONFIG.CHAINNAME
+      ].getLastAwardedDrawId();
+      const currentDrawId = await CONTRACTS.PRIZEPOOL[
+        CONFIG.CHAINNAME
+      ].getOpenDrawId();
+      // Check if current draw ID is greater than draw ID + 1
+      if (currentDrawId > drawId + 1) {
+        // Handle scenario where there are no wins to claim
+        console.log("No wins to claim");
+        setUserWins([]); // Assuming setUserWins sets the state of wins
+        return; 
+      }
+
+      const prizeApi = `https://poolexplorer.xyz/${CONFIG.CHAINID}-${ADDRESS[CONFIG.CHAINNAME].PRIZEPOOL}-draw${drawId}`
+      const response = await fetch(
+        prizeApi
+      );
+      console.log(
+        "fetch",
+       prizeApi
+      );
+      const data = await response.json();
+
+      // const userWinForDebug = data.wins.find(
+      //   (win: Win) =>
+      //     win.p.toLowerCase() ===
+      //     "0xe0e7b7C5aE92Fe94D2ae677D81214D6Ad7A11C27".toLowerCase()
+      // );
+      // console.log(
+      //   "Specific win for 0xe0e7b7C5aE92Fe94D2ae677D81214D6Ad7A11C27:",
+      //   userWinForDebug
+      // );
+
+      setTierValues(data.tiers[CONFIG.CHAINID]);
+      // console.log("data for wins", data);
+      // console.log("address??", userAddress);
+
+      const userWinEntries = data.wins.filter(
+        (win: Win) => win.p.toLowerCase() === userAddress.toLowerCase()
+      );
+      // console.log("wins before claims", userWinEntries);
+      const claimedWins = await GetClaimEvents(CONFIG.CHAINID);
+      // @ts-ignore
+      const claimedWinsForUser = claimedWins.filter(
+        (claim) => claim.winner.toLowerCase() === userAddress.toLowerCase()
+      );
+
+      // console.log("userWinEntries initial:", userWinEntries);
+      // console.log("claimedWins for user:", claimedWinsForUser);
+      userWinEntries.forEach((win: any) => {
+        claimedWinsForUser.forEach((claim: any) => {
+          if (win.i) {
+            const indexPosition = win.i.indexOf(claim.index);
+            if (indexPosition !== -1) {
+              console.log("Removing index", claim.index, "from win", win);
+              win.i.splice(indexPosition, 1);
+            }
+          }
+        });
+        console.log("Updated win entry:", win);
+      });
+
+      console.log("Updated userWinEntries:", userWinEntries);
+
+      const validWins = userWinEntries.filter((win: any) => win.i.length > 0);
+      setUserWins(validWins);
+    } catch (e) {
+      console.log("error fetching claims", e);
+    }
+  };
+
+  useEffect(() => {
+    fetchWins();
+  }, [userAddress]);
+
+  useEffect(() => {
+    if (claimWaitSuccess) {
+      const timer = setTimeout(fetchWins, 3500); // 3.5 seconds delay
+      return () => clearTimeout(timer); // Cleanup function to clear the timeout
+    }
+  }, [claimWaitSuccess]);
+
+  const groupWins = (wins: Win[]) => {
+    const vaultGrouped = wins.reduce((acc, win) => {
+      if (!acc[win.v]) acc[win.v] = [];
+      acc[win.v].push(win);
+      return acc;
+    }, {} as { [vault: string]: Win[] });
+
+    Object.keys(vaultGrouped).forEach((vaultKey) => {
+      const tierGrouped = vaultGrouped[vaultKey].reduce((tierAcc, tierWin) => {
+        if (!tierAcc[tierWin.t]) tierAcc[tierWin.t] = [];
+        tierAcc[tierWin.t].push(tierWin);
+        return tierAcc;
+      }, {} as { [tier: number]: Win[] });
+
+      vaultGrouped[vaultKey] = tierGrouped as any;
+    });
+
+    return vaultGrouped;
+  };
+
+  const winsGroupedByVaultAndTier = groupWins(userWins);
+  console.log("wins grouped", winsGroupedByVaultAndTier);
+
+  const styles: { [key: string]: CSSProperties } = {
+    container: {
+      marginTop: "10px",
+      backgroundColor: "#b4ccd1",
+      padding: "20px",
+      borderRadius: "10px",
+      width: "350px",
+      display: "inline-block",
+      ...({
+        "@media (min-width: 768px)": {
+          display: "inline-flex",
+          minWidth: "auto",
+        },
+      } as Partial<CSSProperties>),
+    },
+    arrowIcon: {
+      height: "16px",
+      marginTop: "5px",
+      marginBottom: "5px",
+    },
+    vaultGrid: {
+      display: "grid",
+      gridTemplateColumns: "1fr",
+      gap: "10px",
+      maxWidth: "300px",
+      margin: "0 auto",
+    },
+    vaultCard: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      backgroundColor: "#fff",
+      padding: "10px",
+      borderRadius: "8px",
+      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+      width: "100%",
+      minWidth: "280px",
+      marginBottom: "10px",
+      border: "4px solid transparent",
+    },
+
+    newVaultCard: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      backgroundColor: "#fff",
+      padding: "10px",
+      borderRadius: "8px",
+      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+      border: "2px solid #b534ff",
+      animation: "highlight 10s ease-in-out",
+      width: "100%",
+      minWidth: "280px",
+    },
+    symbol: {
+      marginRight: "12px",
+      display: "flex",
+      alignItems: "center",
+    },
+    alignBottom: {
+      display: "flex",
+      alignItems: "center",
+    },
+    contentContainer: {
+      display: "flex",
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    whyPlay: {
+      backgroundColor: "#e5f3f5",
+      padding: "9px",
+      borderRadius: "8px",
+      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+      width: "100%",
+      minWidth: "280px",
+      fontSize: "19px",
+      marginBottom: "5px",
+    },
+  };
+  console.log("is modal open", isModalOpen);
+  return (
+    userWins.length > 0 && (
+      <>
+        {/* <div style={styles.container}>   */}
+        <div className="box-header" style={{ width: "230px" }}>
+          CLAIMABLE PRIZES&nbsp;
+          <div className="tooltipContainer hidden-mobile">
+            <FontAwesomeIcon icon={faCircleInfo} style={{ height: "16px" }} />
+            {/* <Image src="/images/questionmark.svg" alt="i" width={16} height={16}/> */}
+            <span className="tooltipText">
+              These prizes are won and waiting to be claimed. A bot will claim
+              the prizes if the reward is greater than the gas cost. If the
+              prizes are not claimed before the next draw they will expire.
+            </span>
+          </div>
+        </div>
+        <div style={styles.contentContainer}>
+          <div style={styles.vaultGrid}>
+            <div>
+              {Object.entries(winsGroupedByVaultAndTier).map(
+                ([vault, tiers]) => (
+                  <div key={vault}>
+                    {/* <h2>Vault: {vault}</h2> */}
+                    {Object.entries(tiers).map(([tier, tierWins]) => (
+                      <div key={tier}>
+                        {(tierWins as unknown as any[]).map((win: any) => {
+                          const valueForThisWin = CropDecimals(
+                            parseFloat(
+                              ethers.utils.formatUnits(
+                                tierValues[win.t].toString(),
+                                ADDRESS[CONFIG.CHAINNAME].PRIZETOKEN.DECIMALS
+                              )
+                            ) * win.i.length
+                          );
+                          return (
+                            <div
+                              key={win.p}
+                              // style={styles.vaultCard}
+                              className="animated winCard"
+                              onClick={() => {
+                                setCurrentWin(win);
+                                setModalOpen(true);
+                              }}>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                }}>
+                                <FontAwesomeIcon
+                                  icon={faTrophy}
+                                  size="sm"
+                                  style={{
+                                    color: "black",
+                                    height: "17px",
+                                    marginRight: "8px",
+                                  }}
+                                  onClick={async () => {
+                                    console.log(
+                                      "claiming on vault",
+                                      win.v,
+                                      "tier",
+                                      win.t,
+                                      "for",
+                                      win.p,
+                                      "indices",
+                                      win.i,
+                                      "fee recp 0x0000"
+                                    );
+console.log("contract itself",CONTRACTS.PRIZEPOOL[
+  CONFIG.CHAINNAME
+])
+                                    // Wrap liquidity checks in Promise.all
+                                    Promise.all([
+                                      CONTRACTS.PRIZEPOOL[
+                                        CONFIG.CHAINNAME
+                                      ].getTierRemainingLiquidity(win.t),
+                                      CONTRACTS.PRIZEPOOL[
+                                        CONFIG.CHAINNAME
+                                      ].reserve(),
+                                      CONTRACTS.PRIZEPOOL[
+                                        CONFIG.CHAINNAME
+                                      ].getTierPrizeSize(win.t),
+                                    ])
+                                      .then(
+                                        ([
+                                          tierRemainingLiquidity,
+                                          reserve,
+                                          getTierPrizeSize,
+                                        ]) => {
+                                          const totalPrizeSizeNeeded =
+                                            getTierPrizeSize.mul(win.i.length); // Ensure this multiplication operation is supported
+                                          const totalLiquidityAvailable =
+                                            tierRemainingLiquidity.add(reserve); // Ensure addition operation is supported
+
+                                          // Check if there's enough liquidity
+                                          if (
+                                            totalLiquidityAvailable.gte(
+                                              totalPrizeSizeNeeded
+                                            )
+                                          ) {
+                                            console.log(
+                                              "sufficient liquidity found"
+                                            );
+                                            // Enough liquidity, proceed with claim
+                                            claimWrite({
+                                              args: [
+                                                win.v,
+                                                win.t,
+                                                [win.p],
+                                                [win.i],
+                                                "0x0000000000000000000000000000000000000000",
+                                                0,
+                                              ],
+                                              gas: BigInt(
+                                                325000 +
+                                                  169000 * (win.i.length - 1)
+                                              ),
+                                            });
+                                          } else {
+                                            // Not enough liquidity, handle accordingly
+                                            console.error(
+                                              "Not enough liquidity to award the prize."
+                                            );
+                                          }
+                                        }
+                                      )
+                                      .catch((error) => {
+                                        // Handle potential errors, e.g., network issues, contract errors
+                                        console.error(
+                                          "Error checking liquidity:",
+                                          error
+                                        );
+                                      });
+                                  }}
+                                />
+
+                                <span>TIER {tier} </span>
+                              </div>
+                              <div style={styles.symbol}>
+                                <PrizeIcon size={17} />
+                                &nbsp;{valueForThisWin}
+                              </div>
+
+                              {/* <button
+                      className="button"
+                      onClick={() => {
+                        console.log("claiming on vault",win.v,"tier",win.t,"for",win.p,"indices",win.i);
+                        claimWrite({
+                          args: [win.v, win.t, [win.p], [win.i], win.p, 0],
+                        });
+                      }}
+                    >
+                      CLAIM
+                    </button> */}
+
+                              {/* {currentWin &&
+                    <Modal
+        isOpen={isModalOpen}
+        onClose={() => {console.log("closing?");setModalOpen(isModalOpen => !isModalOpen)}}
+        onClaim={() => {
+          console.log("claiming on vault", currentWin.v, "tier", currentWin.t, "for", currentWin.p, "indices", currentWin.i);
+          claimWrite({
+            args: [currentWin.v, currentWin.t, [currentWin.p], [currentWin.i], currentWin.p, 0],
+            gas: BigInt(325000 + (169000 * (currentWin.i.length - 1)))
+          });
+          setModalOpen(false);
+        }}
+        prizeValue={currentWin ? CropDecimals(parseFloat(ethers.utils.formatUnits(tierValues[currentWin.t].toString(), ADDRESS[CONFIG.CHAINNAME].PRIZETOKEN.DECIMALS)) * currentWin.i.length) : 0}
+      />} */}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                )
+              )}
+              <ToastContainer />
+              {isModalOpen && (
+                <div style={backdropStyles}>
+                  <div
+                    style={{
+                      position: "relative",
+                      maxWidth: "300px",
+                      backgroundColor: "#E6E6FA",
+                      padding: "20px",
+                      borderRadius: "10px",
+                      fontSize: "17px",
+                      color: "#483D8B",
+                      zIndex: 1000,
+                    }}>
+                    <button
+                      style={closeButtonStyles}
+                      onClick={() => setModalOpen(false)}>
+                      &times;
+                    </button>
+                    <br></br>
+                    Before claiming your{" "}
+                    {currentWin && currentWin?.i.flat().length > 1 ? (
+                      <>{currentWin?.i.flat().length} prizes</>
+                    ) : (
+                      "prize"
+                    )}{" "}
+                    from tier {currentWin?.t}, please weigh the gas cost against
+                    the benefits. Prize miners may claim for you if profitable,
+                    but they can only charge up to a 10% fee. It may not be
+                    worth it for them, but it might be worth it for you. Make an
+                    informed decision.
+                    <Image
+                      src="/images/poolerson.png"
+                      height={17}
+                      width={15}
+                      alt="poolerson"
+                    />
+                    <br></br>
+                    <br></br>
+                    {/* <div>Prize Value: {prizeValue}</div> */}
+                    <button
+                      className="button"
+                      onClick={async () => {
+                        if (currentWin) {
+                          console.log(
+                            "Preparing to claim on vault",
+                            currentWin.v,
+                            "tier",
+                            currentWin.t,
+                            "for",
+                            currentWin.p,
+                            "indices",
+                            currentWin.i,
+                            "fee 0x0"
+                          );
+                          console.log("contract itself",CONTRACTS.PRIZEPOOL[
+                            CONFIG.CHAINNAME
+                          ])
+                          console.log("test call",await CONTRACTS.PRIZEPOOL[
+                            CONFIG.CHAINNAME
+                          ].getTierRemainingLiquidity(currentWin.t))
+                          // Perform the liquidity checks asynchronously
+                          Promise.all([
+                            CONTRACTS.PRIZEPOOL[
+                              CONFIG.CHAINNAME
+                            ].getTierRemainingLiquidity(currentWin.t),
+                            CONTRACTS.PRIZEPOOL[CONFIG.CHAINNAME].reserve(),
+                            CONTRACTS.PRIZEPOOL[
+                              CONFIG.CHAINNAME
+                            ].getTierPrizeSize(currentWin.t),
+                          ])
+                            .then(
+                              ([
+                                tierRemainingLiquidity,
+                                reserve,
+                                getTierPrizeSize,
+                              ]) => {
+                                const totalPrizeSizeNeeded =
+                                  getTierPrizeSize.mul(currentWin.i.length); // Adjust for BigNumber operation
+                                const totalLiquidityAvailable =
+                                  tierRemainingLiquidity.add(reserve); // Adjust for BigNumber operation
+
+                                // Check if there's enough liquidity
+                                if (
+                                  totalLiquidityAvailable.gte(
+                                    totalPrizeSizeNeeded
+                                  )
+                                ) {
+                                  // Sufficient liquidity, proceed with claim
+                                  console.log("sufficient liquidity found");
+                                  console.log(
+                                    "Claiming gas",
+                                    325000 + 169000 * (currentWin.i.length - 1)
+                                  );
+                                  claimWrite({
+                                    args: [
+                                      currentWin.v,
+                                      currentWin.t,
+                                      [currentWin.p],
+                                      [currentWin.i],
+                                      "0x0000000000000000000000000000000000000000",
+                                      0,
+                                    ],
+                                    gas: BigInt(
+                                      325000 +
+                                        169000 * (currentWin.i.length - 1)
+                                    ),
+                                  });
+                                } else {
+                                  // Insufficient liquidity, handle accordingly
+                                  console.error(
+                                    "Not enough liquidity to award the prize."
+                                  );
+                                }
+                              }
+                            )
+                            .catch((error) => {
+                              // Handle potential errors
+                              console.error("Error checking liquidity:", error);
+                            });
+                        } else {
+                          console.log("Error processing win");
+                        }
+                        setModalOpen(false);
+                      }}>
+                      Claim POOL
+                    </button>
+                    {/* CLAIM POOL */}
+                    {/* CLAIM {prizeValue} POOL */}
+                    {/* </button> */}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>{" "}
+        </div>
+        {/* </div> */}
+      </>
+    )
+  );
+};
+
+export default ClaimableWins;

@@ -1,0 +1,291 @@
+
+
+.draw-table {
+  border-collapse: collapse;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 1000px;
+}
+
+.draw-table th,
+.draw-table td {
+ white-space: nowrap;
+  padding: 16px;
+  text-align: left;
+  background-color: #f7f7f7;
+  border-bottom: 1px solid #ebebeb;
+}
+
+.draw-table th:first-child,
+.draw-table td:first-child {
+  padding-left: 24px;
+}
+
+.draw-table th:last-child,
+.draw-table td:last-child {
+  padding-right: 24px;
+}
+
+@media screen and (min-width: 768px) {
+ 
+  .draw-table td {
+    padding: 12px;
+  }
+
+  .draw-table th:first-child,
+  .draw-table td:first-child {
+    padding-left: 32px;
+  }
+
+  .draw-table th:last-child,
+  .draw-table td:last-child {
+    padding-right: 20px;
+  }
+}
+
+@media screen and (min-width: 768px) {
+.wide-table {
+  width:1100px;
+}}
+
+
+
+
+
+.win-container {
+margin-top: 40px;
+}
+
+.claims-table {
+border-collapse: collapse;
+border-radius: 8px;
+overflow: hidden;
+box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+width: 100%;
+max-width: 820px;
+}
+
+.claims-table th,
+.claims-table td {
+padding: 16px;
+text-align: left;
+background-color: #f7f7f7;
+border-bottom: 1px solid #ebebeb;
+}
+
+.claims-table th:first-child,
+.claims-table td:first-child {
+padding-left: 24px;
+}
+
+.claims-table th:last-child,
+.claims-table td:last-child {
+padding-right: 24px;
+}
+
+@media screen and (max-width: 900px) {
+.claims-table th,
+.claims-table td {
+padding: 12px; /* Reduce padding by 50% */
+}
+
+.claims-table th:first-child,
+.claims-table td:first-child {
+padding-left: 18px; /* Adjust the left padding accordingly */
+}
+
+.claims-table th:last-child,
+.claims-table td:last-child {
+padding-right: 18px; /* Adjust the right padding accordingly */
+}
+}
+
+.amount-header,
+.amount {
+text-align: right;
+}
+
+
+.claimboost-table {
+display: flex;
+flex-direction: column;
+width: 100%;
+}
+
+.claimboost-table-header, .claimboost-table-row {
+display: flex;
+justify-content: space-between;
+padding: 6px;
+}
+
+.header__item, .claimboost-table-data {
+flex: 1;
+text-align: center;
+}
+
+.claimboost-table-data {
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+/* max-width: 150px; Adjust as needed */
+}
+
+.claimboost-table-header {
+background-color: #f8fafa;
+font-weight: bold;
+font-size:12px;
+}
+
+.claimboost-table-content {
+background-color: #daace5;
+font-size:14px;
+
+}
+
+.claimboost-table-row {
+border-bottom: 1px solid #e6c4fb;
+font-size:14px;
+
+}
+
+.claimboost-table-row:nth-child(even) {
+background-color: #c2baf2;
+}
+
+.vault-table-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #ecf0f6;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.vault-table-header-row {
+  display: grid;
+  grid-template-columns:  2fr 1.25fr 1fr 1fr 1.5fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.vault-table-header-tvl-hidden {
+  grid-template-columns:  2fr 1.25fr 1fr 1fr;
+}
+
+
+
+.vault-row {
+  min-height:76px;
+  display: grid;
+  grid-template-columns: 2fr 1.25fr 1fr 1fr 1.5fr;
+  gap: 16px;
+  background-color: #ffffff;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.vault-row-tvl-hidden {
+  grid-template-columns: 2fr 1.25fr 1fr 1fr;
+}
+
+.vault-row:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+}
+
+.vault-cell {
+  padding: 4px;
+  text-align: left;
+}
+
+.vault-left-align {
+  text-align: left;
+}
+
+.vault-yield-tvl {
+  text-align: right;
+  margin-right:14px;
+}
+
+.vaults-header {
+  margin-left:8px;
+  text-align: left;
+}
+
+.vault-deposits-tvl {
+  text-align: right;
+  margin-right:10px;
+}
+
+.vault-table-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.vault-hidden-mobile {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .vault-hidden-mobile {
+    display: inline-block;
+  }
+}
+
+/* Mobile-specific styles */
+@media (max-width: 767px) {
+  .vault-table-header {
+    display: none;
+  }
+
+  .vault-table-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .vault-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background-color: #ffffff;
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+  }
+
+  .vault-row:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .vault-cell {
+    text-align: left;
+    padding: 4px 0;
+  }
+
+  .vault-yield-tvl,
+  .vault-deposits-tvl {
+    text-align: left;
+  }
+
+  .vault-mobile-label {
+    font-weight: bold;
+    margin-right: 4px;
+  }
+
+  .vault-mobile-value {
+    font-size: 14px;
+  }
+}

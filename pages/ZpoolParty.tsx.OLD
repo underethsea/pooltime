@@ -1,0 +1,234 @@
+import React from "react";
+import { useState, useEffect, CSSProperties } from "react";
+// import Layout from "./index";
+import Image from "next/image";
+import Wins from "../components/wins";
+import Tickets from "../components/tickets";
+import Prizes from "../components/prizes";
+// import DepositAndRedeem from "../components/depositAndRedeem";
+// import ClaimableWins from "../components/youWinBro";
+import { useChainId, useAccount } from "wagmi";
+import Vaults from "../components/vaults";
+import { CONFIG } from "../constants/config";
+import PrizeTokenBalance from "../components/prizeTokenBalance";
+import styles from "../styles/PoolParty.module.css"; // Import the CSS module
+import WhyPlay from "../components/whyPlay";
+import TopWinners from "../components/topWinners";
+import { MyConnect } from "../components/connectButton";
+import { useRouter } from "next/router"; // Import useRouter from Next.js
+import { ethers } from "ethers"; // Import ethers
+import { PROVIDERS } from "../constants";
+// import Drip from "../components/drip";
+import Link from "next/link";
+import {
+  faRefresh,
+  faUpRightFromSquare,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
+import V4 from "../components/v4";
+
+
+
+interface Vault {
+  tvl: number;
+  icon: string;
+  vault: string;
+  value: number;
+  symbol: string;
+  name: string;
+  decimals: number;
+}
+
+const PoolParty = (): JSX.Element => {
+  const {chainId}  = useAccount();
+  const router = useRouter();
+  const { address: wagmiAddress, isConnected } = useAccount();
+  const [address, setAddress] = useState<string | null>(null);
+  const [vaultTvl, setVaultTvl] = useState<Vault>();
+  const [refreshTickets, setRefreshTickets] = useState<number>(0);
+  // const [overview, setOverview] = useState();
+  const [isQueryAddressUsed, setIsQueryAddressUsed] = useState(false);
+  const [isVaultModal, setIsVaultModal] = useState(false)
+
+  // console.log("tvl elevated", vaultTvl);
+
+  // Validate the query address, fallback to wagmiAddress if invalid
+  // console.log("using address",address)
+  const [isPoolerInvalid, setIsPoolerInvalid] = useState(false); // New state variable for tracking invalid pooler param
+  useEffect(() => {
+    const queryAddress = router.query.pooler as string;
+    const vaultAddress = router.query.vault as string;
+    if(ethers.utils.isAddress(vaultAddress)) {setIsVaultModal(true)}else{setIsVaultModal(false)}
+
+  
+    const processQueryAddress = async () => {
+      if (queryAddress && (ethers.utils.isAddress(queryAddress) || queryAddress.endsWith('.eth'))) {
+        let resolvedAddress = queryAddress;
+        if (queryAddress.endsWith('.eth')) {
+          resolvedAddress = await PROVIDERS["MAINNET"].resolveName(queryAddress) as any;
+        }
+        return resolvedAddress && ethers.utils.isAddress(resolvedAddress) ? resolvedAddress : null;
+      }
+      return null;
+    };
+  
+    const updateAddress = async () => {
+      // If there's a connected wallet, prioritize its address
+      if (isConnected && wagmiAddress) {
+        setAddress(wagmiAddress);
+        // Show warning if there's also a pooler parameter present and it's valid
+        setIsQueryAddressUsed(!!queryAddress);
+      } else if (queryAddress) {
+        const resolvedAddress = await processQueryAddress();
+        if (resolvedAddress) {
+          setAddress(resolvedAddress);
+          setIsQueryAddressUsed(true);
+          setIsPoolerInvalid(false);
+        } else {
+          setIsPoolerInvalid(true);
+          setIsQueryAddressUsed(false);
+        }
+      } else {
+        setAddress(null);
+        setIsQueryAddressUsed(false);
+        setIsPoolerInvalid(false);
+      }
+    };
+  
+    updateAddress();
+  }, [router.query.pooler, router.query.vault,isConnected, wagmiAddress]);
+  
+
+  // useEffect(() => {
+  //   const fetchOverview = async () => {
+  //     const overviewFetch = await fetch(
+  //       "https://poolexplorer.xyz/" + CONFIG.CHAINID + "-"+ ADDRESS[CONFIG.CHAINNAME].PRIZEPOOL + "-overview"
+  //     );
+  //     const overviewReceived = await overviewFetch.json()
+  //     console.log("got overview in party",overviewReceived)
+  //     setOverview(overviewReceived);
+  //   };
+  //   fetchOverview();
+  // }, []);
+  const handleCloseNotice = () => {
+    const query = { ...router.query };
+    delete query.pooler; // Remove the pooler parameter from the query object
+
+    // Replace the current URL without the pooler parameter, without reloading the page
+    router.replace({
+      pathname: router.pathname,
+      query,
+    }, undefined, { shallow: true });
+  };
+
+  return (
+    <>
+      {/* // <Layout> */}
+      <center>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}>
+          <Image
+            src={`/images/squarepool.png`}
+            height={90}
+            width={90}
+            alt="pool party"
+          />
+          &nbsp;&nbsp;
+          <h1 style={{ margin: "0 0 0 10px", lineHeight: "120px" }}>
+            POOLTIME
+          </h1>
+        </div>
+     
+        {isQueryAddressUsed && address && !isConnected &&(
+        <div style={{ padding: '10px', backgroundColor: '#f0d0dd', marginBottom: '20px', borderRadius:"10px"}}>
+                   {/* <FontAwesomeIcon icon={faWindowClose} onClick={handleCloseNotice} style={{ cursor: 'pointer' }} width={16} height={16}/>&nbsp;&nbsp; */}
+
+         The wallet shown here is <code>{address}</code>
+
+        </div>   )}
+        {isPoolerInvalid && (
+          <div style={{ padding: '10px', backgroundColor: '#f0d0dd', marginBottom: '20px', borderRadius: "10px" }}>
+            The provided pooler parameter is not a valid Ethereum address or ENS name.
+          </div>
+        )}
+        {isConnected && isQueryAddressUsed && (
+  <div style={{ padding: '10px', backgroundColor: '#f0d0dd', marginBottom: '20px', borderRadius: "10px" }}>
+    <span>Address in URL only works properly when wallet is disconnected.</span>
+  </div>
+  
+)}
+<div style={{ padding: '10px', backgroundColor: '#d9e4f1', marginBottom: '20px', borderRadius: "10px" }}>
+    <span>This protocol is NEW. &nbsp;Have old deposits? Migrate now!
+      &nbsp;
+    <div style={{ display: "inline", cursor: "pointer" }}>
+  <a href="https://migrate.cabana.fi" target="_blank" rel="noopener noreferrer">
+    <FontAwesomeIcon icon={faUpRightFromSquare} height={15} width={15}></FontAwesomeIcon>
+    {/* Migrate now &nbsp;<FontAwesomeIcon icon={faUpRightFromSquare} height={15} width={15}></FontAwesomeIcon> */}
+  </a>
+</div>
+</span></div>
+      
+        {/* {address && chainId && (
+          <PrizeTokenBalance address={address} chain={chainId} />
+        )}      */}
+           <div className={styles.grid}>
+
+          <div style={{ width: "100%" }}>
+
+        <div className="app-container-desktop app-container">
+          {/* First column */}
+            <Prizes />
+            {address ? <Wins addressProp={address}/>:<><br></br><TopWinners/></>}
+
+            {!address && (
+              <><br></br><br></br>
+                <MyConnect connectText={"CONNECT TO WIN"} />
+              </>
+            )}
+            {/* <Drip chainProp={"OPSEPOLIA"} addressProp={"random"} updateNow={()=>{}}/> */}
+            {/* 
+           
+            <DepositAndRedeem
+              vaultTvl={vaultTvl ? [vaultTvl] : undefined}
+              setRefreshTickets={setRefreshTickets}
+            /> */}
+          </div></div>
+
+          <div style={{ width: "100%" }}>
+            {/* Second column */}
+<Vaults
+              chainProp={chainId ? chainId.toString() : CONFIG.DEFAULT_CHAIN}
+              setVaultTvl={setVaultTvl}
+              refreshTickets={refreshTickets}
+              modal={isVaultModal}
+              // overview={overview}
+            /> 
+          </div>
+
+          <div style={{ width: "100%", gridRow: "span 2" }}>
+            {/* Third column */}
+            {!address && <WhyPlay />}
+            {address  && (
+              <div className="app-container">
+                {/* <ClaimableWins userAddress={address} /> */}
+                <Tickets
+                  addressProp={address}
+                  // refreshTickets={refreshTickets}
+                /><br></br>
+                {/* <V4 addressProp={address}/> */}
+              </div>
+            )}
+          </div>
+          </div>
+        
+      </center>
+    </>
+  );
+};
+
+export default PoolParty;
