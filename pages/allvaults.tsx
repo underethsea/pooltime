@@ -1020,7 +1020,7 @@ function AllVaults() {
             <div
               className="tvl"
               style={{
-                textAlign: "right",
+                textAlign: "left",
                 marginTop: "10px",
                 // backgroundColor: "#e5f3f5",
                 color: "white",

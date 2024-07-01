@@ -17,6 +17,9 @@
   background-color: #f7f7f7;
   border-bottom: 1px solid #ebebeb;
 }
+.draw-table td:hover {
+  background-color: #e0e0e0;
+}
 
 .draw-table th:first-child,
 .draw-table td:first-child {
