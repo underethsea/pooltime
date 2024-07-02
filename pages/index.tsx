@@ -60,10 +60,22 @@ const Layout = ({ children }: LayoutProps) => {
     </div>
     <div className="sponsor-images-container">
       <a href="https://pooltogether.com" target="_blank" rel="noreferrer">
-        <img src="/images/pooltogether.svg" className="pooltogether" alt="PoolTogether"/>
+      <Image
+                src="/images/pooltogether.svg"
+                className="pooltogether"
+                alt="PoolTogether"
+                width={60} // Set appropriate width and height for the image
+                height={30}
+              />
       </a>
       <a href="https://witnet.io" target="_blank" rel="noreferrer">
-        <img src="/images/witnet.png" className="witnet" alt="Witnet"/>
+      <Image
+                src="/images/witnet.png"
+                className="witnet"
+                alt="Witnet"
+                width={40}
+                height={30}
+              />
       </a>
     </div>
   </div>
@@ -76,22 +88,46 @@ const Layout = ({ children }: LayoutProps) => {
     {/* <span className="social-text-top">Socials</span> */}
     <span title="Farcaster">
       <a href="https://warpcast.com/~/channel/pool-together" target="_blank" rel="noreferrer">
-        <img src="/images/farcaster.svg" className="farcaster" alt="Farcaster"/>
+      <Image
+                src="/images/farcaster.svg"
+                className="farcaster"
+                alt="Farcaster"
+                width={30}
+                height={30}
+              />
       </a>
     </span>
     <span title="Twitter">
       <a href="https://x.com/PoolTogether_" target="_blank" rel="noreferrer">
-        <img src="/images/x.png" className="twitter" alt="Twitter"/>
+      <Image
+                src="/images/x.png"
+                className="twitter"
+                alt="Twitter"
+                width={20}
+                height={20}
+              />
       </a>
     </span>
     <span title="Mirror">
       <a href="https://pooltogether.mirror.xyz/" target="_blank" rel="noreferrer">
-        <img src="/images/mirror.svg" className="mirror" alt="Mirror"/>
+      <Image
+                src="/images/mirror.svg"
+                className="mirror"
+                alt="Mirror"
+                width={20}
+                height={20}
+              />
       </a>
     </span>
     <span title="Discord">
       <a href="https://pooltogether.com/discord" target="_blank" rel="noreferrer">
-        <img src="/images/discord_filled.svg" className="discord" alt="discord"/>
+      <Image
+                src="/images/discord_filled.svg"
+                className="discord"
+                alt="discord"
+                width={30}
+                height={30}
+              />
       </a>
     </span>
     {/* <span title="Docs">
