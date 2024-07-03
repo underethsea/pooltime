@@ -216,7 +216,7 @@ const Tooltip: React.FC<TooltipProps> = ({ vaultAPR, apr, total, symbol }) => {
         </span>
         {total > 0.01 && (
           <>
-            {total.toFixed(2)}%&nbsp;
+            {total.toFixed(1)}%&nbsp;
             <FontAwesomeIcon
               icon={faCircleInfo}
               style={{ color: "#1a4160", height: "16px" }}
@@ -224,14 +224,14 @@ const Tooltip: React.FC<TooltipProps> = ({ vaultAPR, apr, total, symbol }) => {
             <div className="vault-tooltip-text">
               {vaultAPR && vaultAPR > 0.001 && (
                 <div className="vault-tooltip-row">
-                  <div>{Number(vaultAPR).toFixed(2)}%</div>
+                  <div>{Number(vaultAPR).toFixed(1)}%</div>
                   <div>Avg Prize Yield</div>
                 </div>
               )}
               {apr && apr > 0.0001 ? (
                 <>
                   <div className="vault-tooltip-row">
-                    <div>{(apr * 100).toFixed(2)}%</div>
+                    <div>{(apr * 100).toFixed(1)}%</div>
                     <div>{symbol} Incentives</div>
                   </div>
                 </>
@@ -242,7 +242,7 @@ const Tooltip: React.FC<TooltipProps> = ({ vaultAPR, apr, total, symbol }) => {
                 <>
                   <hr className="vault-tooltip-hr" />
                   <div className="vault-tooltip-row">
-                    <div>{total.toFixed(2)}%</div>
+                    <div>{total.toFixed(1)}%</div>
                     <div>Total</div>
                   </div>
                 </>

@@ -1050,9 +1050,9 @@ const Vault: React.FC<VaultProps> = ({
             : chance.winsPerDraw7d.toFixed(0)}{" "}
           prizes per draw
           <br />
-          {(chance?.sevenDrawVaultPortion * 100).toFixed(2)}% vault portion
+          {(chance?.sevenDrawVaultPortion * 100).toFixed(1)}% vault portion
           <br />
-          {(100 * (Number(vaultData.userVaultBalance) / Number(vaultData.totalAssets))).toFixed(2)}% your portion
+          {(100 * (Number(vaultData.userVaultBalance) / Number(vaultData.totalAssets))).toFixed(1)}% your portion
         </span>
       </div>
     )}  <br></br>
@@ -1627,7 +1627,7 @@ const Vault: React.FC<VaultProps> = ({
                                       )}
                                       &nbsp;
                                       {NumberWithCommas(
-                                        CropDecimals(annualYieldPercentage)
+                                        annualYieldPercentage.toFixed(1)
                                       )}
                                       %
                                     </span>
