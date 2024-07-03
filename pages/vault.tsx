@@ -1056,12 +1056,12 @@ const Vault: React.FC<VaultProps> = ({
           {(100 * (Number(vaultData.userVaultBalance) / Number(vaultData.totalAssets))).toFixed(2)}% your portion
         </span>
       </div>
-    )}
+    )}  <br></br>
   </>
 )}
 
-                        <br></br>
-                        <br></br>
+                      
+                       
                         {chance &&
                           chance.grandPrize > 0 &&
                           chance.grandPrize !== Infinity &&

@@ -38,7 +38,7 @@ export const MyConnect: React.FC<ConnectProps> = ({ connectText }) => {
           chain &&
           (!authenticationStatus || authenticationStatus === "authenticated");
         return (
-          <div style={{ display: "inline-block" }}>
+          <>
             <div
               {...(!ready && {
                 "aria-hidden": true,
@@ -110,7 +110,7 @@ export const MyConnect: React.FC<ConnectProps> = ({ connectText }) => {
                 );
               })()}
             </div>
-          </div>
+          </>
         );
       }}
     </ConnectButton.Custom>
