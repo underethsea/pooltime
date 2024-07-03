@@ -3,7 +3,7 @@ import Layout from "./index";
 import Image from "next/image";
 import PrizeValueIcon from "../components/prizeValueIcon";
 import PrizeValue from "../components/prizeValue";
-import Wins from "../components/leaderboardWins"
+import Wins from "../components/LeaderboardWins"
 
 interface Winner {
   p: string;
