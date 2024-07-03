@@ -30,7 +30,6 @@ import {
 import { useRouter } from "next/router";
 import { GetActivePromotionsForVaults } from "../utils/getActivePromotions";
 import { DepositSuccessModal } from "../components/depositSuccessModal";
-import { TokenToGeckoId } from "../constants/tokenGeckoId";
 import { VaultRewards } from "../components/vaultRewards";
 import { getGeckoPriceForTokenAddress } from "../utils/tokenPrices";
 import { GetChainName } from "../utils/getChain";

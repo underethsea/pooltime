@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import Layout from "./index"; // Assuming Layout is your page layout component
+import Layout from "./index"; 
 import Image from "next/image";
 import PrizeValueIcon from "../components/prizeValueIcon";
 import PrizeValue from "../components/prizeValue";
-import Wins from "../components/LeaderboardWins"; // Updated Wins component
+import Wins from "../components/leaderboardWins"
 
 interface Winner {
   p: string;
@@ -14,7 +14,7 @@ interface Winner {
 
 const Leaderboard: React.FC = () => {
   const [winners, setWinners] = useState<Winner[]>([]);
-  const [searchQuery, setSearchQuery] = useState(""); // Added search state
+  const [searchQuery, setSearchQuery] = useState(""); 
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
 
   useEffect(() => {
@@ -22,7 +22,7 @@ const Leaderboard: React.FC = () => {
       try {
         const response = await fetch(`https://poolexplorer.xyz/prizeleaderboard`);
         const data = await response.json();
-        setWinners(data); // Assuming the response is directly an array of winners
+        setWinners(data); 
       } catch (error) {
         console.error("Error fetching leaderboard:", error);
       }
