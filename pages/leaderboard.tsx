@@ -3,7 +3,7 @@ import Layout from "./index";
 import Image from "next/image";
 import PrizeValueIcon from "../components/prizeValueIcon";
 import PrizeValue from "../components/prizeValue";
-import Wins from "../components/LeaderboardWins"
+import Wins from "../components/leaderboardWins"
 
 interface Winner {
   p: string;
@@ -78,7 +78,8 @@ const Leaderboard: React.FC = () => {
                 <tr key={winner.p} onClick={() => handleAddressClick(winner.p)} style={{ cursor: "pointer" }}>
                   <td className="hidden-mobile">{index + 1}</td>
                   <td className="hidden-mobile">{winner.p}</td>
-                  <td className="hidden-desktop">{winner.p.slice(0, 15)}</td>
+                  <td className="hidden-desktop">{winner.p && `${winner.p.slice(0, 6)}...${winner.p.slice(winner.p.length - 4)}`}
+</td>
                   <td className="hidden-mobile">{winner.draws}</td>
                   <td className="hidden-mobile">{winner.prizes}</td>
                   <td className="amount" style={{ textAlign: "right" }}>
