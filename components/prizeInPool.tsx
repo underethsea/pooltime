@@ -120,16 +120,16 @@ const PrizeInPool: React.FC = () => {
                 height={40}
                 alt="trophy"
               />
-              &nbsp;&nbsp;Total Prize&nbsp;&nbsp; <PrizeValueIcon size={32} />
+              &nbsp;&nbsp;<span className="hidden-mobile">Total</span> Prize&nbsp;&nbsp; <PrizeValueIcon size={32} />
               <PrizeValue amount={BigInt(totalPrize * 1e18)} size={40} />
             </div>
-            <div className="total-prize"></div>
+            <div className="total-prize"></div>  
             <div className="grid-container">
               <div className="grid-header">
                 <div></div>
-                <div style={{ textAlign: "right" }}>Total Prize&nbsp;&nbsp;</div>
-                <div style={{ textAlign: "right" }}>Jackpot&nbsp;&nbsp;</div>
-                <div style={{ textAlign: "right" }}>Tier 1&nbsp;&nbsp;</div>
+                <div style={{ textAlign: "right" }}><span className="hidden-mobile">Total</span> Prize&nbsp;&nbsp;</div>
+                <div style={{ textAlign: "right", color:"#f0c8f9" }}>Jackpot&nbsp;&nbsp;</div>
+                <div style={{ textAlign: "right" }} className="hidden-mobile">Tier 1&nbsp;&nbsp;</div>
               </div>
               {sortedPrizes.map(([chain, prizeData]) => {
                 const tier0 = prizeData.prizes.tierData.find(
@@ -148,7 +148,7 @@ const PrizeInPool: React.FC = () => {
                       <PrizeValueIcon size={24} />
                       <PrizeValue amount={BigInt(prizeData.total)} size={28} />
                     </div>
-                    <div style={{ textAlign: "right" }}>
+                    <div style={{ textAlign: "right",color:"#e9aaf7" }}>
                       {tier0 && tier0.value > 0 && (
                         <>
                           <PrizeValueIcon size={24} />
@@ -156,7 +156,7 @@ const PrizeInPool: React.FC = () => {
                         </>
                       )}
                     </div>
-                    <div style={{ textAlign: "right" }}>
+                    <div style={{ textAlign: "right" }} className="hidden-mobile">
                       {tier1 && tier1.value > 0 && (
                         <>
                           <PrizeValueIcon size={24} />
@@ -205,13 +205,17 @@ const PrizeInPool: React.FC = () => {
           align-items: center;
           margin-bottom: 20px;
         }
-
         .grid-container {
           display: grid;
-          grid-template-columns: .8fr 1fr 1fr 1fr;
+          grid-template-columns: 0.8fr 1fr 1fr 1fr;
           gap: 17px;
         }
-
+        
+        @media (max-width: 768px) { 
+          .grid-container {
+            grid-template-columns: 0.8fr 1fr 1fr;
+          }
+        }
         .grid-header {
           display: contents;
           font-size: 15px;
