@@ -60,6 +60,11 @@
 .win-container {
 margin-top: 40px;
 }
+@media (max-width: 500px) {
+  .win-container{
+    width: 100%;
+  }
+}
 
 .claims-table {
 border-collapse: collapse;

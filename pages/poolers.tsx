@@ -284,7 +284,7 @@ function Poolers() {
                             {player.address}
                           </span>
                           <span className="hidden-desktop">
-                            {player.address && player.address.substring(0, 8)}
+                          {player.address && `${player.address.substring(0, 6)}...${player.address.substring(player.address.length - 4)}`}
                           </span>
                         </td>
                         <td className="amount" style={{ textAlign: "right" }}>
