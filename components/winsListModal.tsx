@@ -152,10 +152,10 @@ const WinsListModal: React.FC<WinsModalProps> = ({
             <div>
               {limitedWins.map((win: any, index: any) => (
                 <div key={index} style={styles.row}>
-                  <div style={styles.cellLeftAlign} className="hidden-mobile">
-                    <span style={{ fontSize: "14px" }}>
+                  <div style={styles.cellLeftAlign}>
+                  <span className="hidden-mobile"><span style={{ fontSize: "14px" }}>
                       {GetChainName(win.network)}{" "}
-                    </span>
+                    </span></span>
                     &nbsp;&nbsp;
                     <IconDisplay
                       name={getVaultName(win.vault, vaults)}
@@ -218,7 +218,7 @@ const styles: any = {
     color: "white",
     maxWidth: "500px",
     border: "3px solid #fbf9fd",
-    width: "85%",
+    width: "75%",
     backgroundColor: "#030526",
     padding: "20px 20px 20px 20px",
     margin: "10px 10px 10px 10px",
@@ -226,7 +226,7 @@ const styles: any = {
     boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2)",
     position: "relative",
     textAlign: "center",
-    maxHeight: "700px",
+    maxHeight: "85%",
     overflow: "hidden",
   },
 };
