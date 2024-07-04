@@ -1408,7 +1408,10 @@ const Vault: React.FC<VaultProps> = ({
                                         );
                                       } else {
                                         toast.dismiss();
-
+                                        const args: [string, string] = [
+                                          vaultData.address,
+                                          ethers.utils.parseUnits(buyAmount, vaultData.decimals).toString()
+                                        ];
                                         writeApprove({
                                           address: `0x${vaultData?.asset.substring(
                                             2
@@ -1416,13 +1419,7 @@ const Vault: React.FC<VaultProps> = ({
                                           abi: ABI.ERC20,
                                           functionName: "approve",
 
-                                          args: [
-                                            vaultData.address as any,
-                                            ethers.utils.parseUnits(
-                                              buyAmount,
-                                              vaultData.decimals
-                                            ),
-                                          ],
+                                          args: args,
                                         });
                                       }
                                     } else {
