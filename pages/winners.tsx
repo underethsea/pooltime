@@ -541,7 +541,12 @@ function Winners(): JSX.Element {
               .claims-table th:last-child,
               .claims-table td:last-child {
                 padding-right: 24px;
+                @media (max-width: 400px) {
+                    padding-right: 0px;
+                }
               }
+              
+
 
               .amount-header,
               .amount {
