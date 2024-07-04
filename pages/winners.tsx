@@ -60,10 +60,7 @@ function Winners(): JSX.Element {
     if (newValue) {
       const selectedOption = newValue as { label: number; value: number };
       setDraw(selectedOption);
-      router.push({
-        pathname: router.pathname,
-        query: { ...router.query, draw: selectedOption.value },
-      });
+      
     }
   };
 
@@ -89,10 +86,7 @@ function Winners(): JSX.Element {
       const latestDraw = Math.max(...newDraws);
       setDraw({ label: latestDraw, value: latestDraw });
       await fetchWins(selectedOption.value, latestDraw);
-      router.push({
-        pathname: router.pathname,
-        query: { ...router.query, chain: selectedOption.value, draw: latestDraw },
-      });
+      
     }
   };
   const fetchWins = async (
