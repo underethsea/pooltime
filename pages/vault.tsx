@@ -1,4 +1,3 @@
-// vault.tsx
 import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { ABI, ADDRESS, PROVIDERS, CONFIG } from "../constants";
@@ -626,15 +625,11 @@ const Vault: React.FC<VaultProps> = ({
               )
             );
           }
+          const [assetResults, assetPrice] = await Promise.all([
+            Multicall(assetCalls, GetChainName(activeVaultChain)),
+            GetAssetPrice(GetChainName(activeVaultChain), asset)
+          ]);
 
-          const assetResults = await Multicall(
-            assetCalls,
-            GetChainName(activeVaultChain)
-          );
-          const assetPrice = await GetAssetPrice(
-            GetChainName(activeVaultChain),
-            asset
-          );
           setAssetPrice(assetPrice as any);
           // console.log("gecko price", assetPrice);
           const assetName = assetResults[0].toString();
@@ -714,36 +709,42 @@ const Vault: React.FC<VaultProps> = ({
       // console.log("no overview");
     }
   }, [assetPrice]);
-
   useEffect(() => {
-    async function getApr() {
-      if(overviewFromContext && overviewFromContext.overview && overviewFromContext.overview.prices)
-      // console.log("active vault address",activeVaultAddress)
-      if (activeVaultAddress) {
-        // console.log("active getting promo")
-        const promos = await GetActivePromotionsForVaults(
-          [activeVaultAddress],
-          true,
-          overviewFromContext.overview.prices
-        );
-        // console.log("active vault promos", promos);
-        setActivePromos(promos);
+    async function fetchData() {
+      const promises = [];
+  
+      if (overviewFromContext && overviewFromContext.overview && overviewFromContext.overview.prices) {
+        if (activeVaultAddress) {
+          const promoPromise = GetActivePromotionsForVaults(
+            [activeVaultAddress],
+            true,
+            overviewFromContext.overview.prices
+          ).then(promos => {
+            setActivePromos(promos);
+          });
+          promises.push(promoPromise);
+        }
       }
-    }
-    async function getChance() {
+  
       if (activeVaultAddress && address) {
-        const chance: Chance = await GetChance(
+        const chancePromise = GetChance(
           activeVaultChain,
           activeVaultAddress,
           address
-        );
-        setChance(chance);
+        ).then(chance => {
+          setChance(chance);
+        });
+        promises.push(chancePromise);
       }
+  
+      await Promise.all(promises);
     }
-
-    getChance();
-    getApr();
+  
+    if (activeVaultAddress && router.isReady) {
+      fetchData();
+    }
   }, [activeVaultAddress, address, router.isReady]);
+  
 
   // vaultData && console.log("contributed",vaultData?.contributed7d, typeof vaultData.contributed7d);
   // console.log("active promos here", activePromos);
@@ -1034,7 +1035,7 @@ const Vault: React.FC<VaultProps> = ({
                           )}
                           {userWinChance && userWinChance !== null && (
   <>
-    On average you will win a prize{" "}
+    On average you will win {" "}
     {userWinChance === 1 ? (
       <>every day</>
     ) : (
@@ -1055,7 +1056,7 @@ const Vault: React.FC<VaultProps> = ({
           {(100 * (Number(vaultData.userVaultBalance) / Number(vaultData.totalAssets))).toFixed(1)}% your portion
         </span>
       </div>
-    )}  <br></br>
+    )}  <br></br><br></br>
   </>
 )}
 
