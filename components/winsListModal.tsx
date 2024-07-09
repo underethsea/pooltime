@@ -25,6 +25,7 @@ interface WinsModalProps {
   showModal: boolean;
   onClose: () => void;
   wins: AggregateWin[];
+  address: string;
 }
 
 const calculateTotalAmountWon = (flatWins: any) => {
@@ -88,6 +89,7 @@ const WinsListModal: React.FC<WinsModalProps> = ({
   showModal,
   onClose,
   wins,
+  address,
 }) => {
   const [vaults, setVaults] = useState<any[]>([]);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -143,12 +145,21 @@ const WinsListModal: React.FC<WinsModalProps> = ({
               </span>
               &nbsp;&nbsp;&nbsp;{sortedWins.length} WIN
               {sortedWins.length > 1 ? "S" : ""}&nbsp;&nbsp;&nbsp;
+              <div style={styles.prizeContainer}>
               <PrizeValueIcon size={26} />
               <PrizeValue
                 amount={calculateTotalAmountWon(sortedWins)}
                 size={28}
               />
+              </div>
             </h2>
+
+            <h5 style={{ color: "#ffffff", wordWrap: "break-word", }}>
+            <td className="hidden-mobile">{address}</td>
+            <td className="hidden-desktop">
+                    {address && `${address.slice(0, 6)}...${address.slice(address.length - 4)}`}
+                </td>
+            </h5>
             <div>
               {limitedWins.map((win: any, index: any) => (
                 <div key={index} style={styles.row}>
@@ -183,6 +194,15 @@ const WinsListModal: React.FC<WinsModalProps> = ({
 export default WinsListModal;
 
 const styles: any = {
+  prizeContainer: {
+    display: "inline-flex",
+    alignItems: "center",
+  },
+  '@media (max-width: 600px)': {
+    prizeContainer: {
+      flexDirection: "column",
+    },
+  },
   row: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr 1fr",
@@ -227,6 +247,6 @@ const styles: any = {
     position: "relative",
     textAlign: "center",
     maxHeight: "85%",
-    overflow: "hidden",
+    overflow: "auto",
   },
 };

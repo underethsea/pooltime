@@ -428,7 +428,9 @@ const Wins: React.FC<WinProps> = ({ addressProp }) => {
       </WinsModal> */}
       <WinsListModal showModal={showAllWinsModal}
         onClose={() => setShowAllWinsModal(false)}
-        wins={wins}/>
+        wins={wins}
+        address={addressProp}
+        />
     </>
   );
 };
