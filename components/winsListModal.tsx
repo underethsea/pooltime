@@ -120,7 +120,7 @@ const WinsListModal: React.FC<WinsModalProps> = ({
     return timeB - timeA;
   });
 
-  const limitedWins = sortedWins.slice(0, 12);
+  const limitedWins = sortedWins;
 
   return showModal ? (
     <div style={styles.modalOverlay} onClick={closeModal} ref={modalRef}>
@@ -182,7 +182,7 @@ const WinsListModal: React.FC<WinsModalProps> = ({
                   </div>
                 </div>
               ))}
-              {sortedWins.length > 12 && "and more..."}
+              {/* {sortedWins.length > 12 && "and more..."} */}
             </div>
           </center>
         </div>
@@ -209,6 +209,7 @@ const styles: any = {
     gap: "20px",
     alignItems: "center",
     padding: "11px 0",
+    whiteSpace: "nowrap",
   },
   cell: {
     textAlign: "center",
