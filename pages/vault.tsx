@@ -40,6 +40,7 @@ import { useOverview } from "../components/contextOverview";
 import { WHITELIST_REWARDS } from "../constants/address";
 
 import { GetChance } from "../utils/getChance";
+import { GetChainIcon } from "../utils/getChain";
 
 // import Drip from "./drip";
 
@@ -627,7 +628,7 @@ const Vault: React.FC<VaultProps> = ({
           }
           const [assetResults, assetPrice] = await Promise.all([
             Multicall(assetCalls, GetChainName(activeVaultChain)),
-            GetAssetPrice(GetChainName(activeVaultChain), asset)
+            GetAssetPrice(GetChainName(activeVaultChain), asset),
           ]);
 
           setAssetPrice(assetPrice as any);
@@ -712,39 +713,42 @@ const Vault: React.FC<VaultProps> = ({
   useEffect(() => {
     async function fetchData() {
       const promises = [];
-  
-      if (overviewFromContext && overviewFromContext.overview && overviewFromContext.overview.prices) {
+
+      if (
+        overviewFromContext &&
+        overviewFromContext.overview &&
+        overviewFromContext.overview.prices
+      ) {
         if (activeVaultAddress) {
           const promoPromise = GetActivePromotionsForVaults(
             [activeVaultAddress],
             true,
             overviewFromContext.overview.prices
-          ).then(promos => {
+          ).then((promos) => {
             setActivePromos(promos);
           });
           promises.push(promoPromise);
         }
       }
-  
+
       if (activeVaultAddress && address) {
         const chancePromise = GetChance(
           activeVaultChain,
           activeVaultAddress,
           address
-        ).then(chance => {
+        ).then((chance) => {
           setChance(chance);
         });
         promises.push(chancePromise);
       }
-  
+
       await Promise.all(promises);
     }
-  
+
     if (activeVaultAddress && router.isReady) {
       fetchData();
     }
   }, [activeVaultAddress, address, router.isReady]);
-  
 
   // vaultData && console.log("contributed",vaultData?.contributed7d, typeof vaultData.contributed7d);
   // console.log("active promos here", activePromos);
@@ -766,7 +770,9 @@ const Vault: React.FC<VaultProps> = ({
       const probabilityOfWinningPerDraw =
         (userVaultBalance / totalAssets) * vaultPortion * averagePrizesPerDraw;
       // Ensure probability is within valid range [0, 1]
-      if(probabilityOfWinningPerDraw > 1) {return 1}
+      if (probabilityOfWinningPerDraw > 1) {
+        return 1;
+      }
       if (probabilityOfWinningPerDraw <= 0) {
         // console.log(
         //   "Invalid probability of winning per draw:",
@@ -783,8 +789,7 @@ const Vault: React.FC<VaultProps> = ({
     }
   }
 
-
-  const userWinChance = averageDaysToWin()
+  const userWinChance = averageDaysToWin();
   // console.log("user win chance",userWinChance)
   return (
     <Layout>
@@ -829,17 +834,31 @@ const Vault: React.FC<VaultProps> = ({
           {/* {vaultData && <h3>{vaultData.name}</h3>} */}
           <div style={{ paddingBottom: "18px" }}>
             {vaultData && (
-              <span
-                style={{
-                  marginLeft: "45px",
-                  fontSize: "26px",
-                  color: "rgb(225, 245, 249)",
-                  display: "flex",
-                  alignItems: "center",
-                }}>
-                <IconDisplay name={vaultData.name} size={24} />
-                &nbsp;&nbsp;
-                {/* 
+              <>
+                <div>
+                  <span
+                    className="vault-header"
+                    style={{
+                      // marginLeft: "45px",
+                      // fontSize: "26px",
+                      color: "rgb(225, 245, 249)",
+                      display: "flex",
+                      alignItems: "center",
+                    }}>
+                    {/* <span className="hidden-desktop">
+                      {activeVaultChain !== undefined && (
+                        <Image
+                          src={GetChainIcon(activeVaultChain) as any}
+                          alt={GetChainIcon(activeVaultChain)}
+                          width={24}
+                          height={24}
+                          style={{ marginRight: "8px" }}
+                        />
+                      )}
+                    </span> */}
+
+                    <IconDisplay name={vaultData.name} size={24} />
+                    {/* 
             {getVaultIcon(
               activeVaultAddress,
               GetChainName(activeVaultChain)
@@ -861,13 +880,14 @@ const Vault: React.FC<VaultProps> = ({
                 &nbsp;&nbsp;
               </>
             ) : null} */}
-                {vaultData.name}
-                <div className="chain-bubble">
-                  {GetChainName(activeVaultChain)}&nbsp;
-                </div>{" "}
-                &nbsp;&nbsp;
-                {/* {vaultData && chainId === 84532 && <Drip chainProp={"BASESEPOLIA"} addressProp={vaultData.asset} updateNow={dripUpdate}></Drip> } */}
-              </span>
+                    <span className="vault-header-name">{vaultData.name}</span>
+                    <div className="chain-bubble hidden-mobile">
+                      {GetChainName(activeVaultChain)}&nbsp;
+                    </div>{" "}
+                    {/* {vaultData && chainId === 84532 && <Drip chainProp={"BASESEPOLIA"} addressProp={vaultData.asset} updateNow={dripUpdate}></Drip> } */}
+                  </span>{" "}
+                </div>
+              </>
             )}
           </div>
 
@@ -1033,35 +1053,52 @@ const Vault: React.FC<VaultProps> = ({
                               </>
                             </div>
                           )}
-                          {userWinChance && userWinChance !== null && (
-  <>
-    On average you will win {" "}
-    {userWinChance === 1 ? (
-      <>every day</>
-    ) : (
-      <>every {userWinChance.toFixed(0)} days</>
-    )}
-    &nbsp;
-    {chance && (chance.winsPerDraw7d || chance.winsPerDraw30d || chance.sevenDrawVaultPortion) && (
-      <div className="tooltipContainer">
-        <Image src="/images/moreInfo.svg" alt="i" width={16} height={16} />
-        <span className="tooltipText">
-          {chance.winsPerDraw30d && chance.winsPerDraw30d > 0
-            ? chance.winsPerDraw30d.toFixed(0)
-            : chance.winsPerDraw7d.toFixed(0)}{" "}
-          prizes per draw
-          <br />
-          {(chance?.sevenDrawVaultPortion * 100).toFixed(1)}% vault portion
-          <br />
-          {(100 * (Number(vaultData.userVaultBalance) / Number(vaultData.totalAssets))).toFixed(1)}% your portion
-        </span>
-      </div>
-    )}  <br></br><br></br>
-  </>
-)}
+                        {userWinChance && userWinChance !== null && (
+                          <>
+                            On average you will win{" "}
+                            {userWinChance === 1 ? (
+                              <>every day</>
+                            ) : (
+                              <>every {userWinChance.toFixed(0)} days</>
+                            )}
+                            &nbsp;
+                            {chance &&
+                              (chance.winsPerDraw7d ||
+                                chance.winsPerDraw30d ||
+                                chance.sevenDrawVaultPortion) && (
+                                <div className="tooltipContainer">
+                                  <Image
+                                    src="/images/moreInfo.svg"
+                                    alt="i"
+                                    width={16}
+                                    height={16}
+                                  />
+                                  <span className="tooltipText">
+                                    {chance.winsPerDraw30d &&
+                                    chance.winsPerDraw30d > 0
+                                      ? chance.winsPerDraw30d.toFixed(0)
+                                      : chance.winsPerDraw7d.toFixed(0)}{" "}
+                                    prizes per draw
+                                    <br />
+                                    {(
+                                      chance?.sevenDrawVaultPortion * 100
+                                    ).toFixed(1)}
+                                    % vault portion
+                                    <br />
+                                    {(
+                                      100 *
+                                      (Number(vaultData.userVaultBalance) /
+                                        Number(vaultData.totalAssets))
+                                    ).toFixed(1)}
+                                    % your portion
+                                  </span>
+                                </div>
+                              )}{" "}
+                            <br></br>
+                            <br></br>
+                          </>
+                        )}
 
-                      
-                       
                         {chance &&
                           chance.grandPrize > 0 &&
                           chance.grandPrize !== Infinity &&
@@ -1287,6 +1324,7 @@ const Vault: React.FC<VaultProps> = ({
                                 Your Deposit Tokens
                               </span>
                             </span>
+                            
                             <span className="vault-balance">
                               {NumberWithCommas(
                                 CropDecimals(
@@ -1296,6 +1334,10 @@ const Vault: React.FC<VaultProps> = ({
                                   )
                                 )
                               )}{" "}
+                              {/* <IconDisplay
+                                name={vaultData.assetSymbol}
+                                size={20}
+                              /> */}
                               {vaultData.assetSymbol}{" "}
                               <button
                                 className="max-small"
@@ -1410,7 +1452,12 @@ const Vault: React.FC<VaultProps> = ({
                                         toast.dismiss();
                                         const args: [string, string] = [
                                           vaultData.address,
-                                          ethers.utils.parseUnits(buyAmount, vaultData.decimals).toString()
+                                          ethers.utils
+                                            .parseUnits(
+                                              buyAmount,
+                                              vaultData.decimals
+                                            )
+                                            .toString(),
                                         ];
                                         writeApprove({
                                           address: `0x${vaultData?.asset.substring(
@@ -1480,7 +1527,7 @@ const Vault: React.FC<VaultProps> = ({
                         ) : (
                           <>
                             {/* <button onClick={openConnectModal} type="button" className="hover-button"> */}
-                            <MyConnect connectText={"CONNECT WALLET TO WIN"} />
+                            <MyConnect connectText={"CONNECT TO WIN"} />
                             <br></br>
                           </>
                         ))}
@@ -1523,19 +1570,22 @@ const Vault: React.FC<VaultProps> = ({
                           </div>
                         )}
 
-                      {address && activeVaultAddress && overviewFromContext && overviewFromContext.overview && (
-                        <div className="data-row">
-                          <span className="vault-two">
-                            <VaultRewards
-                              chainName={GetChainName(activeVaultChain)}
-                              chainId={activeVaultChain}
-                              address={address}
-                              vaults={[activeVaultAddress]}
-                              prices={overviewFromContext.overview.prices}
-                            />
-                          </span>
-                        </div>
-                      )}
+                      {address &&
+                        activeVaultAddress &&
+                        overviewFromContext &&
+                        overviewFromContext.overview && (
+                          <div className="data-row">
+                            <span className="vault-two">
+                              <VaultRewards
+                                chainName={GetChainName(activeVaultChain)}
+                                chainId={activeVaultChain}
+                                address={address}
+                                vaults={[activeVaultAddress]}
+                                prices={overviewFromContext.overview.prices}
+                              />
+                            </span>
+                          </div>
+                        )}
 
                       {activePromos &&
                         (activePromos as { [key: string]: any[] })[
@@ -1637,9 +1687,13 @@ const Vault: React.FC<VaultProps> = ({
 
                       <div className="data-row">
                         <span className="vault-label">
-                          Total Deposits (TVL)
+                          Total Deposits{" "}
+                          <span className="hidden-mobile">(TVL)</span>
                         </span>
+                        
                         <span className="vault-data">
+                          <IconDisplay name={vaultData.assetSymbol} size={18} />
+                          &nbsp;
                           {NumberWithCommas(
                             CropDecimals(
                               ethers.utils.formatUnits(
@@ -1648,7 +1702,7 @@ const Vault: React.FC<VaultProps> = ({
                               )
                             )
                           )}{" "}
-                          {vaultData.assetSymbol}
+                          {/* {vaultData.assetSymbol} */}
                         </span>
                       </div>
                       {!seeAddresses && (
@@ -1714,7 +1768,9 @@ const Vault: React.FC<VaultProps> = ({
                             parseFloat(vaultData.won7d) > 0 && (
                               <div className="data-row hidden-mobile">
                                 <span className="vault-label">
-                                  7d Vault Prize Won
+                                  7d{" "}
+                                  <span className="hidden-mobile">Vault</span>{" "}
+                                  Prize Won
                                 </span>
                                 <span className="vault-data">
                                   <PrizeValueIcon size={20} />
@@ -1775,7 +1831,7 @@ const Vault: React.FC<VaultProps> = ({
 
                       {/* {console.log("promos?", activePromos)} */}
                       {/* // rewards per second * seconds in year / total assets * assets price */}
-
+                      <br></br>
                       {seeAddresses && (
                         <span
                           className="vault-two small-font pointer"
@@ -1784,12 +1840,11 @@ const Vault: React.FC<VaultProps> = ({
                         </span>
                       )}
                       {!seeAddresses ? (
-                        <div className="data-row">
                           <span
                             className="vault-two small-font pointer"
                             onClick={() => setSeeAddresses(true)}>
                             <>
-                              <br></br>
+                              
                               {!vaultData.gnosis
                                 ? "+ Click for more info"
                                 : vaultData.gnosis.required === -1
@@ -1800,7 +1855,6 @@ const Vault: React.FC<VaultProps> = ({
                                 : `+ Yield is governed by a ${vaultData.gnosis.required} of ${vaultData.gnosis.total} Gnosis Safe, click for more info`}
                             </>
                           </span>
-                        </div>
                       ) : (
                         <>
                           <div className="data-row">

@@ -470,7 +470,7 @@ tr {
   font-size: 14px;
   border-radius: 5px;
   border: 1px solid white;
-  margin-left: 24px;
+  /* margin-left: 24px; */
   padding: 4px;
 }
 .poolerson {
@@ -482,6 +482,20 @@ tr {
   .hidden-desktop {
     display: none;
   }
+}
+.vault-header {
+  margin-left:8px
+}
+.vault-header-name{font-size:22px;margin-left:8px;}
+@media (min-width: 501px) {
+.vault-header {
+  margin-left: 45px;
+}
+.vault-header-name {
+  font-size:26px;
+  margin-right: 18px;
+  margin-left: 18px;
+}
 }
 .mobile-vault-header {
   display: none;
@@ -1271,6 +1285,11 @@ tr {
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
 }
+@media (max-width: 600px) {
+
+.vault-content {
+padding:15px;
+}}
 
 /* Media query to change width for screens larger than 500px */
 @media (min-width: 501px) {
