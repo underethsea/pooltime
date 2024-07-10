@@ -1275,6 +1275,8 @@ tr {
   position: relative;
 }
 
+
+
 .vault-content {
   display: flex;
   flex-direction: column;
@@ -1527,6 +1529,13 @@ padding:15px;
   border-radius: 5px;
   /* box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); */
 }
+@media (max-width: 500px) {
+  .vault-view-bubble {
+    margin-top:22px;
+    padding:13px;
+    
+  }
+  }
 .back-to-vaults {
   background-color: #1a4160;
   align-items: left;
@@ -2113,13 +2122,16 @@ padding:15px;
   align-items: center;
   vertical-align: bottom; /* Aligns the container to the bottom of the <td> */
 }
+.iconcontainer-verticalcenter {
+  vertical-align: middle;
+}
 
 .icon {
   width: 25px;
   height: 25px;
   border-radius: 50%;
   object-fit: cover;
-  margin-left: -5px;
+  /* margin-left: -5px; */
   background: white;
   border: 1px solid #ddd;
 }

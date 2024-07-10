@@ -272,6 +272,10 @@ background-color: #c2baf2;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
   }
+  @media (max-width: 768px) {
+  .vault-row{
+    gap:0px
+  }}
 
   .vault-row:hover {
     transform: translateY(-2px);

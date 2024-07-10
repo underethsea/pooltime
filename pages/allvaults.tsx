@@ -296,10 +296,10 @@ function AllVaults() {
   const [data, setData] = useState<VaultData[]>([]);
   const [newVaultData, setNewVaultData] = useState(false);
 
-  const [vaultPropData, setVaultPropData] = useState();
+  // const [vaultPropData, setVaultPropData] = useState();
   const [searchInput, setSearchInput] = useState("");
   // const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedVault, setSelectedVault] = useState("");
+  // const [selectedVault, setSelectedVault] = useState("");
   // const [poolPrice, setPoolPrice] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   // const [selectedSort, setSelectedSort] = useState("tvl"); // Add selected sort state
@@ -377,7 +377,9 @@ function AllVaults() {
         id: "vaults",
         accessor: "name",
         Cell: ({ row }) => {
-          const { name, poolers, c } = row.original;
+          const { name, poolers, c, vaultAPR, apr } = row.original;
+            // value now directly contains the totalYield computed by the accessor
+            // original contains the full data of the row
           const displayValue =
             name.length > 25
               ? name.substring(0, 22) + "..."
@@ -394,7 +396,7 @@ function AllVaults() {
               {name.startsWith("Prize ") ? (
                 <>
                   &nbsp;
-                  <span style={{ marginLeft: "-20px" }}>
+                  <span style={{ marginLeft: "-15px" }}>
                     <IconDisplay name={name.substring(6)} />
                   </span>{" "}
                   <span className="hidden-mobile">
@@ -411,7 +413,14 @@ function AllVaults() {
                       height: "15px",
                       paddingLeft: "9px",
                     }}
+                    // className="hidden-mobile"
                   />
+                  <span className="hidden-desktop">
+                  &nbsp;&nbsp;&nbsp;&nbsp;
+              {/* Pass the correct props to Tooltip */}
+              {vaultAPR &&
+        <>{(Number(vaultAPR)+Number(apr*100)).toFixed(1)}%</>}
+            </span>
                 </>
               ) : (
                 <span>
@@ -542,7 +551,7 @@ function AllVaults() {
           const { vaultAPR, apr, incentiveSymbol } = original; // Getting vaultAPR and apr from the original row data
 
           return (
-            <div>
+            <div className="hidden-mobile">
               {/* Pass the correct props to Tooltip */}
               <Tooltip
                 vaultAPR={vaultAPR}

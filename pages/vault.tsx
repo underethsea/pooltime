@@ -41,6 +41,7 @@ import { WHITELIST_REWARDS } from "../constants/address";
 
 import { GetChance } from "../utils/getChance";
 import { GetChainIcon } from "../utils/getChain";
+import ChainTag from "../components/chainTag";
 
 // import Drip from "./drip";
 
@@ -828,6 +829,17 @@ const Vault: React.FC<VaultProps> = ({
           </div>
         </Link>
         <div className="vault-view-bubble">
+        <span className="hidden-desktop" style={{ paddingBottom: "5px",display:"flex",alignItems:"left"}}>
+                      {activeVaultChain !== undefined && (<span className="hidden-desktop">
+                        <ChainTag chainId={activeVaultChain} horizontal={true}/><br></br></span>
+                        // <Image
+                        //   src={GetChainIcon(activeVaultChain) as any}
+                        //   alt={GetChainIcon(activeVaultChain)}
+                        //   width={24}
+                        //   height={24}
+                        // />
+                      )}
+                    </span>
           {/* <button className="modal-close-button">
           &times;
         </button>      */}
@@ -836,6 +848,8 @@ const Vault: React.FC<VaultProps> = ({
             {vaultData && (
               <>
                 <div>
+                
+
                   <span
                     className="vault-header"
                     style={{
@@ -845,18 +859,7 @@ const Vault: React.FC<VaultProps> = ({
                       display: "flex",
                       alignItems: "center",
                     }}>
-                    {/* <span className="hidden-desktop">
-                      {activeVaultChain !== undefined && (
-                        <Image
-                          src={GetChainIcon(activeVaultChain) as any}
-                          alt={GetChainIcon(activeVaultChain)}
-                          width={24}
-                          height={24}
-                          style={{ marginRight: "8px" }}
-                        />
-                      )}
-                    </span> */}
-
+                    
                     <IconDisplay name={vaultData.name} size={24} />
                     {/* 
             {getVaultIcon(
@@ -1541,7 +1544,7 @@ const Vault: React.FC<VaultProps> = ({
                               Delegated To You
                             </span>
                             <span className="vault-data">
-                              <IconDisplay name={vaultData.name} size={20} />
+                              <IconDisplay name={vaultData.name} size={20} alignment={"middle"} />
                               {/* <Image
                             src={
                               getVaultIcon(
@@ -1692,7 +1695,7 @@ const Vault: React.FC<VaultProps> = ({
                         </span>
                         
                         <span className="vault-data">
-                          <IconDisplay name={vaultData.assetSymbol} size={18} />
+                          <IconDisplay name={vaultData.assetSymbol} size={18} alignment={"middle"}/>
                           &nbsp;
                           {NumberWithCommas(
                             CropDecimals(

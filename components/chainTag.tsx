@@ -2,6 +2,7 @@ import React from "react";
 
 type ChainTagProps = {
   chainId: number;
+  horizontal?: boolean; // Optional prop for horizontal orientation
 };
 
 const getChainDetails = (chainId: number) => {
@@ -13,36 +14,34 @@ const getChainDetails = (chainId: number) => {
     case 42161:
       return { name: "ARBITRUM", bgColor: "#203147" };
     case 1:
-      return { name: "ETHEREUM", bgColor: "black" }
+      return { name: "ETHEREUM", bgColor: "black" };
     default:
-      return { name: "UNKNOWN", bgColor: "#pink" }; // Default grey background
+      return { name: "UNKNOWN", bgColor: "grey" }; // Default grey background
   }
 };
 
-const ChainTag: React.FC<ChainTagProps> = ({ chainId }) => {
+const ChainTag: React.FC<ChainTagProps> = ({ chainId, horizontal = false }) => {
   const { name, bgColor } = getChainDetails(chainId);
 
+  const tagStyle: React.CSSProperties = {
+    display: "inline-block",
+    backgroundColor: bgColor,
+    color: "white",
+    padding: "2px 8px",
+    borderRadius: "3px",
+    whiteSpace: "nowrap",
+    fontSize: "6px",
+    lineHeight: "1",
+    textAlign: "center",
+    transform: horizontal ? "rotate(0deg)" : "rotate(-90deg)",
+    transformOrigin: "center",
+    marginLeft: horizontal ? "0" : "-25px",
+    minWidth: horizontal ? "auto" : "48px",
+  };
+
   return (
-    <div
-      style={{ display: "inline-block", minWidth: "36px", maxWidth: "36px" }}>
-      <span
-        style={{
-          display: "inline-block",
-          backgroundColor: bgColor,
-          color: "white",
-          padding: "2px 8px",
-          borderRadius: "3px",
-          transform: "rotate(-90deg)",
-          transformOrigin: "center",
-          whiteSpace: "nowrap",
-          fontSize: "6px",
-          lineHeight: "1",
-          minWidth: "48px",
-          textAlign: "center",
-          marginLeft: "-25px",
-        }}>
-        {name}
-      </span>
+    <div style={{ display: "inline-block" }}>
+      <span style={tagStyle}>{name}</span>
     </div>
   );
 };
