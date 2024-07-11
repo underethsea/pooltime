@@ -814,7 +814,7 @@ const Vault: React.FC<VaultProps> = ({
         </div> */}
         {/* <div className="vault-modal-overlay"> */}
         <Link href="/">
-          <div className="back-to-vaults" style={{ marginTop: "10px" }}>
+          <div className="back-to-vaults" style={{ marginTop: "28px" }}>
             <FontAwesomeIcon
               icon={faArrowLeft}
               size="sm"
@@ -961,6 +961,9 @@ const Vault: React.FC<VaultProps> = ({
                                 </span>
                               </span>
                               <span className="vault-balance">
+                              <IconDisplay
+                                name={vaultData.assetSymbol}
+                                size={20}/>   &nbsp;                             
                                 {NumberWithCommas(
                                   CropDecimals(
                                     ethers.utils.formatUnits(
@@ -969,7 +972,7 @@ const Vault: React.FC<VaultProps> = ({
                                     )
                                   )
                                 )}{" "}
-                                {vaultData.symbol}{" "}
+                                {" "}
                                 <button
                                   className="max-small"
                                   onClick={() =>
@@ -1324,11 +1327,15 @@ const Vault: React.FC<VaultProps> = ({
                                 }
                               />
                               <span style={{ fontSize: "19px" }}>
-                                Your Deposit Tokens
+                                Your <span className="hidden-mobile">Deposit</span> Tokens
                               </span>
                             </span>
                             
                             <span className="vault-balance">
+                            <IconDisplay
+                                name={vaultData.assetSymbol}
+                                size={20}
+                              />&nbsp;
                               {NumberWithCommas(
                                 CropDecimals(
                                   ethers.utils.formatUnits(
@@ -1337,11 +1344,9 @@ const Vault: React.FC<VaultProps> = ({
                                   )
                                 )
                               )}{" "}
-                              {/* <IconDisplay
-                                name={vaultData.assetSymbol}
-                                size={20}
-                              /> */}
-                              {vaultData.assetSymbol}{" "}
+                             
+                              {/* {vaultData.assetSymbol} */}
+                              {" "}
                               <button
                                 className="max-small"
                                 onClick={() =>
@@ -1759,7 +1764,7 @@ const Vault: React.FC<VaultProps> = ({
                                           100;
 
                                         return (
-                                          <> ({percentage.toFixed(1)}% APR)</>
+                                          <><span className="hidden-desktop"><br></br></span>({percentage.toFixed(1)}% APR)</>
                                         );
                                       })()}
                                     </>
