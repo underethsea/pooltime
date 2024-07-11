@@ -16,6 +16,8 @@ import PrizeIcon from "../components/prizeIcon";
 import { PrizeToke } from "../utils/tokenMaths";
 import PrizeValueIcon from "../components/prizeValueIcon";
 import PrizeValue from "../components/prizeValue";
+import Wins from "../components/leaderboardWins";
+
 
 interface Transaction {
   n: number | string;
@@ -29,6 +31,17 @@ const explorerURL = "https://poolexplorer.xyz";
 
 function Winners(): JSX.Element {
   const router = useRouter();
+
+  const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
+
+  const handleAddressClick = (address: string) => {
+    setSelectedAddress(address);
+};
+
+const handleCloseModal = () => {
+    setSelectedAddress(null);
+};
+
 
   const [totalPrizeValueCounter, setTotalPrizeValueCounter] =
     useState<ethers.BigNumber>(ethers.BigNumber.from(0));
@@ -387,83 +400,71 @@ function Winners(): JSX.Element {
                       </tr>
                     </thead>
                     <tbody>
-                      {transactions.map((item, index) => (
-                        <tr key={index}>
-                          <td className="hidden-mobile">
-                            {item.t.map((tier, index) => (
-                              <>
-                                <FontAwesomeIcon
-                                  icon={faAward}
-                                  size="sm"
-                                  style={{
-                                    color: TierColors[tier],
-                                    height: "20px",
-                                    marginRight: "8px",
-                                  }}
-                                />
-                              </>
-                            ))}
-                          </td>
+                    {transactions.map((item, index) => (
+    <tr key={index} onClick={() => handleAddressClick(item.w)} style={{ cursor: "pointer" }}>
+        <td className="hidden-mobile">
+            {item.t.map((tier, index) => (
+                <FontAwesomeIcon
+                    key={index}
+                    icon={faAward}
+                    size="sm"
+                    style={{
+                        color: TierColors[tier],
+                        height: "20px",
+                        marginRight: "8px",
+                    }}
+                />
+            ))}
+        </td>
+        <td>
+            <div className="addressText">
+                <span>
+                    <div className="inlineDiv">
+                        {item.n === "11155111" && (
+                            <Image
+                                src="/images/sepolia.png"
+                                className="emoji"
+                                alt="Sepolia"
+                                width={20}
+                                height={19}
+                            />
+                        )}
+                        {item.n === "420" && "OP"}
+                        {item.n === "10" && "OP"}
+                        <span className="hidden-desktop">
+                            {item.w.substring(0, 6)}{"..."}{item.w.substring(item.w.length - 4)}
+                        </span>
+                        <span className="hidden-mobile">
+                            {item.w === "0x327b2ea9668a552fe5dec8e3c6e47e540a0a58c6" || item.w === "0x1dcfb8b47c2f05ce86c21580c167485de1202e12" ? "Grand Prize Boost" : item.w}
+                        </span>
+                        {item.p === "0xb37b3b78022e6964fe80030c9161525880274010" && (
+                            <Image
+                                src="/images/ukraine.png"
+                                className="emoji"
+                                alt="Ukraine"
+                                width={20}
+                                height={19}
+                            />
+                        )}
+                    </div>
+                </span>
+            </div>
+        </td>
+        <td className="hidden-mobile">
+            {chain &&
+                ADDRESS[chain.label].VAULTS.find(
+                    (findVault) =>
+                        findVault.VAULT.toLowerCase() === item.v.toLowerCase()
+                )?.NAME.replace(/PoolTogether|Prize Token/g, "").trim()}
+        </td>
+        <td className="amount" style={{ textAlign: "right" }}>
+            <PrizeValueIcon size={20} />
+            <PrizeValue amount={BigInt(item.p)} size={20} />
+            &nbsp;&nbsp;&nbsp;
+        </td>
+    </tr>
+))}
 
-                          <td>
-                            <div className="addressText">
-                              <span>
-                                <div className="inlineDiv">
-                                  {item.n === "11155111" && (
-                                    <Image
-                                      src="/images/sepolia.png"
-                                      className="emoji"
-                                      alt="Sepolia"
-                                      width={20}
-                                      height={19}
-                                    />
-                                  )}
-                                  {item.n === "420" &&
-                                    "OP"
-                                  }
-                                  {item.n === "10" &&
-                                    "OP"
-                                  }
-
-                                  <span className="hidden-desktop">
-                                    {item.w.toString().substring(0, 6)}{"..."}{item.w.toString().substring(item.w.toString().length - 4)}
-                                  </span>
-                                  <span className="hidden-mobile">
-                                    {item.w === "0x327b2ea9668a552fe5dec8e3c6e47e540a0a58c6" || item.w === "0x1dcfb8b47c2f05ce86c21580c167485de1202e12" ? "Grand Prize Boost" : item.w}
-                                  </span>
-                                  {item.p ===
-                                    "0xb37b3b78022e6964fe80030c9161525880274010" ? (
-                                    <Image
-                                      src="/images/ukraine.png"
-                                      className="emoji"
-                                      alt="Ukraine"
-                                      width={20}
-                                      height={19}
-                                    />
-                                  ) : (
-                                    ""
-                                  )}
-                                </div>
-                              </span>
-                            </div>
-                          </td>
-                          <td className="hidden-mobile">
-                            {chain &&
-                              ADDRESS[chain.label].VAULTS.find(
-                                (findVault) =>
-                                  findVault.VAULT.toLowerCase() ===
-                                  item.v.toLowerCase()
-                              )
-                                ?.NAME.replace(/PoolTogether|Prize Token/g, "")
-                                .trim()}
-                          </td>
-                          <td className="amount" style={{ textAlign: "right" }}>
-                            <PrizeValueIcon size={20} />
-                            <PrizeValue amount={BigInt(item.p)} size={20}/>
-                            &nbsp;&nbsp;&nbsp;
-                          </td>
-                        </tr>
-                      ))}
                     </tbody>
                   </table>
                 </div>
@@ -490,6 +491,12 @@ function Winners(): JSX.Element {
               </div>
             </div>
             }
+            {selectedAddress && (
+    <div style={styles.modalOverlay} onClick={handleCloseModal}>
+        <Wins addressProp={selectedAddress} />
+    </div>
+)}
+
 
             <style jsx>{`
               .stat-details {
@@ -545,8 +552,10 @@ function Winners(): JSX.Element {
                     padding-right: 0px;
                 }
               }
-              
-
+              .claims-table td:hover {
+                background-color: #e0e0e0;
+                cursor: pointer;
+              }
 
               .amount-header,
               .amount {
@@ -565,5 +574,31 @@ function Winners(): JSX.Element {
     </Layout>
   );
 }
+const styles: any = {
+  modalOverlay: {
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%",
+      backgroundColor: "rgba(0, 0, 0, 0.7)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 1000,
+  },
+  modalContent: {
+      position: "relative",
+      backgroundColor: "#fff",
+      padding: "20px",
+      borderRadius: "10px",
+      width: "80%",
+      maxWidth: "600px",
+      boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+      zIndex: 1001,
+      overflow: "auto",
+  },
+};
+
 
 export default Winners;

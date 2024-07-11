@@ -8,6 +8,8 @@ import { NumberWithCommas, CropDecimals } from "../utils/tokenMaths";
 import { ethers } from "ethers";
 import { GetChainName } from "../utils/getChain";
 import { CONFIG } from "../constants/config";
+import Wins from "../components/leaderboardWins";
+
 
 type Vault = {
   vault: string;
@@ -45,6 +47,17 @@ function Poolers() {
   const [selectedVault, setSelectedVault] = useState("");
   const [poolers, setPoolers] = useState<Player[]>([]);
   const [popup, setPopup] = useState<boolean>(true);
+  const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
+
+  const handleAddressClick = (address: string) => {
+    setSelectedAddress(address);
+};
+
+const handleCloseModal = () => {
+    setSelectedAddress(null);
+};
+
+
   useEffect(() => {
     setPopup(true);
     const poolersUrl = `https://poolexplorer.xyz/${selectedChain}-${ADDRESS[GetChainName(Number(selectedChain))].PRIZEPOOL}-poolers`
@@ -278,7 +291,7 @@ function Poolers() {
                   </thead>
                   <tbody>
                     {poolers.map((player, index) => (
-                      <tr key={index}>
+                       <tr key={index} onClick={() => handleAddressClick(player.address)} style={{ cursor: "pointer" }}>
                         <td>
                           <span className="hidden-mobile">
                             {player.address}
@@ -315,6 +328,12 @@ function Poolers() {
                 </table>
               </div>
             </div>
+            {selectedAddress && (
+    <div style={styles.modalOverlay} onClick={handleCloseModal}>
+        <Wins addressProp={selectedAddress} />
+    </div>
+)}
+
 
             <style jsx>{`
               .amount {
@@ -360,6 +379,10 @@ function Poolers() {
               .claims-table td:last-child {
                 padding-right: 24px;
               }
+              .claims-table td:hover {
+                background-color: #e0e0e0;
+                cursor: pointer;
+              }
 
               .stats-container {
                 display: flex;
@@ -404,9 +427,37 @@ function Poolers() {
             </div>
           </div>
         )}{" "}
+        
       </center>
     </Layout>
   );
+  
 }
+const styles: any = {
+    modalOverlay: {
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        backgroundColor: "rgba(0, 0, 0, 0.7)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+    },
+    modalContent: {
+        position: "relative",
+        backgroundColor: "#fff",
+        padding: "20px",
+        borderRadius: "10px",
+        width: "80%",
+        maxWidth: "600px",
+        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+        zIndex: 1001,
+        overflow: "auto",
+    },
+};
+
 
 export default Poolers;
