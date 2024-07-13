@@ -1314,6 +1314,12 @@ padding:15px;
   padding: 4px;
   border-radius: 4px;
   padding-right: 8px;
+  display: flex;
+  justify-content: flex-end;
+}
+.vault-align {
+  display: flex;
+  align-items: center;
 }
 
 .button-group {

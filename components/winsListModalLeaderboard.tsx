@@ -156,7 +156,7 @@ const WinsListModal: React.FC<WinsModalProps> = ({
 
             <h5 style={{ color: "#ffffff", wordWrap: "break-word", }}>
 
-            {/* {address && `${address.slice(0, 6)}...${address.slice(address.length - 4)}`} */}
+                    {address && `${address.slice(0, 6)}...${address.slice(address.length - 4)}`}
 
             </h5>
             <div>

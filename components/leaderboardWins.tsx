@@ -18,7 +18,7 @@ import { CropDecimals, NumberWithCommas } from "../utils/tokenMaths";
 import { ADDRESS, CONFIG } from "../constants/";
 import { ethers } from "ethers";
 import TopWinners from "./topWinners";
-import WinsListModal from "./winsListModal";
+import WinsListModal from "./winsListModalLeaderboard";
 import { PrizeToke } from "../utils/tokenMaths";
 import PrizeValue from "./prizeValue";
 import PrizeValueIcon from "./prizeValueIcon";
