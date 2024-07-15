@@ -4,7 +4,6 @@ import LoadGrid from "../components/loadGrid";
 import { ethers } from "ethers";
 import { useTable, useSortBy, useGlobalFilter } from "react-table";
 import { Column } from "react-table";
-import IconDisplay from "../components/icons";
 import { PROVIDERS } from "../constants/providers";
 import { ABI } from "../constants/constants";
 import { Multicall } from "../utils/multicall";
@@ -23,10 +22,11 @@ import {
 // import { FetchPriceForAsset } from "../utils/tokenPrices";
 import { GetActivePromotionsForVaults } from "../utils/getActivePromotions";
 import { ADDRESS } from "../constants/address";
-import PrizeIcon from "../components/prizeIcon";
 import { GetVaultBalances } from "../utils/getVaultBalances";
 import { useAccount } from "wagmi";
 import { GetChainName } from "../utils/getChain";
+import PrizeIcon from "../components/prizeIcon";
+import IconDisplay from "../components/icons";
 import PrizeInPool from "../components/prizeInPool";
 import ChainTag from "../components/chainTag";
 import PrizeValueIcon from "../components/prizeValueIcon";
@@ -458,6 +458,7 @@ function AllVaults() {
                 <span className="mobile-vault-header">
                   Your Tickets<br></br>
                 </span>
+                <span className="column-tickets">
                 <FontAwesomeIcon
                   icon={faTicket}
                   size="sm"
@@ -466,7 +467,7 @@ function AllVaults() {
                     height: "17px",
                     marginRight: "3px",
                   }}
-                />
+                /></span>
                 &nbsp;
                 {NumberWithCommas(
                   CropDecimals(

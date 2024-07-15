@@ -1542,6 +1542,15 @@ padding:15px;
     
   }
   }
+
+.column-tickets {
+  margin-left:45px;
+}
+@media (max-width: 500px) {
+  .column-tickets {
+    margin-left:15px;
+  }
+  }
 .back-to-vaults {
   background-color: #1a4160;
   align-items: left;
