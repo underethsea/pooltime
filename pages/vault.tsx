@@ -1700,6 +1700,7 @@ const Vault: React.FC<VaultProps> = ({
                         </span>
                         
                         <span className="vault-data">
+                          <span className="vault-align">
                           <IconDisplay name={vaultData.assetSymbol} size={18} alignment={"middle"}/>
                           &nbsp;
                           {NumberWithCommas(
@@ -1711,6 +1712,7 @@ const Vault: React.FC<VaultProps> = ({
                             )
                           )}{" "}
                           {/* {vaultData.assetSymbol} */}
+                          </span>
                         </span>
                       </div>
                       {!seeAddresses && (
