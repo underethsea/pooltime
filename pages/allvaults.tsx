@@ -18,6 +18,7 @@ import {
   faSquareArrowUpRight,
   faArrowAltCircleUp,
   faArrowAltCircleDown,
+  faStar,
 } from "@fortawesome/free-solid-svg-icons";
 // import { FetchPriceForAsset } from "../utils/tokenPrices";
 import { GetActivePromotionsForVaults } from "../utils/getActivePromotions";
@@ -35,7 +36,7 @@ import Link from "next/link";
 import { GetChainIcon } from "../utils/getChain";
 import { WHITELIST_REWARDS, WHITELIST_VAULTS } from "../constants/address";
 
-interface TooltipProps {
+interface YieldTooltipProps {
   vaultAPR?: number; // Optional number
   apr?: number; // Optional number
   total?: number; // Optional number
@@ -156,7 +157,7 @@ function groupVaultsByChain(vaultData: VaultData[]): VaultsByChain[] {
   }));
 }
 
-const Tooltip: React.FC<TooltipProps> = ({ vaultAPR, apr, total, symbol }) => {
+const VaultYieldTooltip: React.FC<YieldTooltipProps> = ({ vaultAPR, apr, total, symbol }) => {
   return total && total > 0 ? (
     <>
       <div className="vault-tooltip-container">
@@ -164,7 +165,10 @@ const Tooltip: React.FC<TooltipProps> = ({ vaultAPR, apr, total, symbol }) => {
           APR<br></br>
         </span>
         {total > 0.01 && (
-          <>
+          <>{apr && apr > 0.0001 ? <><FontAwesomeIcon
+            icon={faStar}
+            style={{ color: "#1a4160", height: "16px",marginRight:"6px" }}
+          /></> : ""}
             {total.toFixed(1)}%&nbsp;
             <FontAwesomeIcon
               icon={faCircleInfo}
@@ -499,11 +503,11 @@ function AllVaults() {
           return (
             <div className="hidden-mobile">
               {/* Pass the correct props to Tooltip */}
-              <Tooltip
+              <VaultYieldTooltip
                 vaultAPR={vaultAPR}
                 apr={apr}
                 total={value}
-                symbol={incentiveSymbol}></Tooltip>
+                symbol={incentiveSymbol} />
             </div>
           );
         },
