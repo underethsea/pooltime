@@ -120,7 +120,7 @@ const PrizeInPool: React.FC = () => {
                 height={40}
                 alt="trophy"
               />
-              &nbsp;&nbsp;<span className="hidden-mobile">Total</span> Prize&nbsp;&nbsp; <PrizeValueIcon size={32} />
+              &nbsp;&nbsp;<span className="hidden-mobile">Total</span>&nbsp;Prize&nbsp;&nbsp; <PrizeValueIcon size={32} />
               <PrizeValue amount={BigInt(totalPrize * 1e18)} size={40} />
             </div>
             <div className="total-prize"></div>  
@@ -141,7 +141,12 @@ const PrizeInPool: React.FC = () => {
                 return (
                   <div key={chain} className="grid-row">
                     <div style={{ textAlign: "left", fontSize: "14px" }}>
-                      {chain}
+                      <span className="hidden-mobile">
+                        {chain}
+                        </span>
+                        <span className="hidden-desktop">
+                          {chain==="OPTIMISM" ? "OP" : chain === "ARBITRUM" ? "ARB" : chain}
+                        </span>
                     </div>
                     
                     <div style={{ textAlign: "right" }}>
@@ -213,7 +218,7 @@ const PrizeInPool: React.FC = () => {
         
         @media (max-width: 768px) { 
           .grid-container {
-            grid-template-columns: 0.8fr 1fr 1fr;
+            grid-template-columns: 0.6fr 1.8fr 1.5fr;
           }
         }
         .grid-header {
