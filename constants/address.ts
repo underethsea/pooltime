@@ -466,6 +466,14 @@ const WHITELIST_REWARDS: { [chain: string]: { TOKEN: string; SYMBOL: string; GEC
       ICON: "https://assets.coingecko.com/coins/images/16547/standard/photo_2023-03-29_21.47.00.jpeg?1696516109",
     },
   ],
+  BASE: [
+    {
+      TOKEN: "0x0578d8A44db98B23BF096A382e016e29a5Ce0ffe",
+      SYMBOL: "HIGHER",
+      GECKO: "higher",
+      ICON: "https://assets.coingecko.com/coins/images/36084/standard/200x200logo.png?1710427814",
+    },
+  ],
 };
 
 export { ADDRESS, STARTBLOCK, ICONS, WHITELIST_REWARDS };
