@@ -443,6 +443,29 @@ const ICONS: { [key: string]: string } = {
   usda: "https://assets.coingecko.com/coins/images/34510/standard/agUSD-coingecko.png?1705288392",
 };
 
+const WHITELIST_VAULTS = [
+  "0x1f16d3ccf568e96019cedc8a2c79d2ca6257894e",
+  "0x03d3ce84279cb6f54f5e6074ff0f8319d830dafe",
+  "0xa52e38a9147f5ea9e0c5547376c21c9e3f3e5e1f",
+  "0x2998c1685e308661123f64b333767266035f5020",
+  "0x3e8dbe51da479f7e8ac46307af99ad5b4b5b41dc",
+  "0xf1d934d5a3c6e530ac1450c92af5ba01eb90d4de",
+  "0x9b53ef6f13077727d22cb4acad1119c79a97be17",
+  "0x6b5a5c55e9dd4bb502ce25bbfbaa49b69cf7e4dd",
+  "0x7f5c2b379b88499ac2b997db583f8079503f25b9",
+  "0x8d1322cabe5ef2949f6bf4941cc7765187c1091a",
+  "0x75d700f4c21528a2bb603b6ed899acfde5c4b086",
+  "0x850ec48d2605aad9c3de345a6a357a9a14b8cf1b",
+  "0x5b623c127254c6fec04b492ecdf4b11c45fbb9d5",
+  "0x3c72a2a78c29d1f6454caa1bcb17a7792a180a2e",
+  "0x7b0949204e7da1b0bed6d4ccb68497f51621b574",
+  "0xcacba8be4bc225fb8d15a9a3b702f84ca3eba991",
+  "0x97a9c02cfbbf0332d8172331461ab476df1e8c95",
+  "0x8653084e01Bd8c9e24B9a8fEb2036251Ee0C16A9", // angle stUSD arbitrum
+  "0x6Bb041d7E70b7040611ef688b5e707a799ADe60A", // angle stUSD base
+];
+
+
 const WHITELIST_REWARDS: { [chain: string]: { TOKEN: string; SYMBOL: string; GECKO: string; ICON: string; }[] } = {
   OPTIMISM: [
     {
@@ -476,4 +499,4 @@ const WHITELIST_REWARDS: { [chain: string]: { TOKEN: string; SYMBOL: string; GEC
   ],
 };
 
-export { ADDRESS, STARTBLOCK, ICONS, WHITELIST_REWARDS };
+export { ADDRESS, STARTBLOCK, ICONS, WHITELIST_REWARDS, WHITELIST_VAULTS };
