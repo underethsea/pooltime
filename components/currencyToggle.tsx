@@ -12,7 +12,7 @@ const { currency, toggleCurrency } = useOverview();
       src="/images/eth.png"
       alt="ETH"
       width={15}
-      height={151}
+      height={15}
     />}
     </div>
    
