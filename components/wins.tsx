@@ -267,7 +267,7 @@ const Wins: React.FC<WinProps> = ({ addressProp }) => {
 
          <div
     className="box-header custom-link win-bubble"
-    style={{ width: "200px", display: "flex", alignItems: "center" }}
+    style={{ width: "fit-content", padding: "5px 10px", display: "flex", alignItems: "center" }}
     onClick={() => setShowAllWinsModal(true)}
   >
     &nbsp;{winsText}&nbsp;

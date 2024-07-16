@@ -127,6 +127,10 @@ const WinsListModal: React.FC<WinsModalProps> = ({
       <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <div style={{ backgroundColor: "#030526" }}>
           <center>
+          {sortedWins.length === 0 ? (
+              <h2 style={{ color: "#ffffff" }}>NO WINS</h2>
+            ) : (
+              <>
             <h2>
               <span
                 style={{
@@ -183,6 +187,8 @@ const WinsListModal: React.FC<WinsModalProps> = ({
               ))}
               {/* {sortedWins.length > 12 && "and more..."} */}
             </div>
+            </>
+            )}
           </center>
         </div>
       </div>

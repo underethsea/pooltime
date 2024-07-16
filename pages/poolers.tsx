@@ -379,9 +379,12 @@ const handleCloseModal = () => {
               .claims-table td:last-child {
                 padding-right: 24px;
               }
-              .claims-table td:hover {
-                background-color: #e0e0e0;
+              .claims-table td:nth-child(1):hover {
+                color: #1a405d;
                 cursor: pointer;
+              }
+              .claims-table td:nth-child(1) {
+                color: #7b68c4;
               }
 
               .stats-container {

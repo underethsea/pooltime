@@ -11,8 +11,8 @@ const { currency, toggleCurrency } = useOverview();
       {currency === 'USD' ? '$' : <Image
       src="/images/eth.png"
       alt="ETH"
-      width={18}
-      height={18}
+      width={15}
+      height={151}
     />}
     </div>
    
