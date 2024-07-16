@@ -1371,7 +1371,10 @@ padding:15px;
 .chances {
   font-size: 12px;
 }
-
+.reward-icon {
+  width:18px;
+  height:18px;
+}
 .chance-header {
   font-size: 15px;
   margin-bottom: 5px;
@@ -1545,6 +1548,11 @@ padding:15px;
 
 .column-tickets {
   margin-left:45px;
+}
+.glow-yield {
+    /* color: #9624dd; Bright blue text color */
+    text-shadow: 0 0 5px rgb(184, 131, 248), 0 0 10px rgb(212, 95, 244), 0 0 15px rgb(129, 129, 251);
+  
 }
 @media (max-width: 500px) {
   .column-tickets {

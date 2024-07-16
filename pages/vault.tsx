@@ -1671,13 +1671,14 @@ const Vault: React.FC<VaultProps> = ({
                                   <div key={index} className="data-row">
                                     <span className="vault-label">Rewards</span>
                                     <span className="vault-data">
-                                      {icon && symbol && (
+                                      
+                                      {icon && symbol && (<span className="reward-icon">
                                         <Image
                                           src={icon}
-                                          width={15}
-                                          height={15}
+                                          width={16}
+                                          height={16}
                                           alt={symbol}
-                                        />
+                                        /></span>
                                       )}
                                       &nbsp;
                                       {NumberWithCommas(
