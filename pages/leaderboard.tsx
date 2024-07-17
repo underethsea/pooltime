@@ -56,7 +56,7 @@ const Leaderboard: React.FC = () => {
           className="header-image"
         />
         <h1 className="header-title">
-          <span className="hidden-mobile">WINNER</span> LEADERBOARD
+          <span className="hidden-mobile"></span> LEADERBOARD
         </h1>
       </div>
       <br />
@@ -78,20 +78,20 @@ const Leaderboard: React.FC = () => {
                 <th>Pooler</th>
                 <th className="hidden-mobile">Draws Won</th>
                 <th className="hidden-mobile">Prizes Won</th>
-                <th style={{ textAlign: "right" }}>Prizes</th>
+                <th style={{ textAlign: "center" }}>Prizes</th>
               </tr>
             </thead>
             <tbody>
               {filteredWinners.map((winner, index) => (
                 <tr key={winner.p} onClick={() => handleAddressClick(winner.p)} style={{ cursor: "pointer" }}>
                   <td className="hidden-mobile">{index + 1}</td>
-                  <td className="hidden-mobile">{winner.p}</td>
+                  <td className="hidden-mobile">{winner.p && `${winner.p.slice(0, 6)}...${winner.p.slice(winner.p.length - 4)}`}</td>
                   <td className="hidden-desktop">
                     {winner.p && `${winner.p.slice(0, 6)}...${winner.p.slice(winner.p.length - 4)}`}
                   </td>
                   <td className="hidden-mobile">{winner.draws}</td>
                   <td className="hidden-mobile">{winner.prizes}</td>
-                  <td className="amount" style={{ textAlign: "right" }}>
+                  <td className="amount" style={{ textAlign: "center" }}>
                     <PrizeValueIcon size={20} />
                     <PrizeValue amount={BigInt(winner.won)} size={20} />
                   </td>
@@ -134,6 +134,7 @@ const Leaderboard: React.FC = () => {
             padding: 0 10px;
           }
         }
+        
       `}</style>
     </Layout>
   );

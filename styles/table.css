@@ -13,12 +13,15 @@
 .draw-table td {
  white-space: nowrap;
   padding: 16px;
-  text-align: left;
+  text-align: center;
   background-color: #f7f7f7;
   border-bottom: 1px solid #ebebeb;
 }
+.draw-table td:nth-child(2) {
+  color: #7b68c4;
+}
 .draw-table td:hover {
-  background-color: #e0e0e0;
+  color: #1a405d;
 }
 
 .draw-table th:first-child,
@@ -30,6 +33,12 @@
 .draw-table td:last-child {
   padding-right: 24px;
 }
+
+@media (max-width: 500px) {
+  .draw-table td:nth-child(2) {
+    color: #7b68c4;
+  }
+} 
 
 @media screen and (min-width: 768px) {
  

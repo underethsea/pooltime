@@ -165,14 +165,14 @@ a {
   align-items: center;
   margin-right: 8px;
   /* margin-top:'4px'; */
-  background-color: #ecf0f6;
+  background-color: #7b68c4;
   /* padding: 7px; */
-  height: 30px;
-  min-width: 33px;
-  max-width: 33px;
+  height: 36px;
+  min-width: 36px;
+  max-width: 36px;
   cursor: pointer;
   border-radius: 6px;
-  color: black;
+  color: white;
 }
 
 .wallet-connect-button {
