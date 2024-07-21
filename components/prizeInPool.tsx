@@ -3,6 +3,10 @@ import { useOverview } from "./contextOverview";
 import Image from "next/image";
 import PrizeValueIcon from "./prizeValueIcon";
 import PrizeValue from "./prizeValue";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faCircleInfo,
+} from "@fortawesome/free-solid-svg-icons";
 
 interface PrizeData {
   [key: string]: {
@@ -98,14 +102,21 @@ const PrizeInPool: React.FC = () => {
             <PrizeValue amount={BigInt(totalPrize * 1e18)} size={30} />
           </span>
           &nbsp;
-          <Image
+          <FontAwesomeIcon
+      icon={faCircleInfo}
+      style={{ color: "white", height: "16px", cursor: "pointer", }}
+      onClick={toggleModal}
+    />
+          {/* <Image
             src="/images/moreInfo.svg"
             alt="i"
             width={19}
             height={19}
             onClick={toggleModal}
             style={{ cursor: "pointer" }}
-          />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          /> */}
+          
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         </div>
       )}
 
