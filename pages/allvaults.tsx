@@ -257,6 +257,8 @@ function AllVaults() {
   const [filteredVaults, setFilteredVaults] = useState<VaultData[]>([]);
   const [chains, setChains] = useState(initialChains);
   const [showAllVaults, setShowAllVaults] = useState(false);
+  const [isVaultsLoaded, setIsVaultsLoaded] = useState(0);
+
 
   const { address } = useAccount();
 
@@ -762,6 +764,7 @@ function AllVaults() {
               setFilteredVaults(vaults); //
               const tvlData = calculateTotalAndPerChainTVL(newData);
               setTvl(tvlData as TVL);
+              if(isVaultsLoaded===0) {setIsVaultsLoaded(1)}else{setIsVaultsLoaded(2)}
               return newData;
             }
             return prevData;
@@ -829,10 +832,10 @@ function AllVaults() {
       setFilteredVaults(filtered);
     };
 
-    if (address && allVaults.length > 0) {
+    if (address && allVaults.length > 0 && isVaultsLoaded===1) {
       fetchBalances(address);
     }
-  }, [address]);
+  }, [address, isVaultsLoaded]);
 
   const handleSearch = (event: any) => {
     const value = event.target.value.toLowerCase();
