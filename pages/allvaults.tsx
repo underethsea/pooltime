@@ -832,7 +832,7 @@ function AllVaults() {
     if (address && allVaults.length > 0) {
       fetchBalances(address);
     }
-  }, [address, allVaults, chains]);
+  }, [address]);
 
   const handleSearch = (event: any) => {
     const value = event.target.value.toLowerCase();
