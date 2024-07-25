@@ -429,6 +429,7 @@ const ICONS: { [key: string]: string } = {
   timbit:
     "https://cdn.discordapp.com/emojis/1012391997924966491.webp?size=240&quality=lossless",
   aero: "https://assets.coingecko.com/coins/images/31745/standard/token.png?1696530564",
+  reth: "https://assets.coingecko.com/coins/images/20764/standard/reth.png?1696520159",
   wsteth:
     "https://assets.coingecko.com/coins/images/18834/standard/wstETH.png?1696518295",
   cbeth:
