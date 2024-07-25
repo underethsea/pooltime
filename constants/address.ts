@@ -430,6 +430,7 @@ const ICONS: { [key: string]: string } = {
     "https://cdn.discordapp.com/emojis/1012391997924966491.webp?size=240&quality=lossless",
   aero: "https://assets.coingecko.com/coins/images/31745/standard/token.png?1696530564",
   reth: "https://assets.coingecko.com/coins/images/20764/standard/reth.png?1696520159",
+  wreth: "https://assets.coingecko.com/coins/images/20764/standard/reth.png?1696520159",
   wsteth:
     "https://assets.coingecko.com/coins/images/18834/standard/wstETH.png?1696518295",
   cbeth:
@@ -442,6 +443,8 @@ const ICONS: { [key: string]: string } = {
   angle:
     "https://assets.coingecko.com/coins/images/19060/standard/ANGLE_Token-light.png?1696518509",
   usda: "https://assets.coingecko.com/coins/images/34510/standard/agUSD-coingecko.png?1705288392",
+  degen: "https://assets.coingecko.com/coins/images/34515/standard/android-chrome-512x512.png?1706198225",
+  higher: "https://assets.coingecko.com/coins/images/36084/standard/200x200logo.png?1710427814"
 };
 
 const WHITELIST_VAULTS = [
@@ -466,6 +469,7 @@ const WHITELIST_VAULTS = [
   "0x6Bb041d7E70b7040611ef688b5e707a799ADe60A", // angle stUSD base
   "0xcadeacae6976bee87ec5ba44b0a5608a2259c517", // degen
   "0x4e42f783db2d0c5bdff40fdc66fcae8b1cda4a43", // base aave weth
+  "0x8c2f27b7819eb1bb7e3b5c407c5e1839186d5aba", // wreth
 ];
 
 
