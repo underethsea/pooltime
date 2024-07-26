@@ -92,6 +92,7 @@ const WinsListModal: React.FC<WinsModalProps> = ({
   address,
 }) => {
   const [vaults, setVaults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -102,6 +103,8 @@ const WinsListModal: React.FC<WinsModalProps> = ({
         setVaults(data);
       } catch (error) {
         console.error("Error fetching vault data:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -127,7 +130,9 @@ const WinsListModal: React.FC<WinsModalProps> = ({
       <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <div style={{ backgroundColor: "#030526" }}>
           <center>
-          {sortedWins.length === 0 ? (
+          {loading ? (
+              <h2 style={{ color: "#ffffff" }}>LOADING</h2>
+            ) : sortedWins.length === 0 ? (
               <h2 style={{ color: "#ffffff" }}>NO WINS</h2>
             ) : (
               <>
