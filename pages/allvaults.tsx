@@ -1,3 +1,4 @@
+
 import React, { useEffect, useMemo, useState } from "react";
 import LoadGrid from "../components/loadGrid";
 // import { useRouter } from "next/router";
@@ -836,6 +837,10 @@ function AllVaults() {
       fetchBalances(address);
     }
   }, [address, isVaultsLoaded]);
+  useEffect(() => {
+    const filtered = filterVaultsByChainAndSearch(allVaults, chains, searchInput);
+    setFilteredVaults(filtered);
+  }, [searchInput]);
 
   const handleSearch = (event: any) => {
     const value = event.target.value.toLowerCase();
@@ -1154,3 +1159,4 @@ function AllVaults() {
   );
 }
 export default AllVaults;
+
