@@ -92,6 +92,7 @@ const WinsListModal: React.FC<WinsModalProps> = ({
   address,
 }) => {
   const [vaults, setVaults] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -100,8 +101,10 @@ const WinsListModal: React.FC<WinsModalProps> = ({
         const response = await fetch("https://poolexplorer.xyz/vaults");
         const data = await response.json();
         setVaults(data);
+        setIsLoading(false);
       } catch (error) {
         console.error("Error fetching vault data:", error);
+        setIsLoading(false);
       }
     };
 
@@ -122,72 +125,77 @@ const WinsListModal: React.FC<WinsModalProps> = ({
 
   const limitedWins = sortedWins;
 
-  return showModal ? (
+  return showModal && !isLoading && vaults.length > 0 ? (
     <div style={styles.modalOverlay} onClick={closeModal} ref={modalRef}>
       <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <div style={{ backgroundColor: "#030526" }}>
           <center>
-          {sortedWins.length === 0 ? (
+            {sortedWins.length === 0 ? (
               <h2 style={{ color: "#ffffff" }}>NO WINS</h2>
             ) : (
               <>
-            <h2>
-              <span
-                style={{
-                  display: "inline-block",
-                  verticalAlign: "middle",
-                  lineHeight: "1",
-                }}
-              >
-                <Image
-                  src="/images/pttrophy.svg"
-                  width={26}
-                  height={40}
-                  style={{ verticalAlign: "middle" }}
-                  alt="trophy"
-                />{" "}
-              </span>
-              &nbsp;&nbsp;&nbsp;{sortedWins.length} WIN
-              {sortedWins.length > 1 ? "S" : ""}&nbsp;&nbsp;&nbsp;
-              <div style={styles.prizeContainer}>
-              <PrizeValueIcon size={26} />
-              <PrizeValue
-                amount={calculateTotalAmountWon(sortedWins)}
-                size={28}
-              />
-              </div>
-            </h2>
-
-            <h5 style={{ color: "#ffffff", wordWrap: "break-word", }}>
-
-                    {address && `${address.slice(0, 6)}...${address.slice(address.length - 4)}`}
-
-            </h5>
-            <div>
-              {limitedWins.map((win: any, index: any) => (
-                <div key={index} style={styles.row}>
-                  <div style={styles.cellLeftAlign}>
-                  <span className="hidden-mobile"><span style={{ fontSize: "14px" }}>
-                      {GetChainName(win.network)}{" "}
-                    </span></span>
-                    &nbsp;&nbsp;
-                    <IconDisplay
-                      name={getVaultName(win.vault, vaults)}
-                      size={18}
+                <h2>
+                  <span
+                    style={{
+                      display: "inline-block",
+                      verticalAlign: "middle",
+                      lineHeight: "1",
+                    }}
+                  >
+                    <Image
+                      src="/images/pttrophy.svg"
+                      width={26}
+                      height={40}
+                      style={{ verticalAlign: "middle" }}
+                      alt="trophy"
+                    />{" "}
+                  </span>
+                  &nbsp;&nbsp;&nbsp;{sortedWins.length} WIN
+                  {sortedWins.length > 1 ? "S" : ""}&nbsp;&nbsp;&nbsp;
+                  <div style={styles.prizeContainer}>
+                    <PrizeValueIcon size={26} />
+                    <PrizeValue
+                      amount={calculateTotalAmountWon(sortedWins)}
+                      size={28}
                     />
                   </div>
-                  <div style={styles.cellCenterAlign}>
-                    {timeAgo(getMidDrawTime(win.network, win.draw))}
-                  </div>
-                  <div style={styles.cellRightAlign}>
-                    <PrizeValueIcon size={19} />
-                    <PrizeValue amount={BigInt(win.totalPayout)} size={19} />
-                  </div>
+                </h2>
+
+                <h5 style={{ color: "#ffffff", wordWrap: "break-word" }}>
+                  {address &&
+                    `${address.slice(0, 6)}...${address.slice(
+                      address.length - 4
+                    )}`}
+                </h5>
+                <div style={styles.scrollContainer}>
+                  {limitedWins.map((win: any, index: any) => (
+                    <div key={index} style={styles.row}>
+                      <div style={styles.cellLeftAlign}>
+                        <span className="hidden-mobile">
+                          <span style={{ fontSize: "14px" }}>
+                            {GetChainName(win.network)}{" "}
+                          </span>
+                        </span>
+                        &nbsp;&nbsp;
+                        <IconDisplay
+                          name={getVaultName(win.vault, vaults)}
+                          size={18}
+                        />
+                      </div>
+                      <div style={styles.cellCenterAlign}>
+                        {timeAgo(getMidDrawTime(win.network, win.draw))}
+                      </div>
+                      <div style={styles.cellRightAlign}>
+                        <PrizeValueIcon size={19} />
+                        <PrizeValue
+                          amount={BigInt(win.totalPayout)}
+                          size={19}
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-              {/* {sortedWins.length > 12 && "and more..."} */}
-            </div>
-            </>
+              </>
             )}
           </center>
         </div>
@@ -253,6 +261,11 @@ const styles: any = {
     position: "relative",
     textAlign: "center",
     maxHeight: "85%",
-    overflow: "auto",
+    overflowY: "auto",
+  },
+  scrollContainer: {
+    maxHeight: "60vh",
+    overflowY: "auto",
+    paddingRight: "10px", // Add padding to avoid scrollbar overlapping
   },
 };

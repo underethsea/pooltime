@@ -104,7 +104,7 @@ const PrizeInPool: React.FC = () => {
           &nbsp;
           <FontAwesomeIcon
       icon={faCircleInfo}
-      style={{ color: "white", height: "16px", cursor: "pointer", }}
+      style={{ color: "#ebeeef", height: "16px", cursor: "pointer", }}
       onClick={toggleModal}
     />
           {/* <Image
