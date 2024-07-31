@@ -483,6 +483,44 @@ tr {
     display: none;
   }
 }
+
+/* Default style for desktop */
+.vault-data {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.vault-data .value-container {
+  display: flex;
+  align-items: center;
+}
+
+.vault-data .value-and-apr {
+  display: flex;
+  align-items: center;
+}
+
+.vault-data .apr {
+  margin-left: 10px;
+}
+
+/* Style for mobile */
+@media (max-width: 768px) {
+  .vault-data .value-and-apr {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .vault-data .apr {
+    margin-left: 0;
+    margin-top: 5px;
+  }
+}
+
+
+
+
+
 .vault-header {
   margin-left:8px
 }

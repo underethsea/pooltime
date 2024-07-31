@@ -1730,47 +1730,41 @@ const Vault: React.FC<VaultProps> = ({
                                 <span className="vault-label">
                                   7d Vault Yield
                                 </span>
-                                <span className="vault-data">
-                                  <PrizeValueIcon size={20} />
+                                <div className="vault-data">
+  <span className="value-and-apr">
+    <span className="value-container">
+      <PrizeValueIcon size={20} />
+      <PrizeValue
+        amount={BigInt(
+          Math.round(Number(vaultData.contributed7d) * 1e18)
+        )}
+        size={20}
+      />
+    </span>
+    {ethPrice > 0 && assetPrice > 0 && (
+      <>
+        {(() => {
+          const contributed7d = Number(vaultData.contributed7d);
+          const totalAssets = Number(
+            ethers.utils.formatUnits(vaultData.totalAssets, vaultData.decimals)
+          );
+          const annualContribution = contributed7d * 52;
+          const contributionValue = annualContribution * ethPrice;
+          const totalAssetsValue = totalAssets * assetPrice;
+          const percentage = (contributionValue / totalAssetsValue) * 100;
 
-                                  <PrizeValue
-                                    amount={BigInt(
-                                      Math.round(
-                                        Number(vaultData.contributed7d) * 1e18
-                                      )
-                                    )}
-                                    size={20}
-                                  />
-                                  {ethPrice > 0 && assetPrice > 0 && (
-                                    <>
-                                      {(() => {
-                                        const contributed7d = Number(
-                                          vaultData.contributed7d
-                                        );
-                                        const totalAssets = Number(
-                                          ethers.utils.formatUnits(
-                                            vaultData.totalAssets,
-                                            vaultData.decimals
-                                          )
-                                        );
-                                        const annualContribution =
-                                          contributed7d * 52;
-                                        const contributionValue =
-                                          annualContribution * ethPrice;
-                                        const totalAssetsValue =
-                                          totalAssets * assetPrice;
-                                        const percentage =
-                                          (contributionValue /
-                                            totalAssetsValue) *
-                                          100;
+          return (
+            <span className="apr">
+              ({percentage.toFixed(1)}% APR)
+            </span>
+          );
+        })()}
+      </>
+    )}
+  </span>
+</div>
 
-                                        return (
-                                          <><span className="hidden-desktop"><br></br></span>({percentage.toFixed(1)}% APR)</>
-                                        );
-                                      })()}
-                                    </>
-                                  )}
-                                </span>
+                                
                               </div>
                             )}
                           {parseFloat(vaultData.won7d) !== 0 &&
@@ -1782,6 +1776,7 @@ const Vault: React.FC<VaultProps> = ({
                                   Prize Won
                                 </span>
                                 <span className="vault-data">
+                                <span className="value-container">
                                   <PrizeValueIcon size={20} />
                                   <PrizeValue
                                     amount={BigInt(
@@ -1791,6 +1786,7 @@ const Vault: React.FC<VaultProps> = ({
                                   />
                                   {/* {" "}
                                   ({vaultData.prizesPerDraw7d}) */}
+                                  </span>
                                 </span>
                               </div>
                             )}
