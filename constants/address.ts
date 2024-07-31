@@ -475,6 +475,8 @@ const WHITELIST_VAULTS = [
   "0x7affb8cb92ddf9f9d0ba6fdcd7cd7905cb6d2ec1", //rETH Silo Beefy
   "0xa58163334eba40fa6e81a77c2b36f252a945928a", //Prize WETH - WETH Silo Beefy
   "0xcc3fefb704be360245f8dd0386ac206941e66467", //WstETH Silo Beefy
+  "0x9b4c0de59628c64b02d7ce86f21db9a579539d5a", //WSTETH Beefy
+  "0xb4911efd3d53352f658536afd37e7897cb7dd7f6", //TBTC WBTC Beefy
 
 ];
 

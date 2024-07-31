@@ -1671,7 +1671,7 @@ const Vault: React.FC<VaultProps> = ({
                                   <div key={index} className="data-row">
                                     <span className="vault-label">Rewards</span>
                                     <span className="vault-data">
-                                      
+                                    <span className="value-container">
                                       {icon && symbol && (<span className="reward-icon">
                                         <Image
                                           src={icon}
@@ -1685,6 +1685,7 @@ const Vault: React.FC<VaultProps> = ({
                                         annualYieldPercentage.toFixed(1)
                                       )}
                                       %
+                                      </span>
                                     </span>
                                   </div>
                                 );
