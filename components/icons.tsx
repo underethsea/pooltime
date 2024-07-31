@@ -9,7 +9,18 @@ interface IconProps {
 
 const IconDisplay: React.FC<IconProps> = ({ name, size, alignment = "bottom" }) => {
   const names = name.toLowerCase().split(/[ -/]+/);
-  const iconUrls = names
+  const uniqueNames: string[] = []; // Explicitly type the array
+  const seenNames = new Set<string>();
+
+  // Filter out duplicate names
+  names.forEach((name) => {
+    if (!seenNames.has(name)) {
+      seenNames.add(name);
+      uniqueNames.push(name);
+    }
+  });
+
+  const iconUrls = uniqueNames
     .filter((name) => ICONS[name])
     .map((name) => ICONS[name]);
 
