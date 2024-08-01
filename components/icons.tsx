@@ -20,9 +20,16 @@ const IconDisplay: React.FC<IconProps> = ({ name, size, alignment = "bottom" }) 
     }
   });
 
-  const iconUrls = uniqueNames
-    .filter((name) => ICONS[name])
-    .map((name) => ICONS[name]);
+  let iconUrls: string[] = [];
+
+  // Prioritize "rocket pool" over "pool"
+  if (uniqueNames.includes("rocket") && uniqueNames.includes("pool")) {
+    iconUrls.push(ICONS["rocket pool"]);
+  } else {
+    iconUrls = uniqueNames
+      .filter((name) => ICONS[name])
+      .map((name) => ICONS[name]);
+  }
 
   // Define custom styles based on the size prop
   const customStyle = size ? { width: `${size}px`, height: `${size}px` } : {};
