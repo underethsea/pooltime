@@ -310,3 +310,17 @@ background-color: #c2baf2;
     font-size: 14px;
   }
 }
+
+
+@media (max-width: 501px) {
+  .right-align {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+@media (min-width: 501px) { /* Adjust the breakpoint as needed */
+  .desktop-margin {
+    margin-left: 50px;
+  }
+}
