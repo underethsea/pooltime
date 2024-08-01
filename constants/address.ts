@@ -406,45 +406,35 @@ const STARTBLOCK: StartBlock = {
 };
 
 const ICONS: { [key: string]: string } = {
-  beefy:
-    "https://assets.coingecko.com/coins/images/12704/standard/bifi.png?1698202580",
-  aave: "https://assets.coingecko.com/coins/images/12645/standard/AAVE.png?1696512452",
-  hop: "https://assets.coingecko.com/coins/images/25445/standard/hop.png?1696524577",
-  velodrome:
-    "https://assets.coingecko.com/coins/images/25783/standard/velo.png?1696524870",
-  usdc: "https://assets.coingecko.com/coins/images/6319/standard/usdc.png?1696506694",
-  ["usdc.e"]:
-    "https://assets.coingecko.com/coins/images/6319/standard/usdc.png?1696506694",
-  eth: "https://assets.coingecko.com/coins/images/279/standard/ethereum.png?1696501628",
-  thales:
-    "https://assets.coingecko.com/coins/images/18388/standard/CLVZJN_C_400x400.png?1696517879",
-  lusd: "https://assets.coingecko.com/coins/images/14666/standard/Group_3.png?1696514341",
-  wbtc: "https://assets.coingecko.com/coins/images/7598/standard/wrapped_bitcoin_wbtc.png?1696507857",
-  weth: "https://www.iconarchive.com/download/i109534/cjdowner/cryptocurrency-flat/Ethereum-ETH.1024.png",
-  dai: "https://assets.coingecko.com/coins/images/9956/standard/Badge_Dai.png?1696509996",
-  pool: "https://assets.coingecko.com/coins/images/14003/standard/PoolTogether.png?1696513732",
-  lonser:
-    "https://sjc6.discourse-cdn.com/standard11/user_avatar/gov.pooltogether.com/lonser/288/591_2.png",
-  op: "https://assets.coingecko.com/coins/images/25244/standard/Optimism.png?1696524385",
-  timbit:
-    "https://cdn.discordapp.com/emojis/1012391997924966491.webp?size=240&quality=lossless",
-  aero: "https://assets.coingecko.com/coins/images/31745/standard/token.png?1696530564",
-  reth: "https://assets.coingecko.com/coins/images/20764/standard/reth.png?1696520159",
-  wreth: "https://assets.coingecko.com/coins/images/20764/standard/reth.png?1696520159",
-  wsteth:
-    "https://assets.coingecko.com/coins/images/18834/standard/wstETH.png?1696518295",
-  cbeth:
-    "https://assets.coingecko.com/coins/images/27008/standard/cbeth.png?1709186989",
-  banklessdao:
-    "https://assets.coingecko.com/coins/images/15227/standard/j4WEJrwU.png?1696514882",
-  moonwell:
-    "https://assets.coingecko.com/coins/images/26133/standard/WELL.png?1696525221",
-  usdt: "https://assets.coingecko.com/coins/images/325/standard/Tether.png?1696501661",
-  angle:
-    "https://assets.coingecko.com/coins/images/19060/standard/ANGLE_Token-light.png?1696518509",
-  usda: "https://assets.coingecko.com/coins/images/34510/standard/agUSD-coingecko.png?1705288392",
-  degen: "https://assets.coingecko.com/coins/images/34515/standard/android-chrome-512x512.png?1706198225",
-  higher: "https://assets.coingecko.com/coins/images/36084/standard/200x200logo.png?1710427814"
+  "beefy": "https://assets.coingecko.com/coins/images/12704/standard/bifi.png?1698202580",
+  "aave": "https://assets.coingecko.com/coins/images/12645/standard/AAVE.png?1696512452",
+  "hop": "https://assets.coingecko.com/coins/images/25445/standard/hop.png?1696524577",
+  "velodrome": "https://assets.coingecko.com/coins/images/25783/standard/velo.png?1696524870",
+  "usdc": "https://assets.coingecko.com/coins/images/6319/standard/usdc.png?1696506694",
+  "usdc.e": "https://assets.coingecko.com/coins/images/6319/standard/usdc.png?1696506694",
+  "eth": "https://assets.coingecko.com/coins/images/279/standard/ethereum.png?1696501628",
+  "thales": "https://assets.coingecko.com/coins/images/18388/standard/CLVZJN_C_400x400.png?1696517879",
+  "lusd": "https://assets.coingecko.com/coins/images/14666/standard/Group_3.png?1696514341",
+  "wbtc": "https://assets.coingecko.com/coins/images/7598/standard/wrapped_bitcoin_wbtc.png?1696507857",
+  "weth": "https://www.iconarchive.com/download/i109534/cjdowner/cryptocurrency-flat/Ethereum-ETH.1024.png",
+  "dai": "https://assets.coingecko.com/coins/images/9956/standard/Badge_Dai.png?1696509996",
+  "rocket pool": "https://assets.coingecko.com/coins/images/20764/standard/reth.png?1696520159",
+  "pool": "https://assets.coingecko.com/coins/images/14003/standard/PoolTogether.png?1696513732",
+  "lonser": "https://sjc6.discourse-cdn.com/standard11/user_avatar/gov.pooltogether.com/lonser/288/591_2.png",
+  "op": "https://assets.coingecko.com/coins/images/25244/standard/Optimism.png?1696524385",
+  "timbit": "https://cdn.discordapp.com/emojis/1012391997924966491.webp?size=240&quality=lossless",
+  "aero": "https://assets.coingecko.com/coins/images/31745/standard/token.png?1696530564",
+  "reth": "https://assets.coingecko.com/coins/images/20764/standard/reth.png?1696520159",
+  "wreth": "https://assets.coingecko.com/coins/images/20764/standard/reth.png?1696520159",
+  "wsteth": "https://assets.coingecko.com/coins/images/18834/standard/wstETH.png?1696518295",
+  "cbeth": "https://assets.coingecko.com/coins/images/27008/standard/cbeth.png?1709186989",
+  "banklessdao": "https://assets.coingecko.com/coins/images/15227/standard/j4WEJrwU.png?1696514882",
+  "moonwell": "https://assets.coingecko.com/coins/images/26133/standard/WELL.png?1696525221",
+  "usdt": "https://assets.coingecko.com/coins/images/325/standard/Tether.png?1696501661",
+  "angle": "https://assets.coingecko.com/coins/images/19060/standard/ANGLE_Token-light.png?1696518509",
+  "usda": "https://assets.coingecko.com/coins/images/34510/standard/agUSD-coingecko.png?1705288392",
+  "degen": "https://assets.coingecko.com/coins/images/34515/standard/android-chrome-512x512.png?1706198225",
+  "higher": "https://assets.coingecko.com/coins/images/36084/standard/200x200logo.png?1710427814"
 };
 
 const WHITELIST_VAULTS = [
