@@ -166,15 +166,18 @@ const VaultYieldTooltip: React.FC<YieldTooltipProps> = ({ vaultAPR, apr, total, 
           APR<br></br>
         </span>
         {total > 0.01 && (
-          <>{apr && apr > 0.0001 ? <><FontAwesomeIcon
-            icon={faStar}
-            style={{ color: "#1a4160", height: "16px",marginRight:"6px" }}
-          /></> : ""}
+          <>
             {total.toFixed(1)}%&nbsp;
-            <FontAwesomeIcon
+            {apr && apr > 0.0001 ? <><FontAwesomeIcon
+            icon={faStar}
+            style={{ color: "#1a4160", height: "16px",marginRight:"0px" }}
+          /></> :
+          <FontAwesomeIcon
               icon={faCircleInfo}
               style={{ color: "#1a4160", height: "16px" }}
             />
+          }
+            
             <div className="vault-tooltip-text">
               {vaultAPR && vaultAPR > 0.001 && (
                 <div className="vault-tooltip-row">
@@ -356,6 +359,7 @@ function AllVaults() {
                   <span className="hidden-desktop">
                     {mobileDisplayValue.substring(6)}
                   </span>
+                  
                   <FontAwesomeIcon
                     icon={faSquareArrowUpRight}
                     size="sm"
@@ -364,14 +368,15 @@ function AllVaults() {
                       height: "15px",
                       paddingLeft: "9px",
                     }}
-                    // className="hidden-mobile"
+                   className="hidden-mobile"
                   />
                   <span className="hidden-desktop">
-                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <span className="right-align">
                     {/* Pass the correct props to Tooltip */}
                     {vaultAPR && (
                       <>{(Number(vaultAPR) + Number(apr * 100)).toFixed(1)}%</>
                     )}
+                    </span>
                   </span>
                 </>
               ) : (
@@ -394,7 +399,7 @@ function AllVaults() {
                 <div className="vaults-font-small">
                   &nbsp;&nbsp;&nbsp;
                   {/* <ChainTag chainId={c} /> */}
-                  <span style={{ verticalAlign: "middle", marginLeft: "50px" }}>
+                  <span className="hidden-mobile" style={{ verticalAlign: "middle", marginLeft: "50px" }}>
                     {poolers} poolers
                   </span>
                 </div>
