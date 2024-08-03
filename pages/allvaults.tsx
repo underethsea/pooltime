@@ -431,7 +431,7 @@ function AllVaults() {
           &nbsp;<div className="animated deposit-button">DEPOSIT</div>
         </div>
       ) : (
-        <div className="space">HELLO</div>
+        ""
       );
 
           return (
