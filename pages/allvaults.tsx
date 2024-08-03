@@ -402,6 +402,9 @@ function AllVaults() {
                   <span className="hidden-mobile" style={{ verticalAlign: "middle", marginLeft: "50px" }}>
                     {poolers} poolers
                   </span>
+                  <span className="hidden-desktop" style={{marginLeft: "0px" }}>
+                    {poolers} poolers
+                  </span>
                 </div>
               )}
             </div>
@@ -410,30 +413,30 @@ function AllVaults() {
       },
 
       {
-        Header: "Your Tokens",
-        id: "tokens",
-        accessor: "apr",
-        Cell: ({ row }) => {
-          const { assetBalance, vaultBalance, decimals, assetSymbol, status } =
-            row.original;
-          // Convert BigNumber to string for display
-          let assetBalanceDisplay =
-            assetBalance && assetBalance.gt(0) && status !== 1 ? (
-              <div className="animated deposit-button">
-                <IconDisplay name={assetSymbol} size={20} />
-                &nbsp;
-                {NumberWithCommas(
-                  CropDecimals(ethers.utils.formatUnits(assetBalance, decimals))
-                )}
-                &nbsp; DEPOSIT
-              </div>
-            ) : (
-              ""
-            );
+  Header: "Your Tokens",
+  id: "tokens",
+  accessor: "apr",
+  Cell: ({ row }) => {
+    const { assetBalance, decimals, assetSymbol, status } = row.original;
+    // Convert BigNumber to string for display
+    const assetBalanceDisplay =
+      assetBalance && assetBalance.gt(0) && status !== 1 ? (
+        <div className="token-container">
+          <div className="token-icon-box">
+            <IconDisplay name={assetSymbol} size={20} />
+            {NumberWithCommas(
+              CropDecimals(ethers.utils.formatUnits(assetBalance, decimals))
+            )}
+          </div>
+          &nbsp;<div className="animated deposit-button">DEPOSIT</div>
+        </div>
+      ) : (
+        <div className="space">HELLO</div>
+      );
 
           return (
             <div>
-              <div>
+              <div className="token-cell">
                 {assetBalance && assetBalance.gt(0) && (
                   <>
                     <span>{assetBalanceDisplay}</span>
@@ -445,7 +448,11 @@ function AllVaults() {
         },
       },
       {
-        Header: "Your Tickets",
+        Header: (
+          <div style={{ margin: '0px 0px 0px 45px' }}>
+            Your Tickets
+          </div>
+        ),
         id: "tickets",
         accessor: (row) => {
           // Convert BigNumber to a sortable format (number or string)
@@ -479,7 +486,7 @@ function AllVaults() {
                     height: "17px",
                     marginRight: "3px",
                   }}
-                /></span>
+                />
                 &nbsp;
                 {NumberWithCommas(
                   CropDecimals(
@@ -488,7 +495,7 @@ function AllVaults() {
                       decimals
                     )
                   )
-                )}
+                )}</span>
               </>
             ) : (
               ""
