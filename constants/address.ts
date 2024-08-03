@@ -467,6 +467,7 @@ const WHITELIST_VAULTS = [
   "0xcc3fefb704be360245f8dd0386ac206941e66467", //WstETH Silo Beefy
   "0x9b4c0de59628c64b02d7ce86f21db9a579539d5a", //WSTETH Beefy
   "0xb4911efd3d53352f658536afd37e7897cb7dd7f6", //TBTC WBTC Beefy
+  "0xa99ec0a1018bf964931c7dc421a5de8bca0e32f1", // USDC Aave Base
 
 ];
 
@@ -501,6 +502,10 @@ const WHITELIST_REWARDS: { [chain: string]: { TOKEN: string; SYMBOL: string; GEC
       GECKO: "higher",
       ICON: "https://assets.coingecko.com/coins/images/36084/standard/200x200logo.png?1710427814",
     },
+    {TOKEN: "0xd652C5425aea2Afd5fb142e120FeCf79e18fafc3",
+     SYMBOL: "POOL",
+     GECKO: "pooltogether",
+     ICON: "https://assets.coingecko.com/coins/images/14003/standard/PoolTogether.png?1696513732"
   ],
 };
 
