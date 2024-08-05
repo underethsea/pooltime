@@ -206,6 +206,7 @@ background-color: #c2baf2;
   margin-bottom: 5px;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
+  align-items: center;
 }
 
 .vault-row-tvl-hidden {
