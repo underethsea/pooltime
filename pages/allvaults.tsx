@@ -413,7 +413,11 @@ function AllVaults() {
       },
 
       {
-  Header: "Your Tokens",
+        Header: (
+          <div style={{ margin: '0px 0px 0px 30px' }}>
+            Your Tokens
+          </div>
+        ),
   id: "tokens",
   accessor: "apr",
   Cell: ({ row }) => {
@@ -449,7 +453,7 @@ function AllVaults() {
       },
       {
         Header: (
-          <div style={{ margin: '0px 0px 0px 45px' }}>
+          <div style={{ margin: '0px 0px 0px 30px' }}>
             Your Tickets
           </div>
         ),
@@ -505,7 +509,11 @@ function AllVaults() {
       },
 
       {
-        Header: "Yield",
+        Header: (
+          <div style={{ margin: '0px 30px 0px 0px' }}>
+            Yield
+          </div>
+        ),
         id: "yieldAndVaultAPR",
         accessor: (row) => (Number(row.vaultAPR) || 0) + (row.apr || 0) * 100, // Directly return the computed number
         // screw you typescript

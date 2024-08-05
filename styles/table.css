@@ -353,6 +353,6 @@ background-color: #c2baf2;
 }
 @media (max-width: 501px) {
   .token-container {
-    margin-top: 25px; 
+    margin-top: 10px; 
   }
 }
