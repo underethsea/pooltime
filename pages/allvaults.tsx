@@ -541,7 +541,7 @@ function AllVaults() {
                 {depositsEthValue > 0 && (
                   <>
                     <PrizeValueIcon size={16} />
-                    <PrizeValue amount={BigInt(depositsEthValue)} size={16} />
+                    <PrizeValue amount={BigInt(Math.round(parseFloat(depositsEthValue)))}  size={16} />
                   </>
                 )}
                 <span style={{ color: "rgba(0, 0, 0, 0)" }}>-</span>
