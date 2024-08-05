@@ -206,6 +206,7 @@ background-color: #c2baf2;
   margin-bottom: 5px;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
+  align-items: center;
 }
 
 .vault-row-tvl-hidden {
@@ -314,6 +315,7 @@ background-color: #c2baf2;
 
 @media (max-width: 501px) {
   .right-align {
+    margin-top: -20px;
     display: flex;
     justify-content: flex-end;
   }
@@ -322,5 +324,35 @@ background-color: #c2baf2;
 @media (min-width: 501px) { /* Adjust the breakpoint as needed */
   .desktop-margin {
     margin-left: 50px;
+  }
+}
+
+
+.token-cell {
+  display: flex;
+  justify-content: space-between; /* Space items evenly */
+  align-items: center;
+}
+
+.token-icon-box {
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  min-width: 105px; /* Consistent width */
+  height: 40px; /* Consistent height */
+  width: fit-content;
+  gap: 8px;
+}
+
+.token-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 2px; 
+}
+@media (max-width: 501px) {
+  .token-container {
+    margin-top: 10px; 
   }
 }
