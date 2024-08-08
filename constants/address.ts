@@ -461,10 +461,10 @@ const WHITELIST_VAULTS = [
   "0x4e42f783db2d0c5bdff40fdc66fcae8b1cda4a43", // base aave weth
   "0x8c2f27b7819eb1bb7e3b5c407c5e1839186d5aba", // wreth
 
-  "0xfdd33b8413a69ba9ce140b479f27ee7ab133850e", //OP Silo Beefy
-  "0x7affb8cb92ddf9f9d0ba6fdcd7cd7905cb6d2ec1", //rETH Silo Beefy
-  "0xa58163334eba40fa6e81a77c2b36f252a945928a", //Prize WETH - WETH Silo Beefy
-  "0xcc3fefb704be360245f8dd0386ac206941e66467", //WstETH Silo Beefy
+  // "0xfdd33b8413a69ba9ce140b479f27ee7ab133850e", //OP Silo Beefy
+  // "0x7affb8cb92ddf9f9d0ba6fdcd7cd7905cb6d2ec1", //rETH Silo Beefy
+  // "0xa58163334eba40fa6e81a77c2b36f252a945928a", //Prize WETH - WETH Silo Beefy
+  // "0xcc3fefb704be360245f8dd0386ac206941e66467", //WstETH Silo Beefy
   "0x9b4c0de59628c64b02d7ce86f21db9a579539d5a", //WSTETH Beefy
   "0xb4911efd3d53352f658536afd37e7897cb7dd7f6", //TBTC WBTC Beefy
   "0xa99ec0a1018bf964931c7dc421a5de8bca0e32f1", // USDC Aave Base
