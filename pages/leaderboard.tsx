@@ -61,11 +61,11 @@ const Leaderboard: React.FC = () => {
       </div>
       <br />
       <center>
-        <div className="vault-search-container">
+        <div className="vault-search-container-leaderboard">
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="vaultsearch"
+            className="vaultsearchleaderboard"
             placeholder="Search..."
           />
         </div>
@@ -120,18 +120,23 @@ const Leaderboard: React.FC = () => {
           max-height: 100px;
         }
         .header-title {
-          margin: 0 0 0 10px;
+          margin: 20 0 0 10px;
           line-height: 1;
           font-size: 2rem; // Adjust font size as needed
           flex-shrink: 1;
         }
         @media (max-width: 600px) {
+          .header-image {
+            margin-right: 10px;
+          }
           .header-title {
             font-size: 1.5rem; // Adjust for smaller screens
+            margin: 0px 0 0 15px;
           }
           .header-container {
             justify-content: flex-start;
             padding: 0 10px;
+            margin-top: 20px;
           }
         }
         

@@ -315,7 +315,7 @@ background-color: #c2baf2;
 
 @media (max-width: 501px) {
   .right-align {
-    margin-top: -20px;
+    margin-top: 0px;
     display: flex;
     justify-content: flex-end;
   }
