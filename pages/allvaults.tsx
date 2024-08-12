@@ -872,7 +872,7 @@ function AllVaults() {
 
   return (
     <center>
-      <div
+      <div className="vault-header"
         style={{
           display: "flex",
           alignItems: "center",
@@ -891,12 +891,7 @@ function AllVaults() {
       <div>
         <div className="vaults-header-container">
           <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}>
+            className="hidden-mobile-vault-header">
             {!isLoading && (
               <>
                 <div
@@ -998,6 +993,118 @@ function AllVaults() {
               )}
             </div>
           </div>
+
+
+
+          <div
+            className="hidden-desktop-vault-header">
+            {!isLoading && (
+              <>
+                
+              </>
+            )}
+            <div
+              className="tvl"
+              style={{
+                textAlign: "left",
+                // backgroundColor: "#e5f3f5",
+                color: "white",
+                borderRadius: "10px",
+                padding: "0px 8px 5px 8px",
+              }}>
+              {!isLoading && <PrizeInPool />}
+              
+
+              {tvl &&
+              parseInt(tvl.totalTVL.toString()) > 0 &&
+              !isLoading &&
+              showStats ? (
+                <>
+                  <div style={{ fontSize: "22px", display: "inline-block", marginTop: "10px" }}>
+                    TVL&nbsp;&nbsp;
+                    <PrizeValueIcon size={22} />
+                    <PrizeValue
+                      amount={BigInt(Math.round(Number(tvl.totalTVL)))}
+                      size={22}
+                    />
+                  </div>
+                  &nbsp;
+                  <div className="tooltipContainer">
+                    <FontAwesomeIcon
+                      icon={faCircleInfo}
+                      style={{ color: "#ebeeef", height: "16px" }}
+                    />
+                    <span className="tooltipText">
+                      <div>Total Value Locked</div>
+                      {Object.entries(tvl.tvlPerChain).map(([chainId, tvl]) => (
+                        <div key={chainId}>
+                          {GetChainName(Number(chainId))}&nbsp;&nbsp;
+                          <PrizeValueIcon size={15} />
+                          <PrizeValue amount={BigInt(tvl)} size={15} />
+                          {/* $ {NumberWithCommas(tvl.toFixed(0))} */}
+                        </div>
+                      ))}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <span style={{ width: "140px" }}></span>
+              )}
+            </div>
+              <div
+                  className="vault-search-container"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    // width: "450px",
+                  }}>
+                  
+                  <div className="vaults-chain-toggle">
+                    {chains.map((chain) => {
+                      const icon = GetChainIcon(chain.chainId);
+                      return (
+                        <div
+                          key={chain.chainId}
+                          className={`vaults-chain-option ${
+                            chain.active ? "active" : ""
+                          }`}
+                          onClick={() => toggleChain(chain.chainId)}>
+                          {icon && (
+                            <Image
+                              src={icon}
+                              alt={chain.name}
+                              width={24}
+                              height={24}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <input
+                    value={searchInput}
+                    className="vaultsearch"
+                    onChange={handleSearch}
+                    placeholder="Search..."
+                  />
+                </div>
+                {tvl && !isLoading && !showStats && (
+                <div className="more">
+                  <span
+                    style={{ cursor: "pointer" }}
+                    onClick={() => {
+                      setShowStats(true);
+                    }}>
+                    <a className="custom-link">+ data</a>
+                  </span>
+                </div>
+              )}
+          </div>
+
+
+
+
         </div>
         {/* <SortingSelector selectedSort={selectedSort} handleSortChange={handleSortChange} /> */}
         <br></br>
