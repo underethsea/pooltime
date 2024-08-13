@@ -1351,7 +1351,7 @@ tr {
   gap: 10px;
   width: 320px;
   padding: 30px;
-  background-color: #e7eceb;
+  background-color: #d7dcf0;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
 }
@@ -1378,7 +1378,7 @@ padding:15px;
 }
 
 .vault-data {
-  background-color: #f3fdfd;
+  background-color: #808ce63b;
   padding: 4px;
   border-radius: 4px;
   padding-right: 8px;
