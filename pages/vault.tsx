@@ -1699,7 +1699,7 @@ const Vault: React.FC<VaultProps> = ({
                           <span className="hidden-mobile">(TVL)</span>
                         </span>
                         
-                        <span className="vault-data">
+                        <span className="vault-data" style={{ backgroundColor: '#c6c0e2' }}>
                           <span className="vault-align">
                           <IconDisplay name={vaultData.assetSymbol} size={18} alignment={"middle"}/>
                           &nbsp;
@@ -1720,7 +1720,7 @@ const Vault: React.FC<VaultProps> = ({
                           {vaultData.poolers && (
                             <div className="data-row">
                               <span className="vault-label">Poolers</span>
-                              <span className="vault-data">
+                              <span className="vault-data" style={{ backgroundColor: '#c6c0e2' }}>
                                 {NumberWithCommas(vaultData.poolers.toFixed(0))}
                               </span>
                             </div>

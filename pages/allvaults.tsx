@@ -339,8 +339,8 @@ function AllVaults() {
               ? name.substring(0, 22) + "..."
               : name.substring(0, 28);
           const mobileDisplayValue =
-            name.length > 25
-              ? name.substring(0, 12) + "..."
+            name.length > 15
+              ? name.substring(0, 21)
               : name.substring(0, 15);
 
           return (
