@@ -468,6 +468,8 @@ const WHITELIST_VAULTS = [
   "0xb4911efd3d53352f658536afd37e7897cb7dd7f6", //TBTC WBTC Beefy
   "0xa99ec0a1018bf964931c7dc421a5de8bca0e32f1", // USDC Aave Base
 
+  "0x52ee27824a64430cbd1be03794d4eb92e4b8bbd0", //BASED Vault
+
 ];
 
 
