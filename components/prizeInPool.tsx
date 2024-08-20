@@ -131,14 +131,14 @@ const PrizeInPool: React.FC = () => {
                 height={40}
                 alt="trophy"
               />
-              &nbsp;&nbsp;<span className="hidden-mobile">Total</span>&nbsp;Prize&nbsp;&nbsp; <PrizeValueIcon size={32} />
+              &nbsp;&nbsp;&nbsp;Prizes&nbsp;&nbsp; <PrizeValueIcon size={32} />
               <PrizeValue amount={BigInt(totalPrize * 1e18)} size={40} />
             </div>
             <div className="total-prize"></div>  
             <div className="grid-container">
               <div className="grid-header">
                 <div></div>
-                <div style={{ textAlign: "right" }}><span className="hidden-mobile">Total</span> Prize&nbsp;&nbsp;</div>
+                <div style={{ textAlign: "right" }}>Prizes&nbsp;&nbsp;</div>
                 <div style={{ textAlign: "right", color:"#f0c8f9" }}>Jackpot&nbsp;&nbsp;</div>
                 <div style={{ textAlign: "right" }} className="hidden-mobile">Tier 1&nbsp;&nbsp;</div>
               </div>

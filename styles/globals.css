@@ -2369,3 +2369,7 @@ padding:15px;
   border: 1px solid #ddd;
   padding: 8px;
 }
+
+.rounded-icon img {
+  border-radius: 50%;
+}
