@@ -505,6 +505,11 @@ const WHITELIST_REWARDS: { [chain: string]: { TOKEN: string; SYMBOL: string; GEC
      GECKO: "pooltogether",
      ICON: "https://assets.coingecko.com/coins/images/14003/standard/PoolTogether.png?1696513732",
     },
+    {TOKEN: "0x32e0f9d26d1e33625742a52620cc76c1130efde6",
+     SYMBOL: "BASED",
+     GECKO: "based-2",
+     ICON: "https://assets.coingecko.com/coins/images/39669/standard/BASED.jpg?1723603780",
+    },
   ],
 };
 
