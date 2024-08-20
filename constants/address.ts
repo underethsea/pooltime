@@ -434,7 +434,8 @@ const ICONS: { [key: string]: string } = {
   "angle": "https://assets.coingecko.com/coins/images/19060/standard/ANGLE_Token-light.png?1696518509",
   "usda": "https://assets.coingecko.com/coins/images/34510/standard/agUSD-coingecko.png?1705288392",
   "degen": "https://assets.coingecko.com/coins/images/34515/standard/android-chrome-512x512.png?1706198225",
-  "higher": "https://assets.coingecko.com/coins/images/36084/standard/200x200logo.png?1710427814"
+  "higher": "https://assets.coingecko.com/coins/images/36084/standard/200x200logo.png?1710427814",
+  "based": "https://assets.coingecko.com/coins/images/39669/standard/BASED.jpg?1723603780"
 };
 
 const WHITELIST_VAULTS = [
