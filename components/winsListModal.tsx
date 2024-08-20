@@ -248,5 +248,7 @@ const styles: any = {
     textAlign: "center",
     maxHeight: "85%",
     overflow: "auto",
+    scrollbarWidth: "none", 
+    msOverflowStyle: "none",
   },
 };

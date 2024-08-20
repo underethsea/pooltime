@@ -1672,7 +1672,7 @@ const Vault: React.FC<VaultProps> = ({
                                     <span className="vault-label">Rewards</span>
                                     <span className="vault-data">
                                     <span className="value-container">
-                                      {icon && symbol && (<span className="reward-icon">
+                                      {icon && symbol && (<span className="reward-icon rounded-icon">
                                         <Image
                                           src={icon}
                                           width={16}
