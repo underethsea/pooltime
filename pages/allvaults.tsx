@@ -953,14 +953,16 @@ function AllVaults() {
                     <a className="custom-link">+nerd data</a>
                   </span>
                 </div>
-              )}
+              )} 
 
               {tvl &&
               parseInt(tvl.totalTVL.toString()) > 0 &&
               !isLoading &&
               showStats ? (
                 <>
-                  <div style={{ fontSize: "22px", display: "inline-block" }}>
+                  <div style={{ fontSize: "22px", display: "inline-block" }} onClick={() => {
+                      setShowStats(false);
+                    }}>
                     TVL&nbsp;&nbsp;
                     <PrizeValueIcon size={22} />
                     <PrizeValue
