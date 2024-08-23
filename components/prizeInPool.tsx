@@ -99,7 +99,7 @@ const PrizeInPool: React.FC = () => {
             onClick={toggleModal}
           >
             <PrizeValueIcon size={22} />
-            <PrizeValue amount={BigInt(totalPrize * 1e18)} size={30} />
+            <PrizeValue amount={BigInt(totalPrize * 1e18)} size={30} rounded={true}/>
           </span>
           &nbsp;
           <FontAwesomeIcon
@@ -132,7 +132,7 @@ const PrizeInPool: React.FC = () => {
                 alt="trophy"
               />
               &nbsp;&nbsp;&nbsp;Prizes&nbsp;&nbsp; <PrizeValueIcon size={32} />
-              <PrizeValue amount={BigInt(totalPrize * 1e18)} size={40} />
+              <PrizeValue amount={BigInt(totalPrize * 1e18)} size={40} rounded={true}/>
             </div>
             <div className="total-prize"></div>  
             <div className="grid-container">
@@ -162,13 +162,13 @@ const PrizeInPool: React.FC = () => {
                     
                     <div style={{ textAlign: "right" }}>
                       <PrizeValueIcon size={24} />
-                      <PrizeValue amount={BigInt(prizeData.total)} size={28} />
+                      <PrizeValue amount={BigInt(prizeData.total)} size={28}  rounded={true}/>
                     </div>
                     <div style={{ textAlign: "right",color:"#e9aaf7" }}>
                       {tier0 && tier0.value > 0 && (
                         <>
                           <PrizeValueIcon size={24} />
-                          <PrizeValue amount={BigInt(tier0.value * 1e18)} size={28} />
+                          <PrizeValue amount={BigInt(tier0.value * 1e18)} size={28}  rounded={true}/>
                         </>
                       )}
                     </div>
@@ -176,7 +176,7 @@ const PrizeInPool: React.FC = () => {
                       {tier1 && tier1.value > 0 && (
                         <>
                           <PrizeValueIcon size={24} />
-                          <PrizeValue amount={BigInt(tier1.value * 1e18)} size={28} />
+                          <PrizeValue amount={BigInt(tier1.value * 1e18)} size={28}  rounded={true}/>
                         </>
                       )}
                     </div>

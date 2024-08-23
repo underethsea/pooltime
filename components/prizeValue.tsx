@@ -6,9 +6,10 @@ import { NumberWithCommas, CropDecimals, Dec } from '../utils/tokenMaths';
 interface PrizeTokenProps {
   amount?: bigint;
   size?: number; // Optional textSize parameter
+  rounded?: boolean;
 }
 
-const PrizeValue: React.FC<PrizeTokenProps> = ({ amount = BigInt(0), size = 16 }) => {
+const PrizeValue: React.FC<PrizeTokenProps> = ({ amount = BigInt(0), size = 16, rounded = false }) => {
     const { currency, overview } = useOverview();
 
     // console.log("prize token amount",amount,amount.toString())
@@ -20,10 +21,12 @@ const PrizeValue: React.FC<PrizeTokenProps> = ({ amount = BigInt(0), size = 16 }
   const formatToken = (num: bigint) => {
     const tokenValue = Dec(num, PrizeTokenDecimals);
     if (currency === 'ETH') {
-      return `${NumberWithCommas(CropDecimals(tokenValue))}`;
+      if(rounded){return `${CropDecimals(tokenValue,true)}`}else{
+      return `${NumberWithCommas(CropDecimals(tokenValue))}`;}
     } else if (currency === 'USD') {
       const usdValue = parseFloat(tokenValue) * ethPrice;
-      return `${NumberWithCommas(CropDecimals(usdValue))}`;
+      if(rounded){return `${CropDecimals(usdValue,true)}`}else{
+      return `${NumberWithCommas(CropDecimals(usdValue))}`}
     }
     return NumberWithCommas(CropDecimals(tokenValue));
   };
