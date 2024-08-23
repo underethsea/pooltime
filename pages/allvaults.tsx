@@ -968,6 +968,7 @@ function AllVaults() {
                     <PrizeValue
                       amount={BigInt(Math.round(Number(tvl.totalTVL)))}
                       size={22}
+                      rounded={true}
                     />
                   </div>
                   &nbsp;

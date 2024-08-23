@@ -20,7 +20,11 @@ export function NumberWithCommas(number: string) {
 
     if (compact) {
         if (absNum >= 1e6) {
-            return addCommas(Math.floor(absNum / 1e6)) + "M";
+            if (absNum < 1e8) {
+                return (absNum / 1e6).toFixed(1) + "M"; // One decimal for under 100M
+            } else {
+                return addCommas(Math.floor(absNum / 1e6)) + "M"; // No decimals for 100M or more
+            }
         } else if (absNum >= 1e3) {
             return addCommas(Math.floor(absNum / 1e3)) + "k";
         } else if (absNum >= 100) {
@@ -54,7 +58,6 @@ export function NumberWithCommas(number: string) {
 
     return absNum.toString(); // Fallback to the original number as a string
 }
-
 
 
   export function Dec(number:bigint ,decimals:number){
