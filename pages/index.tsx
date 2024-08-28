@@ -42,7 +42,7 @@ const Layout = ({ children }: LayoutProps) => {
           <Menu />
           <div className="wallet-connect-button">
           {/* <div style={{ display: 'flex', gap: 12 }}> */}
-          <div  style={{ display: 'flex',alignItems:'baseline'}}>
+          <div  style={{ display: 'flex',alignItems:'end'}}>
 
           <span className="hidden-mobile"><CurrencyToggle/> </span>
             <MyConnect connectText="CONNECT"/>  </div>
