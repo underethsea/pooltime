@@ -1607,7 +1607,7 @@ const Vault: React.FC<VaultProps> = ({
                             {(activePromos as { [key: string]: any[] })[
                               activeVaultAddress.toLowerCase()
                             ]
-                              .filter((activePromo) => activePromo.whitelist) // Filter to only include whitelisted promotions
+                              // .filter((activePromo) => activePromo.whitelist) // Filter to only include whitelisted promotions
                               .map((activePromo, index) => {
                                 console.log("active promo tokens",activePromo.tokensPerSecond,"decimals,",activePromo.decimals)
                                 const tokensPerSecond = Math.round(activePromo.tokensPerSecond) / Math.pow(10, activePromo.tokenDecimals);
