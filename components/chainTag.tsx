@@ -14,7 +14,7 @@ const getChainDetails = (chainId: number) => {
     case 42161:
       return { name: "ARBITRUM", bgColor: "#203147" };
     case 1:
-      return { name: "ETHEREUM", bgColor: "black" };
+      return { name: "ETHEREUM", bgColor: "#6e6d70" };
     default:
       return { name: "UNKNOWN", bgColor: "grey" }; // Default grey background
   }

@@ -36,6 +36,7 @@ function Poolers() {
     { id: '42161', name: 'ARBITRUM'},
     { id: '8453', name: 'BASE' },
     { id: CONFIG.CHAINID.toString(), name: CONFIG.CHAINNAME },
+    { id: '1', name: 'ETHEREUM'}
   ];
   // function getChainNameById(chainId: any) {
   //   const chain = chains.find((c) => c.id === chainId);

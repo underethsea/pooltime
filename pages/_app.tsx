@@ -41,6 +41,7 @@ const config = getDefaultConfig({
     },
     base,
     arbitrum,
+    mainnet
   ],
   ssr: true, // If your dApp uses server side rendering (SSR)
 });

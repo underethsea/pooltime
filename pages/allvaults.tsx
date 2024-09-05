@@ -84,6 +84,7 @@ const initialChains = [
   { chainId: 10, name: "Optimism", active: true, color: "#f1091e" },
   { chainId: 8453, name: "Base", active: true, color: "#0d59ff" },
   { chainId: 42161, name: "Arbitrum", active: true, color: "orange" },
+  { chainId: 1, name:"Ethereum", active: true, color: "black"}
   // { chainId: 421614, name: 'Arbitrum Test', active: true }
 ];
 

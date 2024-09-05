@@ -20,7 +20,10 @@ export const GetChainName = (id: number) => {
     return "ARBSEPOLIA";
   } else if (id === 42161) {
     return "ARBITRUM";
-  } else {
+  } 
+  else if (id === 1) {
+    return "ETHEREUM";
+  }else {
     return CONFIG.CHAINNAME;
   }
 };

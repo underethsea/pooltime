@@ -27,6 +27,9 @@ const ENDPOINTS : ChainEndpoints= {
       "MAINNET":
       "https://eth-mainnet.g.alchemy.com/v2/" +
       ALCHEMY_KEY,
+      "ETHEREUM":
+      "https://eth-mainnet.g.alchemy.com/v2/" +
+      ALCHEMY_KEY,
       "OPGOERLI":
       "https://opt-goerli.g.alchemy.com/v2/"+
       ALCHEMY_KEY,
@@ -69,6 +72,7 @@ PROVIDERS = {
   BASESEPOLIA: new providers.JsonRpcProvider(ENDPOINTS[rpc].BASESEPOLIA),
   ARBSEPOLIA: new providers.JsonRpcProvider(ENDPOINTS[rpc].ARBSEPOLIA),
   ARBITRUM: new providers.JsonRpcProvider(ENDPOINTS[rpc].ARBITRUM),
+  ETHEREUM: new providers.JsonRpcProvider(ENDPOINTS[rpc].MAINNET),
 
 
 
