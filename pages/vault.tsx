@@ -43,6 +43,7 @@ import { GetChance } from "../utils/getChance";
 import { GetChainIcon } from "../utils/getChain";
 import ChainTag from "../components/chainTag";
 
+
 // import Drip from "./drip";
 
 interface vaultApi {
@@ -721,6 +722,7 @@ const Vault: React.FC<VaultProps> = ({
         overviewFromContext.overview.prices
       ) {
         if (activeVaultAddress) {
+          console.log("geetting prmo")
           const promoPromise = GetActivePromotionsForVaults(
             [activeVaultAddress],
             true,
@@ -730,7 +732,7 @@ const Vault: React.FC<VaultProps> = ({
           });
           promises.push(promoPromise);
         }
-      }
+      }else{console.log("context is missing")}
 
       if (activeVaultAddress && address) {
         const chancePromise = GetChance(
@@ -749,10 +751,10 @@ const Vault: React.FC<VaultProps> = ({
     if (activeVaultAddress && router.isReady) {
       fetchData();
     }
-  }, [activeVaultAddress, address, router.isReady]);
+  }, [activeVaultAddress, address, router.isReady, overviewFromContext]);
 
   // vaultData && console.log("contributed",vaultData?.contributed7d, typeof vaultData.contributed7d);
-  console.log("active promos here", activePromos);
+  // console.log("active promos here", activePromos);
   // console.log("active vault here", activeVaultAddress);
   // console.log("vault data", vaultData);
   function averageDaysToWin() {
@@ -1609,9 +1611,9 @@ const Vault: React.FC<VaultProps> = ({
                             ]
                               // .filter((activePromo) => activePromo.whitelist) // Filter to only include whitelisted promotions
                               .map((activePromo, index) => {
-                                console.log("active promo tokens",activePromo.tokensPerSecond,"decimals,",activePromo.decimals)
+                                // console.log("active promo tokens",activePromo.tokensPerSecond,"decimals,",activePromo.decimals)
                                 const tokensPerSecond = Math.round(activePromo.tokensPerSecond) / Math.pow(10, activePromo.tokenDecimals);
-                                console.log("tokens epr second",tokensPerSecond)
+                                // console.log("tokens epr second",tokensPerSecond)
                                 const annualTokens =
                                   tokensPerSecond * 60 * 60 * 24 * 365;
                                 const totalAssetsInVault = Number(
@@ -1622,7 +1624,7 @@ const Vault: React.FC<VaultProps> = ({
                                 );
                                 const promoTokenPrice = activePromo.price;
                                 const vaultTokenPrice = assetPrice;
-                                console.log("promo token price",promoTokenPrice,"tokens",annualTokens,"total assets",totalAssetsInVault,"vault token price",vaultTokenPrice)
+                                // console.log("promo token price",promoTokenPrice,"tokens",annualTokens,"total assets",totalAssetsInVault,"vault token price",vaultTokenPrice)
                                 const annualYieldPercentage =
                                   ((annualTokens * promoTokenPrice) /
                                     (totalAssetsInVault * vaultTokenPrice)) *
