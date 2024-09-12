@@ -13,7 +13,7 @@ import {
 import { WagmiProvider } from "wagmi";
 import type { AppProps } from "next/app";
 // import { configureChains, createConfig, WagmiConfig } from 'wagmi';
-import { optimism, mainnet, arbitrum, base } from "wagmi/chains";
+import { optimism, mainnet, arbitrum, base, scroll } from "wagmi/chains";
 import {
   braveWallet,
   coinbaseWallet,
@@ -41,7 +41,8 @@ const config = getDefaultConfig({
     },
     base,
     arbitrum,
-    mainnet
+    mainnet,
+    scroll
   ],
   ssr: true, // If your dApp uses server side rendering (SSR)
 });
