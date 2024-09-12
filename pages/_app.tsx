@@ -42,7 +42,9 @@ const config = getDefaultConfig({
     base,
     arbitrum,
     mainnet,
-    scroll
+    {...scroll,
+      iconBackground: '#ff0000',
+      iconURL: "https://global.discourse-cdn.com/standard11/uploads/scroll2/original/2X/3/3bc70fd653f9c50abbb41b7568e549535f768fcc.png"}
   ],
   ssr: true, // If your dApp uses server side rendering (SSR)
 });

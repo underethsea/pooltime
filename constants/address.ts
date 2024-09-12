@@ -246,7 +246,7 @@ const ADDRESS: Addresses = {
   SCROLL: {
     TOKENFAUCET: "",
     ICON: "/images/scroll.svg",
-    COLOR: "yellow",
+    COLOR: "#ffeeda",
     FIRSTDRAWOPENEDAT: 1726178400,
     DRAWPERIODSECONDS: 86400,
     CHAINID: 534352,
