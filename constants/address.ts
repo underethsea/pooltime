@@ -22,6 +22,7 @@ export interface Address {
 }
 
 interface ChainAddresses {
+  ACTIVE?: boolean;
   ICON: string; // chain icon
   COLOR: string; // chain color
   CHAINID: number;
@@ -241,12 +242,12 @@ const ADDRESS: Addresses = {
     //         ASSETSYMBOL: "ARB",
     //         GECKO: "arbitrum",
     //         NOVAULT: true,
-    //       },]
+    //       },
   },
   SCROLL: {
     TOKENFAUCET: "",
     ICON: "/images/scroll.svg",
-    COLOR: "#ffeeda",
+    COLOR: "#dab68d",
     FIRSTDRAWOPENEDAT: 1726178400,
     DRAWPERIODSECONDS: 86400,
     CHAINID: 534352,

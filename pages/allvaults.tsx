@@ -80,14 +80,24 @@ interface TVL {
   tvlPerChain: { [chainId: number]: number };
 }
 
-const initialChains = [
-  { chainId: 10, name: "Optimism", active: true, color: "#f1091e" },
-  { chainId: 8453, name: "Base", active: true, color: "#0d59ff" },
-  { chainId: 42161, name: "Arbitrum", active: true, color: "orange" },
-  { chainId: 1, name:"Ethereum", active: true, color: "black"},
-  { chainId: 534352,name:"Scroll",active: true, color: "#f8cfa0"}
-  // { chainId: 421614, name: 'Arbitrum Test', active: true }
-];
+// const initialChains = [
+//   { chainId: 10, name: "Optimism", active: true, color: "#f1091e" },
+//   { chainId: 8453, name: "Base", active: true, color: "#0d59ff" },
+//   { chainId: 42161, name: "Arbitrum", active: true, color: "orange" },
+//   { chainId: 1, name:"Ethereum", active: true, color: "black"},
+//   { chainId: 534352,name:"Scroll",active: true, color: "#f8cfa0"}
+//   // { chainId: 421614, name: 'Arbitrum Test', active: true }
+// ];
+
+const initialChains = Object.keys(ADDRESS).map((chainName) => {
+  const chainData = ADDRESS[chainName];
+  return {
+    chainId: chainData.CHAINID,
+    name: chainName,
+    active: chainData.ACTIVE !== undefined ? chainData.ACTIVE : true, // If ACTIVE is not present, default to true
+    color: chainData.COLOR,
+  };
+});
 
 const getTVLPerChain = (vaults: VaultData[]) => {
   return vaults.reduce((acc: any, vault: any) => {

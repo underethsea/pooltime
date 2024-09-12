@@ -1,4 +1,5 @@
 import React from "react";
+import { ADDRESS } from "../constants";
 
 type ChainTagProps = {
   chainId: number;
@@ -6,20 +7,18 @@ type ChainTagProps = {
 };
 
 const getChainDetails = (chainId: number) => {
-  switch (chainId) {
-    case 10:
-      return { name: "OPTIMISM", bgColor: "#f64154" }; // Red background
-    case 8453:
-      return { name: "BASE", bgColor: "#437bf6" }; // Blue background
-    case 42161:
-      return { name: "ARBITRUM", bgColor: "#203147" };
-    case 1:
-      return { name: "ETHEREUM", bgColor: "#6e6d70" };
-    case 534352: 
-    return {name: "SCROLL", bgColor: "#f8cfa0"};
-    default:
-      return { name: "UNKNOWN", bgColor: "grey" }; // Default grey background
+  const chain = Object.keys(ADDRESS).find(
+    (key) => ADDRESS[key].CHAINID === chainId
+  );
+
+  if (chain) {
+    return {
+      name: chain.toUpperCase(),
+      bgColor: ADDRESS[chain].COLOR,
+    };
   }
+
+  return { name: "UNKNOWN", bgColor: "grey" }; // Default grey background
 };
 
 const ChainTag: React.FC<ChainTagProps> = ({ chainId, horizontal = false }) => {
