@@ -29,7 +29,7 @@ interface ChainAddresses {
   PRIZETOKEN: PrizeToken; // making it optional so existing objects won't break
   PRIZEPOOLSUBGRAPH: string;
   VAULTS: Address[];
-  BOOSTERS: Address[];
+  BOOSTERS?: Address[];
   LIQUIDATIONROUTER: string;
   // LIQUIDATIONPAIRFACTORY: string;
   VAULTFACTORY: string;
@@ -40,7 +40,7 @@ interface ChainAddresses {
   CLAIMER: string;
   // POOL: string;
   // POOLTOKEN?: string;
-  TOKENFAUCET: string;
+  TOKENFAUCET?: string;
   TWABCONTROLLER: string;
   RNG: string;
   TWABREWARDS: string;
@@ -116,17 +116,17 @@ const ADDRESS: Addresses = {
         VAULTICON: "https://app.cabana.fi/icons/pWETH.svg",
       },
       {
-        VAULT: '0x64a60f6117E02914bbcB07dAc14Be2e1CC9Ef04c',
-        LIQUIDATIONPAIR: '0x0000000000000000000000000000000000000000',
-        SYMBOL: 'przSTETH',
-        NAME: 'Prize stETH - Lido',
+        VAULT: "0x64a60f6117E02914bbcB07dAc14Be2e1CC9Ef04c",
+        LIQUIDATIONPAIR: "0x0000000000000000000000000000000000000000",
+        SYMBOL: "przSTETH",
+        NAME: "Prize stETH - Lido",
         DECIMALS: 18,
-        ASSET: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
-        ASSETSYMBOL: 'stETH',
-        ICON: 'https://assets.coingecko.com/coins/images/13442/standard/steth_logo.png?1696513206',
-        GECKO: 'staked-ether',
-        VAULTICON: ''
-      }
+        ASSET: "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84",
+        ASSETSYMBOL: "stETH",
+        ICON: "https://assets.coingecko.com/coins/images/13442/standard/steth_logo.png?1696513206",
+        GECKO: "staked-ether",
+        VAULTICON: "",
+      },
     ],
     BOOSTERS: [],
   },
@@ -243,7 +243,47 @@ const ADDRESS: Addresses = {
     //         NOVAULT: true,
     //       },]
   },
-
+  SCROLL: {
+    ICON: "/images/scroll.svg",
+    COLOR: "yellow",
+    FIRSTDRAWOPENEDAT: 1726178400,
+    DRAWPERIODSECONDS: 86400,
+    CHAINID: 534352,
+    ETHERSCAN: "https://etherscan.io/",
+    PRIZEPOOLSUBGRAPH:
+      "https://api.studio.thegraph.com/query/63100/pt-v5-scroll/version/latest",
+    PRIZETOKEN: {
+      ADDRESS: "0x5300000000000000000000000000000000000004",
+      SYMBOL: "WETH",
+      NAME: "WETH",
+      DECIMALS: 18,
+      GECKO: "weth",
+      ICON: "https://www.iconarchive.com/download/i109534/cjdowner/cryptocurrency-flat/Ethereum-ETH.1024.png",
+    },
+    DRAWMANAGER: "0xa75474749055f71560eb5dcff33605766c69ddf2",
+    RNG: "0x4d971a28bb23c6354f7cf1f4666c34b00e94f608",
+    TWABCONTROLLER: "0x5ec48e749768aea9956cb38542a9837ec714537d",
+    TWABREWARDS: "0x0e71a9a2bd4546e7fc2af47a015747daeb48780d",
+    LIQUIDATIONROUTER: "0x6f0b0ad2047f349594c8755ac080de9288d6ef7b",
+    VAULTFACTORY: "0x3fdd8bfdf2f589c10c58457cdae989c7943a30a5",
+    PRIZEPOOL: "0xa6ecd65c3eecdb59c2f74956ddf251ab5d899845",
+    CLAIMERFACTORY: "0x9cfe09ae8a5ff3ad386475407833837d0ee38f66",
+    CLAIMER: "0xb04d5c80a3f6da11532d3a67184bb7be11f00285",
+    VAULTS: [
+      {
+        VAULT: "0xFEb0Fe9850ABa3A52E72a8a694d422C2B47a5888",
+        LIQUIDATIONPAIR: "0xe0030789c3A0547310965A439cB189dfB2f2b745",
+        SYMBOL: "przWETH",
+        NAME: "Prize WETH - Aave",
+        DECIMALS: 18,
+        ASSET: "0x5300000000000000000000000000000000000004",
+        ASSETSYMBOL: "WETH",
+        ICON: "https://uploads-ssl.webflow.com/631993187031511c025c721d/633c1ccea93ff4709ab091c2_633be870ec7f86530e8e5419_WETH.png",
+        GECKO: "ethereum",
+        VAULTICON: "https://app.cabana.fi/icons/pWETH.svg",
+      },
+    ],
+  },
   BASE: {
     ICON: "/images/base.png",
     COLOR: "#437bf6",
@@ -503,8 +543,8 @@ const ICONS: { [key: string]: string } = {
     "https://assets.coingecko.com/coins/images/20764/standard/reth.png?1696520159",
   wsteth:
     "https://assets.coingecko.com/coins/images/18834/standard/wstETH.png?1696518295",
-  steth: 
-   "https://assets.coingecko.com/coins/images/13442/standard/steth_logo.png?1696513206",
+  steth:
+    "https://assets.coingecko.com/coins/images/13442/standard/steth_logo.png?1696513206",
   cbeth:
     "https://assets.coingecko.com/coins/images/27008/standard/cbeth.png?1709186989",
   banklessdao:
@@ -555,6 +595,7 @@ const WHITELIST_VAULTS = [
   "0x3acd377dA549010a197b9Ed0F271e1f621e4b62e", // ethereum weth
   "0x96fE7B5762bD4405149a9A313473e68a8E870F6C", // eth usdc
   "0x64a60f6117E02914bbcB07dAc14Be2e1CC9Ef04c", // eth steth
+  "0xFEb0Fe9850ABa3A52E72a8a694d422C2B47a5888", // eth scroll
 ];
 
 const WHITELIST_REWARDS: {

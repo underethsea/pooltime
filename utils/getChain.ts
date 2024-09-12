@@ -2,7 +2,10 @@ import { CONFIG } from "../constants/config";
 import { ADDRESS } from "../constants";
 export const GetChainName = (id: number) => {
   // console.log("chain number is what??",id)
-  if (id === 80001) {
+  if (id ===534352){
+    return "SCROLL"
+  }
+  else if (id === 80001) {
     return "MUMBAI";
   } else if (id === 5) {
     return "GOERLI";

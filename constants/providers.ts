@@ -12,6 +12,8 @@ interface ChainEndpoints {
 const ALCHEMY_KEY=process.env.NEXT_PUBLIC_ALCHEMY_KEY
 const ENDPOINTS : ChainEndpoints= {
   "ALCHEMY": {
+    "SCROLL":
+    "https://rpc.scroll.io",
     "OPTIMISM":
     "https://opt-mainnet.g.alchemy.com/v2/" +
     ALCHEMY_KEY,
@@ -73,6 +75,7 @@ PROVIDERS = {
   ARBSEPOLIA: new providers.JsonRpcProvider(ENDPOINTS[rpc].ARBSEPOLIA),
   ARBITRUM: new providers.JsonRpcProvider(ENDPOINTS[rpc].ARBITRUM),
   ETHEREUM: new providers.JsonRpcProvider(ENDPOINTS[rpc].MAINNET),
+  SCROLL: new providers.JsonRpcProvider(ENDPOINTS[rpc].SCROLL)
 
 
 
