@@ -29,7 +29,7 @@ interface ChainAddresses {
   PRIZETOKEN: PrizeToken; // making it optional so existing objects won't break
   PRIZEPOOLSUBGRAPH: string;
   VAULTS: Address[];
-  BOOSTERS?: Address[];
+  BOOSTERS: Address[];
   LIQUIDATIONROUTER: string;
   // LIQUIDATIONPAIRFACTORY: string;
   VAULTFACTORY: string;
@@ -40,7 +40,7 @@ interface ChainAddresses {
   CLAIMER: string;
   // POOL: string;
   // POOLTOKEN?: string;
-  TOKENFAUCET?: string;
+  TOKENFAUCET: string;
   TWABCONTROLLER: string;
   RNG: string;
   TWABREWARDS: string;
@@ -244,6 +244,7 @@ const ADDRESS: Addresses = {
     //       },]
   },
   SCROLL: {
+    TOKENFAUCET: "",
     ICON: "/images/scroll.svg",
     COLOR: "yellow",
     FIRSTDRAWOPENEDAT: 1726178400,
@@ -283,6 +284,7 @@ const ADDRESS: Addresses = {
         VAULTICON: "https://app.cabana.fi/icons/pWETH.svg",
       },
     ],
+    BOOSTERS: [],
   },
   BASE: {
     ICON: "/images/base.png",
