@@ -70,7 +70,7 @@ const ADDRESS: Addresses = {
     FIRSTDRAWOPENEDAT: 1725573600,
     DRAWPERIODSECONDS: 2419200,
     CHAINID: 1,
-    ETHERSCAN: "https://etherscan.io/",
+    ETHERSCAN: "https://scrollscan.com/",
     TOKENFAUCET: "",
     PRIZEPOOLSUBGRAPH:
       "https://api.studio.thegraph.com/query/63100/pt-v5-ethereum/version/latest",
