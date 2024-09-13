@@ -599,6 +599,8 @@ const WHITELIST_VAULTS = [
   "0x96fE7B5762bD4405149a9A313473e68a8E870F6C", // eth usdc
   "0x64a60f6117E02914bbcB07dAc14Be2e1CC9Ef04c", // eth steth
   "0xFEb0Fe9850ABa3A52E72a8a694d422C2B47a5888", // eth scroll
+  "0x9ee31e845ff1358bf6b1f914d3918c6223c75573", // pool ethereum
+  "0x29499e2eb8ff1d076a35c275aeddd613afb1fa9b", // pool scroll
 ];
 
 const WHITELIST_REWARDS: {
