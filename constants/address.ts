@@ -70,7 +70,7 @@ const ADDRESS: Addresses = {
     FIRSTDRAWOPENEDAT: 1725573600,
     DRAWPERIODSECONDS: 2419200,
     CHAINID: 1,
-    ETHERSCAN: "https://scrollscan.com/",
+    ETHERSCAN: "https://etherscan.io/",
     TOKENFAUCET: "",
     PRIZEPOOLSUBGRAPH:
       "https://api.studio.thegraph.com/query/63100/pt-v5-ethereum/version/latest",
@@ -251,7 +251,7 @@ const ADDRESS: Addresses = {
     FIRSTDRAWOPENEDAT: 1726178400,
     DRAWPERIODSECONDS: 86400,
     CHAINID: 534352,
-    ETHERSCAN: "https://etherscan.io/",
+    ETHERSCAN: "https://scrollscan.com/",
     PRIZEPOOLSUBGRAPH:
       "https://api.studio.thegraph.com/query/63100/pt-v5-scroll/version/latest",
     PRIZETOKEN: {
