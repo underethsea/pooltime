@@ -385,9 +385,10 @@ function AllVaults() {
                   <span className="hidden-desktop">
                     <span className="right-align">
                     {/* Pass the correct props to Tooltip */}
-                    {vaultAPR && (
-                      <>{(Number(vaultAPR) + Number(apr * 100)).toFixed(1)}%</>
+                    {vaultAPR !== undefined && apr !== undefined && (
+                    <>{(Number(vaultAPR || 0) + Number(apr * 100)).toFixed(1)}%</>
                     )}
+
                     </span>
                   </span>
                 </>
