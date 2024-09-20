@@ -13,7 +13,7 @@ import {
 import { WagmiProvider } from "wagmi";
 import type { AppProps } from "next/app";
 // import { configureChains, createConfig, WagmiConfig } from 'wagmi';
-import { optimism, mainnet, arbitrum, base, scroll } from "wagmi/chains";
+import { optimism, mainnet, arbitrum, base, scroll, gnosis } from "wagmi/chains";
 import {
   braveWallet,
   coinbaseWallet,
@@ -44,7 +44,8 @@ const config = getDefaultConfig({
     mainnet,
     {...scroll,
       iconBackground: '#ff0000',
-      iconURL: "https://global.discourse-cdn.com/standard11/uploads/scroll2/original/2X/3/3bc70fd653f9c50abbb41b7568e549535f768fcc.png"}
+      iconURL: "/images/scroll.svg"},
+      gnosis
   ],
   ssr: true, // If your dApp uses server side rendering (SSR)
 });
