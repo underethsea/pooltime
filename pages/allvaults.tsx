@@ -601,6 +601,10 @@ function AllVaults() {
           const assetPrices = prices.assets;
     
           let vaults: VaultData[] = await vaultsResponse.json();
+          const tvlApiValues = vaults.reduce((acc: any, vault: any) => {
+            acc[vault.vault] = parseFloat(vault.tvl);
+            return acc;
+          }, {});
     
           // Extract vault addresses
           const vaultAddresses = vaults.map((vault: any) => vault.vault);
@@ -617,17 +621,23 @@ function AllVaults() {
                   vaults: VaultData[];
                 }) => {
                   const chainName = GetChainName(Number(chainId));
-    
+                  
                   const multicallArray = chainVaults.map((vault: VaultData) => {
-                    const contract = new ethers.Contract(
-                      vault.vault,
-                      ABI.VAULT,
+                    // const contract = new ethers.Contract(
+                    //   vault.vault,
+                    //   ABI.VAULT,
+                    //   PROVIDERS[chainName]
+                    // );
+                    const twabController = new ethers.Contract(
+                      ADDRESS[chainName].TWABCONTROLLER,
+                      ABI.TWABCONTROLLER,
                       PROVIDERS[chainName]
                     );
-                    return contract.totalAssets();
+                    return twabController.totalSupplyDelegateBalance(vault.vault);
                   });
     
                   const totalSupplies = await Multicall(multicallArray, chainName);
+                  
     
                   return { chainId, totalSupplies, chainVaults };
                 }
@@ -653,18 +663,37 @@ function AllVaults() {
     
           const allResults = multicallResults.status === "fulfilled" ? multicallResults.value : [];
     
-          // Flatten the results
           const flattenedVaults = allResults.flatMap(
             ({ chainVaults, totalSupplies }: any) =>
-              chainVaults.map((vault: VaultData, index: number) => ({
-                ...vault,
-                totalSupply: totalSupplies[index],
-              }))
+              chainVaults.map((vault: VaultData, index: number) => {
+                const totalSupplyDelegate = ethers.BigNumber.from(totalSupplies[index]);
+          
+                // Convert scientific notation to string (e.g., "4.352277561912243e+21" to "4352277561912243000000")
+                const tvlFromApiString = tvlApiValues[vault.vault]?.toString() || "0";
+                const tvlFromApi = ethers.BigNumber.from(
+                  parseFloat(tvlFromApiString).toLocaleString('fullwide', { useGrouping: false }) // Convert to string without grouping
+                );
+          
+                // Compare the API TVL with totalSupplyDelegateBalance using BigNumber's gt() method
+                const totalSupplyValue = totalSupplyDelegate.gt(tvlFromApi) ? totalSupplyDelegate : tvlFromApi;
+          
+                return {
+                  ...vault,
+                  totalSupply: totalSupplyValue,  // This is used for TVL display
+                  totalSupplyDelegate,           // This is used for yield/APR calculations
+                };
+              })
           );
-    
+          
+          
+          
           // Enrich vaults with totalSupplies and other calculations
           const enrichedVaults = flattenedVaults.map((vault) => {
             const chainName = GetChainName(vault.c);
+            const totalSupplyDelegateValue = ethers.utils.formatUnits(
+              vault.totalSupplyDelegate,
+              vault.decimals
+            );
             const totalSupplyValue = ethers.utils.formatUnits(
               vault.totalSupply,
               vault.decimals
@@ -692,15 +721,27 @@ function AllVaults() {
               dollarValue = parseFloat(totalSupplyValue) * assetPrice;
               ethValue = dollarValue / geckoPrices["ethereum"];
             }
+
+
+            let delegateDollarValue = null;
+            let delegateEthValue = null
+            if (assetPrice > 0) {
+              delegateDollarValue = parseFloat(totalSupplyDelegateValue) * assetPrice;
+              delegateEthValue = delegateDollarValue / geckoPrices["ethereum"];
+            }
     
             let vaultAPR = null;
             let won7d = null;
     
-            if (dollarValue && prizeTokenPriceValue > 0) {
+            if (dollarValue && delegateDollarValue && prizeTokenPriceValue > 0) {
               const depositsDollarValue = parseFloat(
                 dollarValue.toString().replace("$", "")
               );
     
+              const depositsDelegateDollarvalue = parseFloat(
+                delegateDollarValue.toString().replace("$", "")
+              );
+
               const effectiveContribution =
                 contributed7d === 0
                   ? contributed24h * 7
@@ -711,7 +752,7 @@ function AllVaults() {
               if (depositsDollarValue > 0 && effectiveContribution > 0) {
                 vaultAPR = (
                   (((365 / 7) * effectiveContribution * prizeTokenPriceValue) /
-                    depositsDollarValue) *
+                    depositsDelegateDollarvalue) *
                   100
                 ).toFixed(2);
               }
@@ -756,7 +797,7 @@ function AllVaults() {
               const aprForPromo =
                 (tokensPerSecond * secondsInAYear * promoTokenPrice) /
                 Math.pow(10, promo.tokenDecimals) /
-                (parseFloat(totalSupplyValue) * parseFloat(assetPrice));
+                (parseFloat(totalSupplyDelegateValue) * parseFloat(assetPrice));
               return acc + aprForPromo;
             }, 0);
     

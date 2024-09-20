@@ -25,6 +25,7 @@ import {
   faExclamationCircle,
   faArrowLeft,
   faGreaterThan,
+  faTvAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "next/router";
 import { GetActivePromotionsForVaults } from "../utils/getActivePromotions";
@@ -84,6 +85,7 @@ interface VaultData {
   asset: string;
   liquidationPair: string;
   totalAssets: ethers.BigNumber;
+  tvl: ethers.BigNumber;
   assetName: string;
   assetSymbol: string;
   owner: string;
@@ -514,7 +516,8 @@ const Vault: React.FC<VaultProps> = ({
             prizesPerDraw7d,
             poolers,
             gnosis,
-            status;
+            status,
+            tvl;
 
           if (vaultPropData && Object.keys(vaultPropData).length > 0) {
             ({
@@ -571,14 +574,15 @@ const Vault: React.FC<VaultProps> = ({
                     poolers,
                     gnosis,
                     status,
-                  } = vaultData);
+                    tvl
+         } = vaultData);
                 }
               }
             } catch (apiError) {
               console.error("Error fetching data from API:", apiError);
             }
           }
-
+          if(tvl){tvl=ethers.BigNumber.from(tvl)}
           // If any of these values are not set, fetch them from the contract
           const vaultCalls = [];
           if (!name) vaultCalls.push(contract.name());
@@ -587,6 +591,8 @@ const Vault: React.FC<VaultProps> = ({
           if (!asset) vaultCalls.push(contract.asset());
           if (!liquidationPair) vaultCalls.push(contract.liquidationPair());
           if (!owner) vaultCalls.push(contract.owner());
+          if (!tvl) vaultCalls.push(contract.totalSupply()); 
+
           const vaultResults =
             vaultCalls.length > 0
               ? await Multicall(vaultCalls, GetChainName(activeVaultChain))
@@ -596,8 +602,8 @@ const Vault: React.FC<VaultProps> = ({
           if (!decimals) [decimals] = vaultResults.splice(0, 1);
           if (!asset) [asset] = vaultResults.splice(0, 1);
           if (!liquidationPair) [liquidationPair] = vaultResults.splice(0, 1);
-          if (!owner) [owner] = vaultResults;
-
+          if (!owner) [owner] = vaultResults.splice(0,1)
+          if (!tvl) [tvl] = vaultResults
           // Fetch user-specific and asset-specific data
 
           const assetContract = new ethers.Contract(
@@ -613,7 +619,7 @@ const Vault: React.FC<VaultProps> = ({
           const assetCalls = [
             assetContract.name(),
             assetContract.symbol(),
-            contract.totalAssets(),
+            twabControllerContract.totalSupplyDelegateBalance(activeVaultAddress),
             contract.yieldFeePercentage(),
           ];
 
@@ -668,7 +674,8 @@ const Vault: React.FC<VaultProps> = ({
             decimals: Number(decimals),
             asset: asset.toString(),
             liquidationPair: liquidationPair.toString(),
-            totalAssets: totalAssets, // This needs to be fetched from contract if required
+            totalAssets: totalAssets, 
+            tvl: tvl,
             assetName: assetName.toString(),
             assetSymbol: assetSymbol.toString(),
             userVaultBalance,
@@ -763,7 +770,7 @@ const Vault: React.FC<VaultProps> = ({
       const winsPerDraw30d = chance.winsPerDraw30d;
 
       const userVaultBalance = Number(vaultData.userVaultBalance);
-      const totalAssets = Number(vaultData.totalAssets);
+      const totalAssets = Number(vaultData.tvl);
 
       // Calculate the average number of prizes per draw for this vault portion
       const averagePrizesPerDraw =
@@ -1706,13 +1713,16 @@ const Vault: React.FC<VaultProps> = ({
                           <IconDisplay name={vaultData.assetSymbol} size={18} alignment={"middle"}/>
                           &nbsp;
                           {NumberWithCommas(
-                            CropDecimals(
-                              ethers.utils.formatUnits(
-                                vaultData.totalAssets,
-                                vaultData.decimals
-                              )
-                            )
-                          )}{" "}
+  CropDecimals(
+    ethers.utils.formatUnits(
+      vaultData.tvl.gt(vaultData.totalAssets) 
+        ? vaultData.tvl 
+        : vaultData.totalAssets,
+      vaultData.decimals
+    )
+  )
+)}
+{" "}
                           {/* {vaultData.assetSymbol} */}
                           </span>
                         </span>
