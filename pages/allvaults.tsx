@@ -274,57 +274,131 @@ function AllVaults() {
   const [chains, setChains] = useState(initialChains);
   const [showAllVaults, setShowAllVaults] = useState(false);
   const [isVaultsLoaded, setIsVaultsLoaded] = useState(0);
+  const [showPrzPOOLVaults, setShowPrzPOOLVaults] = useState(false);
+
 
 
   const { address } = useAccount();
-
   const toggleChain = (chainId: number) => {
-    const activeChains = chains.filter((chain) => chain.active);
-
-    // If all chains are active, deactivate all except the clicked one
-    if (activeChains.length === chains.length) {
-      const updatedChains = chains.map((chain) =>
-        chain.chainId === chainId
-          ? { ...chain, active: true }
-          : { ...chain, active: false }
-      );
+    if (showPrzPOOLVaults) {
+      // If przPOOL toggle is active, turn it off and re-enable all chains first
+      setShowPrzPOOLVaults(false);
+      const updatedChains = chains.map((chain) => ({ ...chain, active: true }));
       setChains(updatedChains);
-      const filtered = filterVaultsByChainAndSearch(
-        allVaults,
-        updatedChains,
-        searchInput
-      );
+      
+      // Set filtered vaults to include all vaults since all chains are active
+      const filtered = filterVaultsByChainAndSearch(allVaults, updatedChains, searchInput);
       setFilteredVaults(filtered);
     } else {
-      // Otherwise, toggle the clicked chain
-      const updatedChains = chains.map((chain) =>
-        chain.chainId === chainId ? { ...chain, active: !chain.active } : chain
-      );
-      setChains(updatedChains);
-      const filtered = filterVaultsByChainAndSearch(
-        allVaults,
-        updatedChains,
-        searchInput
-      );
-      setFilteredVaults(filtered);
+      // Proceed with regular chain toggling if przPOOL is not active
+      const activeChains = chains.filter((chain) => chain.active);
+  
+      // If all chains are active, deactivate all except the clicked one
+      if (activeChains.length === chains.length) {
+        const updatedChains = chains.map((chain) =>
+          chain.chainId === chainId
+            ? { ...chain, active: true }
+            : { ...chain, active: false }
+        );
+        setChains(updatedChains);
+        const filtered = filterVaultsByChainAndSearch(allVaults, updatedChains, searchInput);
+        setFilteredVaults(filtered);
+      } else {
+        // Otherwise, toggle the clicked chain
+        const updatedChains = chains.map((chain) =>
+          chain.chainId === chainId ? { ...chain, active: !chain.active } : chain
+        );
+        setChains(updatedChains);
+        const filtered = filterVaultsByChainAndSearch(allVaults, updatedChains, searchInput);
+        setFilteredVaults(filtered);
+      }
     }
   };
+  
+  // const toggleChain = (chainId: number) => {
+  //   const activeChains = chains.filter((chain) => chain.active);
 
+  //   // If all chains are active, deactivate all except the clicked one
+  //   if (activeChains.length === chains.length) {
+  //     const updatedChains = chains.map((chain) =>
+  //       chain.chainId === chainId
+  //         ? { ...chain, active: true }
+  //         : { ...chain, active: false }
+  //     );
+  //     setChains(updatedChains);
+  //     const filtered = filterVaultsByChainAndSearch(
+  //       allVaults,
+  //       updatedChains,
+  //       searchInput
+  //     );
+  //     setFilteredVaults(filtered);
+  //   } else {
+  //     // Otherwise, toggle the clicked chain
+  //     const updatedChains = chains.map((chain) =>
+  //       chain.chainId === chainId ? { ...chain, active: !chain.active } : chain
+  //     );
+  //     setChains(updatedChains);
+  //     const filtered = filterVaultsByChainAndSearch(
+  //       allVaults,
+  //       updatedChains,
+  //       searchInput
+  //     );
+  //     setFilteredVaults(filtered);
+  //   }
+  // };
+
+  // const filterVaultsByChainAndSearch = (
+  //   vaults: any,
+  //   activeChains: any,
+  //   searchInput: string
+  // ) => {
+  //   const activeChainIds = activeChains
+  //     .filter((chain: any) => chain.active)
+  //     .map((chain: any) => chain.chainId);
+
+  //   return vaults.filter(
+  //     (vault: any) =>
+  //       activeChainIds.includes(vault.c) &&
+  //       vault.name.toLowerCase().includes(searchInput.toLowerCase())
+  //   );
+  // };
+  const togglePrzPOOLVaults = () => {
+    if (!showPrzPOOLVaults) {
+      // Disable all chain toggles and show only "pool" vaults
+      setChains(chains.map(chain => ({ ...chain, active: false })));
+      const filtered = allVaults.filter(vault => vault.name.toLowerCase().includes("pool"));
+      setFilteredVaults(filtered);
+    } else {
+      // Re-enable all chain toggles
+      setChains(chains.map(chain => ({ ...chain, active: true })));
+      const filtered = filterVaultsByChainAndSearch(allVaults, chains, searchInput);
+      setFilteredVaults(filtered);
+    }
+    setShowPrzPOOLVaults(!showPrzPOOLVaults);
+  };
+  
   const filterVaultsByChainAndSearch = (
     vaults: any,
     activeChains: any,
     searchInput: string
   ) => {
+    if (showPrzPOOLVaults) {
+      // Only show vaults with "pool" in the name if the przPOOL toggle is active
+      return vaults.filter((vault: any) => vault.name.toLowerCase().includes("pool"));
+    }
+  
+    // Otherwise, apply normal chain and search filters
     const activeChainIds = activeChains
       .filter((chain: any) => chain.active)
       .map((chain: any) => chain.chainId);
-
+  
     return vaults.filter(
       (vault: any) =>
         activeChainIds.includes(vault.c) &&
         vault.name.toLowerCase().includes(searchInput.toLowerCase())
     );
   };
+  
 
  
   const depositsTVLHeader = useMemo(() => {
@@ -852,7 +926,11 @@ function AllVaults() {
       fetchData();
     }, []);
     
-
+    useEffect(() => {
+      const filtered = filterVaultsByChainAndSearch(allVaults, chains, searchInput);
+      setFilteredVaults(filtered);
+    }, [showPrzPOOLVaults]);
+    
   useEffect(() => {
     const fetchBalances = async (userAddress: any) => {
       // Group vaults by chain
@@ -914,14 +992,22 @@ function AllVaults() {
     const filtered = filterVaultsByChainAndSearch(allVaults, chains, searchInput);
     setFilteredVaults(filtered);
   }, [searchInput]);
-
   const handleSearch = (event: any) => {
     const value = event.target.value.toLowerCase();
+  
+    // Turn off przPOOL toggle and reactivate all chains if it was active
+    if (showPrzPOOLVaults) {
+      setShowPrzPOOLVaults(false);
+      setChains(chains.map(chain => ({ ...chain, active: true })));
+    }
+  
     setSearchInput(value);
-
-    // const filtered = filterVaultsByChainAndSearch(allVaults, chains, value);
-    // setFilteredVaults(filtered);
+  
+    // Proceed with normal filtering
+    const filtered = filterVaultsByChainAndSearch(allVaults, chains, value);
+    setFilteredVaults(filtered);
   };
+  
 
   return (
     <center>
@@ -962,27 +1048,41 @@ function AllVaults() {
                     placeholder="Search..."
                   />
                   <div className="vaults-chain-toggle">
-                    {chains.map((chain) => {
-                      const icon = GetChainIcon(chain.chainId);
-                      return (
-                        <div
-                          key={chain.chainId}
-                          className={`vaults-chain-option ${
-                            chain.active ? "active" : ""
-                          }`}
-                          onClick={() => toggleChain(chain.chainId)}>
-                          {icon && (
-                            <Image
-                              src={icon}
-                              alt={chain.name}
-                              width={24}
-                              height={24}
-                            />
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
+  {chains.map((chain) => {
+    const icon = GetChainIcon(chain.chainId);
+    return (
+      <div
+        key={chain.chainId}
+        className={`vaults-chain-option ${chain.active ? "active" : ""}`}
+        onClick={() => toggleChain(chain.chainId)}
+      >
+        {icon && (
+          <Image
+            src={icon}
+            alt={chain.name}
+            width={24}
+            height={24}
+          />
+        )}
+      </div>
+    );
+  })}
+&nbsp;
+  {/* przPOOL toggle */}
+  <div
+    className={`vaults-chain-option ${showPrzPOOLVaults ? "active" : ""}`}
+    onClick={togglePrzPOOLVaults}
+  >
+    <Image
+      src="/images/pool.png"
+      alt="przPOOL Vaults"
+      width={24}
+      height={24}
+
+    />
+  </div>
+</div>
+
                 </div>
               </>
             )}
