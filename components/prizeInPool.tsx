@@ -165,18 +165,18 @@ const PrizeInPool: React.FC = () => {
                       <PrizeValue amount={BigInt(prizeData.total)} size={28}  rounded={true}/>
                     </div>
                     <div style={{ textAlign: "right",color:"#e9aaf7" }}>
-                      {tier0 && tier0.value > 0 && (
+                      {tier0 && tier0.value > 0.01 && (
                         <>
                           <PrizeValueIcon size={24} />
-                          <PrizeValue amount={BigInt(tier0.value * 1e18)} size={28}  rounded={true}/>
+                          <PrizeValue amount={BigInt(Math.round(tier0.value * 1e18))} size={28}  rounded={true}/>
                         </>
                       )}
                     </div>
                     <div style={{ textAlign: "right" }} className="hidden-mobile">
-                      {tier1 && tier1.value > 0 && (
+                      {tier1 && tier1.value > 0.01 && (
                         <>
                           <PrizeValueIcon size={24} />
-                          <PrizeValue amount={BigInt(tier1.value * 1e18)} size={28}  rounded={true}/>
+                          <PrizeValue amount={BigInt(Math.round(tier1.value * 1e18))} size={28}  rounded={true}/>
                         </>
                       )}
                     </div>
