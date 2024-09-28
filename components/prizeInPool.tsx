@@ -162,7 +162,7 @@ const PrizeInPool: React.FC = () => {
                     
                     <div style={{ textAlign: "right" }}>
                       <PrizeValueIcon size={24} />
-                      <PrizeValue amount={BigInt(prizeData.prizes.prizePoolPrizeBalance)} size={28}  rounded={true}/>
+                      <PrizeValue amount={BigInt(Math.round(Number(prizeData.prizes.prizePoolPrizeBalance)*1e18))} size={28}  rounded={true}/>
                     </div>
                     <div style={{ textAlign: "right",color:"#e9aaf7" }}>
                       {tier0 && tier0.value > 0.01 && (
