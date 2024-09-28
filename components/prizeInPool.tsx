@@ -42,7 +42,7 @@ const PrizeInPool: React.FC = () => {
 
         // Calculate total prize in Ether
         const total = Object.values(prizeData).reduce((acc, prize) => {
-          return acc + parseInt(prize.total) / 1e18;
+          return acc + parseFloat(prize.prizes.prizePoolPrizeBalance)
         }, 0);
 
         setPrizes(prizeData);
@@ -80,7 +80,7 @@ const PrizeInPool: React.FC = () => {
   const totalPrizeInDollars = totalPrize * ethereumPrice;
 
   const sortedPrizes = Object.entries(prizes).sort(
-    ([, a], [, b]) => parseInt(b.total) - parseInt(a.total)
+    ([, a], [, b]) => parseInt(b.prizes.prizePoolPrizeBalance) - parseInt(a.prizes.prizePoolPrizeBalance)
   );
 
   return (
@@ -162,7 +162,7 @@ const PrizeInPool: React.FC = () => {
                     
                     <div style={{ textAlign: "right" }}>
                       <PrizeValueIcon size={24} />
-                      <PrizeValue amount={BigInt(prizeData.total)} size={28}  rounded={true}/>
+                      <PrizeValue amount={BigInt(prizeData.prizes.prizePoolPrizeBalance)} size={28}  rounded={true}/>
                     </div>
                     <div style={{ textAlign: "right",color:"#e9aaf7" }}>
                       {tier0 && tier0.value > 0.01 && (
