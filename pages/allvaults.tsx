@@ -816,7 +816,13 @@ if (prices.geckos && prices.assets) {
     
             let dollarValue = null;
             let ethValue = null;
-            const assetPrice = assetPrices[chainName][vault.asset.toLowerCase()];
+            let assetPrice:any
+            if (assetPrices[chainName] && assetPrices[chainName][vault.asset.toLowerCase()]) {
+               assetPrice = assetPrices[chainName][vault.asset.toLowerCase()];
+            } else {
+              console.error("Asset not found for chain:", chainName, "Asset:", vault.asset.toLowerCase());
+            }
+            // const assetPrice = assetPrices[chainName][vault.asset.toLowerCase()];
             if (assetPrice > 0) {
               dollarValue = parseFloat(totalSupplyValue) * assetPrice;
               ethValue = dollarValue / geckoPrices["ethereum"];
