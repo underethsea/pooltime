@@ -240,8 +240,9 @@ const {overview} = useOverview()
   
         // console.log("Processed and sorted wins:", flattenedWins);
         setWins(flattenedWins);
-        setTotalAmountWon(calculateTotalAmountWon(flattenedWins,overview));
-      } catch (error) {
+        if (overview?.prices?.geckos) {
+          setTotalAmountWon(calculateTotalAmountWon(flattenedWins, overview));
+        }      } catch (error) {
         console.error("Error fetching wins:", error);
       }
     };
