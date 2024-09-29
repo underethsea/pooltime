@@ -260,7 +260,7 @@ const sortData = (data:any, geckoPrices:any) => {
   });
 
   // Finally, sort by tickets
-  sortedData = sortedData.sort((a, b) => {
+  sortedData = sortedData.sort((a:any, b:any) => {
     const aTickets = a.vaultBalance
       ? parseFloat(ethers.utils.formatUnits(a.vaultBalance, a.decimals))
       : 0;
@@ -688,12 +688,12 @@ function AllVaults() {
 const prices = overviewFromContext?.overview?.prices || {geckos:{},assets:{}};
 
 // Declare geckoPrices and assetPrices once, outside the block
-let geckoPrices = {};
-let assetPrices = {};
+let geckoPrices:any = {};
+let assetPrices:any = {};
 
 // Check if prices exist and assign the values if available
 if (prices.geckos && prices.assets) {
-  geckoPrices = prices.geckos;
+  geckoPrices= prices.geckos;
   assetPrices = prices.assets;
 }
 
@@ -998,7 +998,7 @@ if (prices.geckos && prices.assets) {
       );
 
       // Update the state with the new enriched data array
-      const sortedVaults = sortData(flattenedVaults);
+      const sortedVaults = sortData(flattenedVaults,overviewFromContext);
       setAllVaults(sortedVaults);
 
       // Apply filtering after updating all vaults
