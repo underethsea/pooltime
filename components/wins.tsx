@@ -247,7 +247,7 @@ const {overview} = useOverview()
     };
   
     fetchWins();
-  }, [addressProp]);
+  }, [addressProp,overview]);
   
 
   
