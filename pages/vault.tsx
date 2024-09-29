@@ -44,7 +44,6 @@ import { GetChance } from "../utils/getChance";
 import { GetChainIcon } from "../utils/getChain";
 import ChainTag from "../components/chainTag";
 
-
 // import Drip from "./drip";
 
 interface vaultApi {
@@ -178,7 +177,7 @@ const Vault: React.FC<VaultProps> = ({
   const [refreshData, setRefreshData] = useState(0);
   // const [apiPricing, setApiPricing] = useState();
   const [assetPrice, setAssetPrice] = useState(0);
-  const [ethPrice, setEthPrice] = useState(0);
+  const [prizeTokenPrice, setPrizeTokenPrice] = useState(0);
   const [chance, setChance] = useState<Chance | null>(null);
   // const [ vaultChainId, setVaultChainId] = useState()
 
@@ -574,15 +573,17 @@ const Vault: React.FC<VaultProps> = ({
                     poolers,
                     gnosis,
                     status,
-                    tvl
-         } = vaultData);
+                    tvl,
+                  } = vaultData);
                 }
               }
             } catch (apiError) {
               console.error("Error fetching data from API:", apiError);
             }
           }
-          if(tvl){tvl=ethers.BigNumber.from(tvl)}
+          if (tvl) {
+            tvl = ethers.BigNumber.from(tvl);
+          }
           // If any of these values are not set, fetch them from the contract
           const vaultCalls = [];
           if (!name) vaultCalls.push(contract.name());
@@ -591,7 +592,7 @@ const Vault: React.FC<VaultProps> = ({
           if (!asset) vaultCalls.push(contract.asset());
           if (!liquidationPair) vaultCalls.push(contract.liquidationPair());
           if (!owner) vaultCalls.push(contract.owner());
-          if (!tvl) vaultCalls.push(contract.totalSupply()); 
+          if (!tvl) vaultCalls.push(contract.totalSupply());
 
           const vaultResults =
             vaultCalls.length > 0
@@ -602,8 +603,8 @@ const Vault: React.FC<VaultProps> = ({
           if (!decimals) [decimals] = vaultResults.splice(0, 1);
           if (!asset) [asset] = vaultResults.splice(0, 1);
           if (!liquidationPair) [liquidationPair] = vaultResults.splice(0, 1);
-          if (!owner) [owner] = vaultResults.splice(0,1)
-          if (!tvl) [tvl] = vaultResults
+          if (!owner) [owner] = vaultResults.splice(0, 1);
+          if (!tvl) [tvl] = vaultResults;
           // Fetch user-specific and asset-specific data
 
           const assetContract = new ethers.Contract(
@@ -619,7 +620,9 @@ const Vault: React.FC<VaultProps> = ({
           const assetCalls = [
             assetContract.name(),
             assetContract.symbol(),
-            twabControllerContract.totalSupplyDelegateBalance(activeVaultAddress),
+            twabControllerContract.totalSupplyDelegateBalance(
+              activeVaultAddress
+            ),
             contract.yieldFeePercentage(),
           ];
 
@@ -674,7 +677,7 @@ const Vault: React.FC<VaultProps> = ({
             decimals: Number(decimals),
             asset: asset.toString(),
             liquidationPair: liquidationPair.toString(),
-            totalAssets: totalAssets, 
+            totalAssets: totalAssets,
             tvl: tvl,
             assetName: assetName.toString(),
             assetSymbol: assetSymbol.toString(),
@@ -713,12 +716,33 @@ const Vault: React.FC<VaultProps> = ({
     refreshData,
   ]);
   useEffect(() => {
-    if (overviewFromContext?.overview?.prices?.geckos?.ethereum) {
-      setEthPrice(overviewFromContext?.overview?.prices?.geckos?.ethereum);
+    const defaultPrice =
+      overviewFromContext?.overview?.prices?.geckos?.ethereum; // Default to ETH price
+    const prizeTokenSymbol = activeVaultChain
+      ? ADDRESS[GetChainName(activeVaultChain)]?.PRIZETOKEN?.SYMBOL
+      : "weth"; // Default to WETH
+    const prizeTokenGeckoId = activeVaultChain
+      ? ADDRESS[GetChainName(activeVaultChain)]?.PRIZETOKEN?.GECKO
+      : "ethereum"; // Default to ETH Gecko
+
+    // Check if the prize token is something other than WETH
+    if (prizeTokenSymbol && prizeTokenSymbol.toLowerCase() !== "weth") {
+      const tokenPrice =
+        overviewFromContext?.overview?.prices?.geckos?.[prizeTokenGeckoId];
+      if (tokenPrice) {
+        setPrizeTokenPrice(tokenPrice);
+      } else {
+        console.log(
+          `No price found for ${prizeTokenSymbol}, defaulting to ETH price.`
+        );
+        setPrizeTokenPrice(defaultPrice || 0);
+      }
     } else {
-      // console.log("no overview");
+      // Default to WETH or ETH price if no other token is found
+      setPrizeTokenPrice(defaultPrice || 0);
     }
-  }, [assetPrice]);
+  }, [assetPrice, activeVaultChain]);
+
   useEffect(() => {
     async function fetchData() {
       const promises = [];
@@ -729,7 +753,6 @@ const Vault: React.FC<VaultProps> = ({
         overviewFromContext.overview.prices
       ) {
         if (activeVaultAddress) {
-          console.log("geetting prmo")
           const promoPromise = GetActivePromotionsForVaults(
             [activeVaultAddress],
             true,
@@ -739,7 +762,9 @@ const Vault: React.FC<VaultProps> = ({
           });
           promises.push(promoPromise);
         }
-      }else{console.log("context is missing")}
+      } else {
+        console.log("context is missing");
+      }
 
       if (activeVaultAddress && address) {
         const chancePromise = GetChance(
@@ -838,17 +863,26 @@ const Vault: React.FC<VaultProps> = ({
           </div>
         </Link>
         <div className="vault-view-bubble">
-        <span className="hidden-desktop" style={{ paddingBottom: "5px",display:"flex",alignItems:"left"}}>
-                      {activeVaultChain !== undefined && (<span className="hidden-desktop">
-                        <ChainTag chainId={activeVaultChain} horizontal={true}/><br></br></span>
-                        // <Image
-                        //   src={GetChainIcon(activeVaultChain) as any}
-                        //   alt={GetChainIcon(activeVaultChain)}
-                        //   width={24}
-                        //   height={24}
-                        // />
-                      )}
-                    </span>
+          <span
+            className="hidden-desktop"
+            style={{
+              paddingBottom: "5px",
+              display: "flex",
+              alignItems: "left",
+            }}>
+            {activeVaultChain !== undefined && (
+              <span className="hidden-desktop">
+                <ChainTag chainId={activeVaultChain} horizontal={true} />
+                <br></br>
+              </span>
+              // <Image
+              //   src={GetChainIcon(activeVaultChain) as any}
+              //   alt={GetChainIcon(activeVaultChain)}
+              //   width={24}
+              //   height={24}
+              // />
+            )}
+          </span>
           {/* <button className="modal-close-button">
           &times;
         </button>      */}
@@ -857,8 +891,6 @@ const Vault: React.FC<VaultProps> = ({
             {vaultData && (
               <>
                 <div>
-                
-
                   <span
                     className="vault-header"
                     style={{
@@ -868,7 +900,6 @@ const Vault: React.FC<VaultProps> = ({
                       display: "flex",
                       alignItems: "center",
                     }}>
-                    
                     <IconDisplay name={vaultData.name} size={24} />
                     {/* 
             {getVaultIcon(
@@ -970,9 +1001,11 @@ const Vault: React.FC<VaultProps> = ({
                                 </span>
                               </span>
                               <span className="vault-balance">
-                              <IconDisplay
-                                name={vaultData.assetSymbol}
-                                size={20}/>   &nbsp;                             
+                                <IconDisplay
+                                  name={vaultData.assetSymbol}
+                                  size={20}
+                                />{" "}
+                                &nbsp;
                                 {NumberWithCommas(
                                   CropDecimals(
                                     ethers.utils.formatUnits(
@@ -981,7 +1014,6 @@ const Vault: React.FC<VaultProps> = ({
                                     )
                                   )
                                 )}{" "}
-                                {" "}
                                 <button
                                   className="max-small"
                                   onClick={() =>
@@ -1131,7 +1163,13 @@ const Vault: React.FC<VaultProps> = ({
                                     overviewFromContext.overview && (
                                       <>
                                         {" "}
-                                        Your Chance <PrizeValueIcon size={15} />
+                                        Your Chance{" "}
+                                        <PrizeValueIcon
+                                          size={15}
+                                          chainname={GetChainName(
+                                            activeVaultChain
+                                          )}
+                                        />
                                         <PrizeValue
                                           amount={BigInt(
                                             (
@@ -1143,6 +1181,9 @@ const Vault: React.FC<VaultProps> = ({
                                             ).toFixed(0)
                                           )}
                                           size={15}
+                                          chainname={GetChainName(
+                                            activeVaultChain
+                                          )}
                                         />
                                       </>
                                     )}{" "}
@@ -1230,7 +1271,13 @@ const Vault: React.FC<VaultProps> = ({
                                     overviewFromContext.overview && (
                                       <>
                                         {" "}
-                                        Your Chance <PrizeValueIcon size={15} />
+                                        Your Chance{" "}
+                                        <PrizeValueIcon
+                                          size={15}
+                                          chainname={GetChainName(
+                                            activeVaultChain
+                                          )}
+                                        />
                                         <PrizeValue
                                           amount={BigInt(
                                             (
@@ -1242,6 +1289,9 @@ const Vault: React.FC<VaultProps> = ({
                                             ).toFixed(0)
                                           )}
                                           size={15}
+                                          chainname={GetChainName(
+                                            activeVaultChain
+                                          )}
                                         />
                                       </>
                                     )}{" "}
@@ -1336,15 +1386,18 @@ const Vault: React.FC<VaultProps> = ({
                                 }
                               />
                               <span style={{ fontSize: "19px" }}>
-                                Your <span className="hidden-mobile">Deposit</span> Tokens
+                                Your{" "}
+                                <span className="hidden-mobile">Deposit</span>{" "}
+                                Tokens
                               </span>
                             </span>
-                            
+
                             <span className="vault-balance">
-                            <IconDisplay
+                              <IconDisplay
                                 name={vaultData.assetSymbol}
                                 size={20}
-                              />&nbsp;
+                              />
+                              &nbsp;
                               {NumberWithCommas(
                                 CropDecimals(
                                   ethers.utils.formatUnits(
@@ -1353,9 +1406,7 @@ const Vault: React.FC<VaultProps> = ({
                                   )
                                 )
                               )}{" "}
-                             
-                              {/* {vaultData.assetSymbol} */}
-                              {" "}
+                              {/* {vaultData.assetSymbol} */}{" "}
                               <button
                                 className="max-small"
                                 onClick={() =>
@@ -1558,7 +1609,11 @@ const Vault: React.FC<VaultProps> = ({
                               Delegated To You
                             </span>
                             <span className="vault-data">
-                              <IconDisplay name={vaultData.name} size={20} alignment={"middle"} />
+                              <IconDisplay
+                                name={vaultData.name}
+                                size={20}
+                                alignment={"middle"}
+                              />
                               {/* <Image
                             src={
                               getVaultIcon(
@@ -1619,7 +1674,9 @@ const Vault: React.FC<VaultProps> = ({
                               // .filter((activePromo) => activePromo.whitelist) // Filter to only include whitelisted promotions
                               .map((activePromo, index) => {
                                 // console.log("active promo tokens",activePromo.tokensPerSecond,"decimals,",activePromo.decimals)
-                                const tokensPerSecond = Math.round(activePromo.tokensPerSecond) / Math.pow(10, activePromo.tokenDecimals);
+                                const tokensPerSecond =
+                                  Math.round(activePromo.tokensPerSecond) /
+                                  Math.pow(10, activePromo.tokenDecimals);
                                 // console.log("tokens epr second",tokensPerSecond)
                                 const annualTokens =
                                   tokensPerSecond * 60 * 60 * 24 * 365;
@@ -1680,20 +1737,22 @@ const Vault: React.FC<VaultProps> = ({
                                   <div key={index} className="data-row">
                                     <span className="vault-label">Rewards</span>
                                     <span className="vault-data">
-                                    <span className="value-container">
-                                      {icon && symbol && (<span className="reward-icon rounded-icon">
-                                        <Image
-                                          src={icon}
-                                          width={16}
-                                          height={16}
-                                          alt={symbol}
-                                        /></span>
-                                      )}
-                                      &nbsp;
-                                      {NumberWithCommas(
-                                        annualYieldPercentage.toFixed(1)
-                                      )}
-                                      %
+                                      <span className="value-container">
+                                        {icon && symbol && (
+                                          <span className="reward-icon rounded-icon">
+                                            <Image
+                                              src={icon}
+                                              width={16}
+                                              height={16}
+                                              alt={symbol}
+                                            />
+                                          </span>
+                                        )}
+                                        &nbsp;
+                                        {NumberWithCommas(
+                                          annualYieldPercentage.toFixed(1)
+                                        )}
+                                        %
                                       </span>
                                     </span>
                                   </div>
@@ -1707,23 +1766,28 @@ const Vault: React.FC<VaultProps> = ({
                           Total Deposits{" "}
                           <span className="hidden-mobile">(TVL)</span>
                         </span>
-                        
-                        <span className="vault-data" style={{ backgroundColor: '#c6c0e2' }}>
+
+                        <span
+                          className="vault-data"
+                          style={{ backgroundColor: "#c6c0e2" }}>
                           <span className="vault-align">
-                          <IconDisplay name={vaultData.assetSymbol} size={18} alignment={"middle"}/>
-                          &nbsp;
-                          {NumberWithCommas(
-  CropDecimals(
-    ethers.utils.formatUnits(
-      vaultData.tvl.gt(vaultData.totalAssets) 
-        ? vaultData.tvl 
-        : vaultData.totalAssets,
-      vaultData.decimals
-    )
-  )
-)}
-{" "}
-                          {/* {vaultData.assetSymbol} */}
+                            <IconDisplay
+                              name={vaultData.assetSymbol}
+                              size={18}
+                              alignment={"middle"}
+                            />
+                            &nbsp;
+                            {NumberWithCommas(
+                              CropDecimals(
+                                ethers.utils.formatUnits(
+                                  vaultData.tvl.gt(vaultData.totalAssets)
+                                    ? vaultData.tvl
+                                    : vaultData.totalAssets,
+                                  vaultData.decimals
+                                )
+                              )
+                            )}{" "}
+                            {/* {vaultData.assetSymbol} */}
                           </span>
                         </span>
                       </div>
@@ -1732,97 +1796,77 @@ const Vault: React.FC<VaultProps> = ({
                           {vaultData.poolers && (
                             <div className="data-row">
                               <span className="vault-label">Poolers</span>
-                              <span className="vault-data" style={{ backgroundColor: '#c6c0e2' }}>
+                              <span
+                                className="vault-data"
+                                style={{ backgroundColor: "#c6c0e2" }}>
                                 {NumberWithCommas(vaultData.poolers.toFixed(0))}
                               </span>
                             </div>
                           )}
-                          {parseFloat(vaultData.contributed7d) !== 0 &&
-                            parseFloat(vaultData.contributed7d) > 0 && (
-                              <div className="data-row hidden-mobile">
-                                <span className="vault-label">
-                                  7d Vault Yield
-                                </span>
-                                <div className="vault-data">
-  <span className="value-and-apr">
-    <span className="value-container">
-      <PrizeValueIcon size={20} />
-      <PrizeValue
-        amount={BigInt(
-          Math.round(Number(vaultData.contributed7d) * 1e18)
-        )}
-        size={20}
-      />
+                      {(parseFloat(vaultData.contributed7d) > 0 || parseFloat(vaultData.contributed24h) > 0) && (
+  <div className="data-row hidden-mobile">
+    <span className="vault-label">
+      {/* Determine whether to display 24h or 7d label */}
+      {parseFloat(vaultData.contributed24h) > parseFloat(vaultData.contributed7d) / 3 ? "24h Vault Yield" : "7d Vault Yield"}
     </span>
-    {ethPrice > 0 && assetPrice > 0 && (
-      <>
-        {(() => {
-          const contributed7d = Number(vaultData.contributed7d);
-          const totalAssets = Number(
-            ethers.utils.formatUnits(vaultData.totalAssets, vaultData.decimals)
-          );
-          const annualContribution = contributed7d * 52;
-          const contributionValue = annualContribution * ethPrice;
-          const totalAssetsValue = totalAssets * assetPrice;
-          const percentage = (contributionValue / totalAssetsValue) * 100;
+    <div className="vault-data">
+      <span className="value-and-apr">
+        <div className="value-container">
+          <div>
+          <PrizeValueIcon
+            size={20}
+            chainname={GetChainName(activeVaultChain)}
+          />
+          <PrizeValue
+            amount={BigInt(
+              Math.round(
+                parseFloat(vaultData.contributed24h) > parseFloat(vaultData.contributed7d) / 3
+                  ? Number(vaultData.contributed24h) * 1e18 * 7 // Use 24h data (extrapolated to 7 days)
+                  : Number(vaultData.contributed7d) * 1e18 // Use 7d data directly
+              )
+            )}
+            size={20}
+            chainname={GetChainName(activeVaultChain)}
+          />
+        </div>
+        {prizeTokenPrice > 0 && assetPrice > 0 && (
+          <>
+            {(() => {
+              const contributed7d = Number(vaultData.contributed7d);
+              const contributed24h = Number(vaultData.contributed24h);
 
-          return (
-            <span className="apr">
-              ({percentage.toFixed(1)}% APR)
-            </span>
-          );
-        })()}
-      </>
-    )}
-  </span>
-</div>
+              // Use the effective contribution based on 24h vs 7d comparison
+              const effectiveContribution =
+                contributed24h > contributed7d / 3
+                  ? contributed24h * 7 // Use 24-hour contribution (extrapolated to 7 days)
+                  : contributed7d; // Otherwise, use the 7-day contribution
 
-                                
-                              </div>
-                            )}
-                          {parseFloat(vaultData.won7d) !== 0 &&
-                            parseFloat(vaultData.won7d) > 0 && (
-                              <div className="data-row hidden-mobile">
-                                <span className="vault-label">
-                                  7d{" "}
-                                  <span className="hidden-mobile">Vault</span>{" "}
-                                  Prize Won
-                                </span>
-                                <span className="vault-data">
-                                <span className="value-container">
-                                  <PrizeValueIcon size={20} />
-                                  <PrizeValue
-                                    amount={BigInt(
-                                      Math.round(Number(vaultData.won7d) * 1e18)
-                                    )}
-                                    size={20}
-                                  />
-                                  {/* {" "}
-                                  ({vaultData.prizesPerDraw7d}) */}
-                                  </span>
-                                </span>
-                              </div>
-                            )}
-                          {parseFloat(vaultData.contributed7d) === 0 &&
-                            parseFloat(vaultData.contributed24h) > 0 && (
-                              <div className="data-row hidden-mobile">
-                                <span className="vault-label">
-                                  24h Vault Yield
-                                </span>
-                                <span className="vault-data">
-                                  <PrizeValueIcon size={15} />
+              const annualContribution = effectiveContribution * 52; // Annualize contribution
+              const totalAssets = Number(
+                ethers.utils.formatUnits(
+                  vaultData.totalAssets,
+                  vaultData.decimals
+                )
+              );
+              const contributionValue = annualContribution * prizeTokenPrice;
+              const totalAssetsValue = totalAssets * assetPrice;
+              const percentage = (contributionValue / totalAssetsValue) * 100;
 
-                                  <PrizeValue
-                                    amount={BigInt(
-                                      Math.round(
-                                        Number(vaultData.contributed24h) * 1e18
-                                      )
-                                    )}
-                                    size={17}
-                                  />
-                                </span>
-                              </div>
-                            )}
+              return (
+                <>
+                 
+                  {`(${percentage.toFixed(1)}% APR)`}
+                </>
+              );
+            })()}
+          </>
+        )}</div>
+      </span>
+    </div>
+  </div>
+)}
+
+
 
                           {vaultData.yieldFeePercentage.gt(0) && (
                             <div className="data-row">
@@ -1858,21 +1902,20 @@ const Vault: React.FC<VaultProps> = ({
                         </span>
                       )}
                       {!seeAddresses ? (
-                          <span
-                            className="vault-two small-font pointer"
-                            onClick={() => setSeeAddresses(true)}>
-                            <>
-                              
-                              {!vaultData.gnosis
-                                ? "+ Click for more info"
-                                : vaultData.gnosis.required === -1
-                                ? "+ Yield is governed by EOA wallet, click for more info"
-                                : vaultData.gnosis.total === 0 &&
-                                  vaultData.gnosis.required === 0
-                                ? "+ This vault is immutable! Click for more info"
-                                : `+ Yield is governed by a ${vaultData.gnosis.required} of ${vaultData.gnosis.total} Gnosis Safe, click for more info`}
-                            </>
-                          </span>
+                        <span
+                          className="vault-two small-font pointer"
+                          onClick={() => setSeeAddresses(true)}>
+                          <>
+                            {!vaultData.gnosis
+                              ? "+ Click for more info"
+                              : vaultData.gnosis.required === -1
+                              ? "+ Yield is governed by EOA wallet, click for more info"
+                              : vaultData.gnosis.total === 0 &&
+                                vaultData.gnosis.required === 0
+                              ? "+ This vault is immutable! Click for more info"
+                              : `+ Yield is governed by a ${vaultData.gnosis.required} of ${vaultData.gnosis.total} Gnosis Safe, click for more info`}
+                          </>
+                        </span>
                       ) : (
                         <>
                           <div className="data-row">

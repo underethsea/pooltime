@@ -22,6 +22,7 @@ import WinsListModal from "./winsListModal";
 import { PrizeToke } from "../utils/tokenMaths";
 import PrizeValue from "./prizeValue";
 import PrizeValueIcon from "./prizeValueIcon";
+import { useOverview } from "./contextOverview";
 
 const messageOptions = [
   "Saving with PoolTogether is paying off, I just won! https://pooltime.app",
@@ -52,7 +53,7 @@ interface SelectedWin {
 
 const Wins: React.FC<WinProps> = ({ addressProp }) => {
   const [randomMessage, setRandomMessage] = useState("");
-
+const {overview} = useOverview()
   useEffect(() => {
     // Randomize the message when the modal opens
     {
@@ -101,14 +102,29 @@ const Wins: React.FC<WinProps> = ({ addressProp }) => {
     }
   };
 
-  const calculateTotalAmountWon = (flatWins: any) => {
-    // console.log("calculating total won");
+  const calculateTotalAmountWon = (flatWins: any, overview: any) => {
     return flatWins
       .reduce((acc: any, win: any) => {
-        return acc + BigInt(win.totalPayout);
+        const chainName = GetChainName(win.network);
+        const prizeToken = ADDRESS[chainName]?.PRIZETOKEN || { SYMBOL: "weth" };
+        
+        let payout = BigInt(win.totalPayout);
+        
+        if (prizeToken.SYMBOL.toLowerCase() !== "weth" && overview?.prices?.geckos) {
+          const ethPrice = overview.prices.geckos["ethereum"] || 1;
+          const prizeTokenPrice = overview.prices.geckos[prizeToken.GECKO];
+          
+          if (prizeTokenPrice && ethPrice) {
+            // Convert non-WETH prize value to ETH equivalent
+            payout = (payout * BigInt(Math.floor((prizeTokenPrice / ethPrice) * 1e18))) / BigInt(1e18);
+          }
+        }
+  
+        return acc + payout;
       }, BigInt(0))
       .toString();
   };
+  
   // console.log("total won", totalAmountWon);
 
   // const openModal = async (network: string, draw: number, tier: number, claimedIndices: string[]) => {
@@ -224,7 +240,7 @@ const Wins: React.FC<WinProps> = ({ addressProp }) => {
   
         // console.log("Processed and sorted wins:", flattenedWins);
         setWins(flattenedWins);
-        setTotalAmountWon(calculateTotalAmountWon(flattenedWins));
+        setTotalAmountWon(calculateTotalAmountWon(flattenedWins,overview));
       } catch (error) {
         console.error("Error fetching wins:", error);
       }
@@ -325,17 +341,8 @@ const Wins: React.FC<WinProps> = ({ addressProp }) => {
                       <span
                         style={styles.winValueMobile}
                         className="hidden-desktop">
-                        {NumberWithCommas(
-                          CropDecimals(
-                            selectedWinValue.value /
-                              Math.pow(
-                                10,
-                                ADDRESS[
-                                  GetChainName(Number(selectedWinValue.network))
-                                ].PRIZETOKEN.DECIMALS
-                              )
-                          )
-                        )}
+                                                  <PrizeValue amount={BigInt(selectedWinValue.value)} chainname={GetChainName(Number(selectedWinValue.network))} />
+
                       </span>
                       <span className="emoji hidden-mobile">
                         <Image
@@ -351,17 +358,8 @@ const Wins: React.FC<WinProps> = ({ addressProp }) => {
                       </span>
                       &nbsp;
                       <span style={styles.winValue} className="hidden-mobile">
-                        {NumberWithCommas(
-                          CropDecimals(
-                            selectedWinValue.value /
-                              Math.pow(
-                                10,
-                                ADDRESS[
-                                  GetChainName(Number(selectedWinValue.network))
-                                ].PRIZETOKEN.DECIMALS
-                              )
-                          )
-                        )}
+                      <PrizeValue amount={BigInt(selectedWinValue.value)} chainname={GetChainName(Number(selectedWinValue.network))} />
+
                       </span>
                     </>
                   )}

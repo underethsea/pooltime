@@ -64,6 +64,56 @@ interface StartBlock {
 }
 
 const ADDRESS: Addresses = {
+  GNOSIS: {
+    ICON: "/images/gnosis.svg",
+    COLOR: "#07795b",
+    ETHERSCAN: "https://gnosisscan.io/",
+    CHAINID: 100,
+    PRIZEPOOLSUBGRAPH: "https://api.studio.thegraph.com/query/63100/pt-v5-gnosis/version/latest",
+    FIRSTDRAWOPENEDAT: 1726783200,
+    DRAWPERIODSECONDS: 86400,
+    PRIZETOKEN: {ADDRESS:"0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d", SYMBOL: "WXDAI",
+          NAME: "WXDAI",
+          DECIMALS: 18,
+          GECKO: "xdai",
+          ICON: "https://assets.coingecko.com/coins/images/11062/standard/Identity-Primary-DarkBG.png?1696511004",
+        },
+        TOKENFAUCET: "",
+      DRAWMANAGER: '0x146efc8d651dc015225cc2e74707d87aa4d09067',
+      RNG: '0x47c9212cc5c0836521346ce9b3d03ca91edf1123',
+      TWABCONTROLLER: '0x84090aea5370565b88108c4ffed378672a8afde6',
+      TWABREWARDS: '0x1742157e6ef6e0cf7e49904f2c0d0fe38a276942',
+      LIQUIDATIONROUTER: '0x1664485e6b51ee1a4d4dd35dbec79544a5d006c9',
+      VAULTFACTORY: '0xc3ae3fe36a2645a93b2fe350d81e80a14831e2a6',
+      PRIZEPOOL: '0x0c08c2999e1a14569554eddbcda9da5e1918120f',
+      CLAIMERFACTORY: '0x22e3857db02c4db38870dddc286d0543869ea47e',
+      CLAIMER: '0x0cffb70cdd335cc5380cb58166699edaa2b0bbfa',
+    VAULTS:[{
+        VAULT: '0xB75AF20eCadabed9049cc2f50E38bAd2768b35cf',
+        LIQUIDATIONPAIR: '0x0000000000000000000000000000000000000000',
+        SYMBOL: 'przPOOL',
+        NAME: 'Prize POOL',
+        DECIMALS: 18,
+        ASSET: '0x216a7d520992eD198593A16e0b17c784c9cdc660',
+        ASSETSYMBOL: 'POOL',
+        ICON: 'https://assets.coingecko.com/coins/images/14003/standard/PoolTogether.png?1696513732',
+        GECKO: 'pooltogether',
+        VAULTICON: ''
+      },
+      {
+        VAULT: '0xBB7E99abCCCE01589Ad464Ff698aD139b0705d90',
+        LIQUIDATIONPAIR: '0x6F4eDb3736D6e2Fea33d86e9865898Fbe3C6dEAa',
+        SYMBOL: 'przWXDAI',
+        NAME: 'Prize WXDAI - DAI Savings Rate',
+        DECIMALS: 18,
+        ASSET: '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d',
+        ASSETSYMBOL: 'WXDAI',
+        ICON: '',
+        GECKO: 'xdai',
+        VAULTICON: 'https://app.cabana.fi/icons/pDAI.svg'
+      }],
+      BOOSTERS: []
+    },
   ETHEREUM: {
     ICON: "/images/eth.png",
     COLOR: "black",
@@ -601,6 +651,8 @@ const WHITELIST_VAULTS = [
   "0xFEb0Fe9850ABa3A52E72a8a694d422C2B47a5888", // eth scroll
   "0x9ee31e845ff1358bf6b1f914d3918c6223c75573", // pool ethereum
   "0x29499e2eb8ff1d076a35c275aeddd613afb1fa9b", // pool scroll
+  "0xb75af20ecadabed9049cc2f50e38bad2768b35cf", // ppool gnosis
+  "0xbb7e99abccce01589ad464ff698ad139b0705d90",
 ];
 
 const WHITELIST_REWARDS: {

@@ -70,7 +70,7 @@ const Wins: React.FC<WinProps> = ({ addressProp }) => {
     null
   );
   const [totalAmountWon, setTotalAmountWon] = useState("0");
-
+console.log("leaderboard wins")
   const customizeMessage = (platform: string) => {
     let handle = "";
     switch (platform) {
@@ -256,183 +256,13 @@ const Wins: React.FC<WinProps> = ({ addressProp }) => {
 
   const totalWins = wins.length;
   let winsText = totalWins === 1 ? "WON " : `${totalWins} WINS `;
-
+console.log("true??",wins.length > 0 && parseInt(totalAmountWon))
   return (
-    <>
-      {wins.length > 0 && parseInt(totalAmountWon) > 0 ? (
-        // <div style={styles.container}>
-        <>
-        {/* {console.log(wins,"wins")} */}
-            {/* <WinList wins={wins}/> */}
-
-         <div
-    className="box-header custom-link win-bubble"
-    style={{ width: "200px", display: "flex", alignItems: "center" }}
-    onClick={() => setShowAllWinsModal(true)}
-  >
-    &nbsp;{winsText}&nbsp;
-    {Number(totalAmountWon) > 0 && (
-      <>
-       
-          <PrizeValueIcon size={18} />
-        <PrizeValue amount={BigInt(totalAmountWon)} size={15}/>
-        {/* {CropDecimals(parseFloat(totalAmountWon) / 1e18)} */}
-      </>
-    )}
-  </div>
-
-          {showModal && (
-            <div style={styles.modalOverlay} onClick={closeModal}>
-              <div
-                style={styles.modalContent}
-                onClick={(e) => e.stopPropagation()}>
-                <div style={styles.modalHeader}>
-                  <Image
-                    src={"/images/poolerson.png"}
-                    className="emoji"
-                    alt="r"
-                    width={40}
-                    height={50}
-                  />
-                  <div style={styles.headerText}>
-                    <span className="hidden-mobile">
-                      WIN&nbsp;&nbsp;ON&nbsp;&nbsp;
-                    </span>
-                    {selectedWinValue &&
-                      GetChainName(Number(selectedWinValue.network))}
-                  </div>
-
-                  <button style={styles.closeModalButton} onClick={closeModal}>
-                    X
-                  </button>
-                </div>
-                <p>
-                  {selectedWinValue && (
-                    <>
-                      <span className="emoji hidden-desktop">
-                        <Image
-                          src={
-                            ADDRESS[
-                              GetChainName(Number(selectedWinValue.network))
-                            ].PRIZETOKEN.ICON
-                          }
-                          width={36}
-                          height={36}
-                          alt="Chain Icon"
-                        />
-                      </span>
-                      &nbsp;
-                      <span
-                        style={styles.winValueMobile}
-                        className="hidden-desktop">
-                        {NumberWithCommas(
-                          CropDecimals(
-                            selectedWinValue.value /
-                              Math.pow(
-                                10,
-                                ADDRESS[
-                                  GetChainName(Number(selectedWinValue.network))
-                                ].PRIZETOKEN.DECIMALS
-                              )
-                          )
-                        )}
-                      </span>
-                      <span className="emoji hidden-mobile">
-                        <Image
-                          src={
-                            ADDRESS[
-                              GetChainName(Number(selectedWinValue.network))
-                            ].PRIZETOKEN.ICON
-                          }
-                          width={44}
-                          height={44}
-                          alt="Chain Icon"
-                        />
-                      </span>
-                      &nbsp;
-                      <span style={styles.winValue} className="hidden-mobile">
-                        {NumberWithCommas(
-                          CropDecimals(
-                            selectedWinValue.value /
-                              Math.pow(
-                                10,
-                                ADDRESS[
-                                  GetChainName(Number(selectedWinValue.network))
-                                ].PRIZETOKEN.DECIMALS
-                              )
-                          )
-                        )}
-                      </span>
-                    </>
-                  )}
-                </p>
-
-                <p>
-                  <span style={styles.modalTier}>
-                    DRAW #{selectedWinValue ? selectedWinValue.draw : "N/A"}{" "}
-                    &nbsp;&nbsp;&nbsp;
-                    {/* <FontAwesomeIcon
-                      icon={faAward}
-                      size="sm"
-                      style={{
-                        color: 'white',
-                        height: "20px",
-                        marginRight: "8px",
-                      }}
-                    />  */}
-                    {selectedWinValue ? (
-                      selectedWinValue.prizes > 1 ? (
-                        <>{selectedWinValue.prizes} prizes</>
-                      ) : (
-                        <>{selectedWinValue.prizes} prize</>
-                      )
-                    ) : (
-                      "N/A"
-                    )}
-                    &nbsp;&nbsp;&nbsp;
-                    {selectedWinValue && selectedWinValue.tiers.length === 1
-                      ? `Tier ${selectedWinValue.tiers[0]}`
-                      : selectedWinValue &&
-                        `Tiers ${selectedWinValue.tiers.join(", ")}`}
-                  </span>
-                </p>
-                <p style={{ marginTop: "30px" }}>
-                  {" "}
-                  <TwitterShareButton message={customizeMessage("twitter")} />
-                  &nbsp;&nbsp;&nbsp;&nbsp;
-                  <HeyShareButton message={customizeMessage("hey")} />
-                  &nbsp;&nbsp;&nbsp;&nbsp;
-                  <WarpShareButton message={customizeMessage("warpcast")} />
-                </p>
-              </div>
-            </div>
-          )}
-          {/* </div> */}
-        </>
-      ) : (
-        <>
-          {/* <br></br> <TopWinners /> */}
-        </>
-      )}
-      {/* WinsModal component should be placed here, outside of any conditional rendering that involves wins.length */}
-      {/* <WinsModal
-        showModal={showAllWinsModal}
-        onClose={() => setShowAllWinsModal(false)}
-        wins={wins}>
-        {" "}
-        {wins.map((win, index) => (
-          <div key={index}>
-            Draw: {win.draw}, Value: {win.totalPayout}
-          </div>
-        ))}
-      </WinsModal> */}
-      <WinsListModal showModal={showAllWinsModal}
-        onClose={() => setShowAllWinsModal(false)}
-        wins={wins}
-        address={addressProp}
-        />
-    </>
-  );
+    <WinsListModal showModal={showAllWinsModal}
+    onClose={() => setShowAllWinsModal(false)}
+    wins={wins}
+    address={addressProp}
+    />)
 };
 
 const styles: any = {

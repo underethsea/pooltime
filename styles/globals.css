@@ -494,6 +494,8 @@ tr {
 .vault-data .value-container {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
+  flex-direction: column;
 }
 
 .vault-data .value-and-apr {

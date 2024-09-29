@@ -48,6 +48,7 @@ const ENDPOINTS : ChainEndpoints= {
       ARBSEPOLIA: "https://arb-sepolia.g.alchemy.com/v2/" + ALCHEMY_KEY,
 
       ARBITRUM: "https://arb-mainnet.g.alchemy.com/v2/" + ALCHEMY_KEY,
+      GNOSIS: "https://gnosis-mainnet.g.alchemy.com/v2/" + ALCHEMY_KEY,
     },
   "INFURA": {
     "SEPOLIA": "https://sepolia.infura.io/v3/a86edca6bd3040689463a58672d7d8e5",
@@ -61,6 +62,7 @@ let PROVIDERS: Record<string, providers.JsonRpcProvider> = {};
 let rpc: keyof typeof ENDPOINTS = "INFURA";
 infura ? (rpc = "INFURA") : (rpc = "ALCHEMY");
 PROVIDERS = {
+  GNOSIS: new providers.JsonRpcProvider(ENDPOINTS[rpc].GNOSIS),
   // GOERLI: new providers.JsonRpcProvider(ENDPOINTS[rpc].GOERLI),
   // MUMBAI: new providers.JsonRpcProvider(ENDPOINTS[rpc].MUMBAI),
   SEPOLIA: new providers.JsonRpcProvider(ENDPOINTS[rpc].SEPOLIA),

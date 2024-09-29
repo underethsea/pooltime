@@ -36,7 +36,7 @@ import PrizeValue from "../components/prizeValue";
 import Link from "next/link";
 import { GetChainIcon } from "../utils/getChain";
 import { WHITELIST_REWARDS, WHITELIST_VAULTS } from "../constants/address";
-
+import { useOverview } from "../components/contextOverview"
 interface YieldTooltipProps {
   vaultAPR?: number; // Optional number
   apr?: number; // Optional number
@@ -227,17 +227,27 @@ const VaultYieldTooltip: React.FC<YieldTooltipProps> = ({ vaultAPR, apr, total, 
     ""
   );
 };
+const sortData = (data:any, geckoPrices:any) => {
+  // First, sort by contributed (adjusting for non-WETH tokens)
+  let sortedData = data.sort((a:any, b:any) => {
+    const chainNameA = GetChainName(a.c);
+    const chainNameB = GetChainName(b.c);
 
-const sortData = (data: any) => {
-  // First sort by contributed
-  let sortedData: any = data.sort((a: any, b: any) => {
-    const contributedDiff =
-      parseFloat(b.contributed7d) - parseFloat(a.contributed7d);
-    return contributedDiff;
+    // Get the Gecko ID and token price for prize tokens
+    const prizeTokenGeckoA = ADDRESS[chainNameA]?.PRIZETOKEN?.GECKO || 'ethereum'; // Default to ETH if no Gecko ID
+    const prizeTokenGeckoB = ADDRESS[chainNameB]?.PRIZETOKEN?.GECKO || 'ethereum'; // Default to ETH if no Gecko ID
+
+    const prizeTokenPriceA = geckoPrices[prizeTokenGeckoA] || geckoPrices['ethereum']; // Use the token price or default to ETH
+    const prizeTokenPriceB = geckoPrices[prizeTokenGeckoB] || geckoPrices['ethereum']; // Use the token price or default to ETH
+
+    const contributedA = parseFloat(a.contributed7d) * prizeTokenPriceA;
+    const contributedB = parseFloat(b.contributed7d) * prizeTokenPriceB;
+
+    return contributedB - contributedA;
   });
 
-  // Then sort by tokens, ignoring vaults with status === 1 (withdraw only)
-  sortedData = sortedData.sort((a: any, b: any) => {
+  // Then sort by tokens (ignoring vaults with status === 1)
+  sortedData = sortedData.sort((a: any, b:any) => {
     const aTokens =
       a.assetBalance && a.status !== 1
         ? parseFloat(ethers.utils.formatUnits(a.assetBalance, a.decimals))
@@ -248,8 +258,9 @@ const sortData = (data: any) => {
         : 0;
     return bTokens - aTokens;
   });
-  // Then sort the already sorted data by tickets
-  sortedData = sortedData.sort((a: any, b: any) => {
+
+  // Finally, sort by tickets
+  sortedData = sortedData.sort((a, b) => {
     const aTickets = a.vaultBalance
       ? parseFloat(ethers.utils.formatUnits(a.vaultBalance, a.decimals))
       : 0;
@@ -261,6 +272,7 @@ const sortData = (data: any) => {
 
   return sortedData;
 };
+
 
 function AllVaults() {
   const [showStats, setShowStats] = useState(false);
@@ -276,6 +288,7 @@ function AllVaults() {
   const [isVaultsLoaded, setIsVaultsLoaded] = useState(0);
   const [showPrzPOOLVaults, setShowPrzPOOLVaults] = useState(false);
 
+  const overviewFromContext = useOverview();
 
 
   const { address } = useAccount();
@@ -665,15 +678,28 @@ function AllVaults() {
           setIsLoading(true);
           const secondsInAYear = 31536000; // 60 * 60 * 24 * 365
     
-          const [vaultsResponse, pricesFetch]: [any, any] = await Promise.all([
-            fetch(`https://poolexplorer.xyz/vaults`),
-            fetch(`https://poolexplorer.xyz/prices`),
-          ]);
+          // const [vaultsResponse, pricesFetch]: [any, any] = await Promise.all([
+          //   fetch(`https://poolexplorer.xyz/vaults`),
+          //   fetch(`https://poolexplorer.xyz/prices`),
+          // ]);
+          const vaultsResponse = await fetch(`https://poolexplorer.xyz/vaults`)
     
-          let prices = await pricesFetch.json();
-          const geckoPrices = prices.geckos;
-          const assetPrices = prices.assets;
-    
+// Safely get prices from context, or fallback to an empty object
+const prices = overviewFromContext?.overview?.prices || {geckos:{},assets:{}};
+
+// Declare geckoPrices and assetPrices once, outside the block
+let geckoPrices = {};
+let assetPrices = {};
+
+// Check if prices exist and assign the values if available
+if (prices.geckos && prices.assets) {
+  geckoPrices = prices.geckos;
+  assetPrices = prices.assets;
+}
+
+// Now you can safely use geckoPrices and assetPrices
+
+          
           let vaults: VaultData[] = await vaultsResponse.json();
           const tvlApiValues = vaults.reduce((acc: any, vault: any) => {
             acc[vault.vault] = parseFloat(vault.tvl);
@@ -903,7 +929,7 @@ function AllVaults() {
             };
           });
     
-          vaults = sortData(enrichedVaults);
+          vaults = sortData(enrichedVaults, geckoPrices);
     
           setData((prevData) => {
             const newData = vaults;

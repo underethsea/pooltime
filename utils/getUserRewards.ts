@@ -96,10 +96,12 @@ export async function GetUsersAwards(
           currentTime > startTimestamp &&
           currentTime < epochStartedAt + epochDuration
         ) {
+          // console.log("epoch started at",epochStartedAt,"end time stamp",endTimestamp)
           let nowTimeAdjusted = currentTime - 4000;
           let endTimestamp = Math.floor(
             Math.min(epochStartedAt + epochDuration, nowTimeAdjusted)
           );
+          console.log("epoch started at",epochStartedAt,"end time stamp",endTimestamp)
 
           if (epochStartedAt < endTimestamp) {
             const twabControllerContract = new ethers.Contract(
@@ -236,9 +238,14 @@ function calculateRewards(
 
     let rewardsForEpoch = (promo.tokensPerSecond / 1e18) * timeActive;
 
+    console.log("usertwab",userTwab.toString(),"total twab",totalTwab.toString())
     let userShare = userTwab / totalTwab;
 
+    console.log("rewards for epoch",rewardsForEpoch)
+    console.log("user share",userShare)
+
     let accumulatedReward = rewardsForEpoch * userShare;
+    console.log("acccumulated reward",accumulatedReward)
     if (accumulatedReward > 0) {
       let reward: ActiveReward = {
         token: promo.token,

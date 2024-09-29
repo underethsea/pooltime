@@ -11,7 +11,7 @@ async function fetchPromotions(): Promise<any> {
       throw new Error("failed to fetch twab rewards from api");
     }
     const result = await response.json();
-    console.log("OK result",result)
+    // console.log("OK result",result)
     return result;
   } catch (e) {
     console.log(e);
@@ -41,7 +41,7 @@ export async function GetActivePromotionsForVaults(
   active = false,
   priceData: any
 ): Promise<any[]> {
-  console.log("vaults input:", vaults);
+  // console.log("vaults input:", vaults);
   const currentTimestamp = Math.floor(Date.now() / 1000);
   const data = await fetchPromotions();
 
@@ -53,8 +53,8 @@ export async function GetActivePromotionsForVaults(
       const promotions = data[chain];
       let lowercaseVaultAddresses = vaults.map((vault) => vault.toLowerCase());
 
-      console.log(`Processing chain: ${chain}, promotions count: ${promotions.length}`);
-      console.log("Lowercase vault addresses:", lowercaseVaultAddresses);
+      // console.log(`Processing chain: ${chain}, promotions count: ${promotions.length}`);
+      // console.log("Lowercase vault addresses:", lowercaseVaultAddresses);
 
       // Filter active promotions based on currentTimestamp and vault addresses
       const activePromotionsWithTokens = promotions.filter((promo: any) => {
@@ -66,12 +66,12 @@ export async function GetActivePromotionsForVaults(
         const isValidVault = lowercaseVaultAddresses.includes(promo.vault.toLowerCase());
         const isWithinTimeframe = currentTimestamp >= promoStart && (!active || currentTimestamp < promoEnd);
 
-        console.log(`Promo vault: ${promo.vault}, is valid vault: ${isValidVault}, is within timeframe: ${isWithinTimeframe}`);
+        // console.log(`Promo vault: ${promo.vault}, is valid vault: ${isValidVault}, is within timeframe: ${isWithinTimeframe}`);
 
         return isValidVault && isWithinTimeframe;
       });
 
-      console.log(`Active promotions for chain ${chain}:`, activePromotionsWithTokens);
+      // console.log(`Active promotions for chain ${chain}:`, activePromotionsWithTokens);
 
       // Filter promotions with valid prices from the price data
       const validPromotionsWithPrices = activePromotionsWithTokens
@@ -97,7 +97,7 @@ export async function GetActivePromotionsForVaults(
         .filter((promo: any) => promo !== null);
 
       allPromotions = allPromotions.concat(validPromotionsWithPrices);
-      console.log("All promotions with valid prices:", allPromotions);
+      // console.log("All promotions with valid prices:", allPromotions);
     }
   }
 
@@ -107,7 +107,7 @@ export async function GetActivePromotionsForVaults(
       (promo: any) => promo.vault.toLowerCase() === vaultAddress.toLowerCase()
     );
 
-    console.log(`Promotions for vault ${vaultAddress}:`, vaultPromotions);
+    // console.log(`Promotions for vault ${vaultAddress}:`, vaultPromotions);
 
     if (vaultPromotions.length > 0) {
       acc[vaultAddress.toLowerCase()] = vaultPromotions;
@@ -116,7 +116,7 @@ export async function GetActivePromotionsForVaults(
     return acc;
   }, {});
 
-  console.log("Final promotions grouped by vault:", promotionsByVault);
+  // console.log("Final promotions grouped by vault:", promotionsByVault);
   return promotionsByVault;
 }
 

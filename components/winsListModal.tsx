@@ -5,6 +5,8 @@ import { ADDRESS } from "../constants";
 import PrizeValueIcon from "./prizeValueIcon";
 import PrizeValue from "./prizeValue";
 import IconDisplay from "./icons";
+import { useOverview } from './contextOverview'; // Assuming pricing context is here
+
 
 function getVaultName(vaultAddress: string, vaults: any[]) {
   const vault = vaults.find(
@@ -27,14 +29,29 @@ interface WinsModalProps {
   wins: AggregateWin[];
   address: string;
 }
-
-const calculateTotalAmountWon = (flatWins: any) => {
+const calculateTotalAmountWon = (flatWins: any, overview: any) => {
   return flatWins
     .reduce((acc: any, win: any) => {
-      return acc + BigInt(win.totalPayout);
+      const chainName = GetChainName(win.network);
+      const prizeToken = ADDRESS[chainName]?.PRIZETOKEN || { SYMBOL: "weth" };
+      
+      let payout = BigInt(win.totalPayout);
+      
+      if (prizeToken.SYMBOL.toLowerCase() !== "weth" && overview?.prices?.geckos) {
+        const ethPrice = overview.prices.geckos["ethereum"] || 1;
+        const prizeTokenPrice = overview.prices.geckos[prizeToken.GECKO];
+        
+        if (prizeTokenPrice && ethPrice) {
+          // Convert non-WETH prize value to ETH equivalent
+          payout = (payout * BigInt(Math.floor((prizeTokenPrice / ethPrice) * 1e18))) / BigInt(1e18);
+        }
+      }
+
+      return acc + payout;
     }, BigInt(0))
     .toString();
 };
+
 
 function timeAgo(date: Date) {
   const now = new Date();
@@ -93,6 +110,7 @@ const WinsListModal: React.FC<WinsModalProps> = ({
 }) => {
   const [vaults, setVaults] = useState<any[]>([]);
   const modalRef = useRef<HTMLDivElement>(null);
+  const { overview } = useOverview();
 
   useEffect(() => {
     const fetchVaults = async () => {
@@ -148,7 +166,7 @@ const WinsListModal: React.FC<WinsModalProps> = ({
               <div style={styles.prizeContainer}>
               <PrizeValueIcon size={26} />
               <PrizeValue
-                amount={calculateTotalAmountWon(sortedWins)}
+                amount={calculateTotalAmountWon(sortedWins,overview)}
                 size={28}
               />
               </div>
@@ -176,8 +194,8 @@ const WinsListModal: React.FC<WinsModalProps> = ({
                     {timeAgo(getMidDrawTime(win.network, win.draw))}
                   </div>
                   <div style={styles.cellRightAlign}>
-                    <PrizeValueIcon size={19} />
-                    <PrizeValue amount={BigInt(win.totalPayout)} size={19} />
+                    <PrizeValueIcon size={19}  chainname={GetChainName(win.network)}/>
+                    <PrizeValue amount={BigInt(win.totalPayout)} size={19} chainname={GetChainName(win.network)}/>
                   </div>
                 </div>
               ))}

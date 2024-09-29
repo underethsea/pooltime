@@ -20,7 +20,7 @@ export const GetChance = async (
     PROVIDERS[chainName]
   );
   const historyUrl = `https://poolexplorer.xyz/${chainId}-${ADDRESS[chainName].PRIZEPOOL}-history`;
-
+console.log("history url",historyUrl)
   const calls = [
     prizePoolContract.getLastAwardedDrawId(),
     prizePoolContract.getTierAccrualDurationInDraws(0),
