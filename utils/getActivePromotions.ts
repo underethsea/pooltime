@@ -77,7 +77,7 @@ export async function GetActivePromotionsForVaults(
       const validPromotionsWithPrices = activePromotionsWithTokens
         .map((promo: any) => {
           const price = priceData.assets[chain]?.[promo.token.toLowerCase()];
-          console.log(`Promo token: ${promo.token}, Price found: ${price}`);
+          // console.log(`Promo token: ${promo.token}, Price found: ${price}`);
 
           if (price) {
             return {
@@ -140,7 +140,7 @@ function determineEpochStatus(currentTimestamp: any, promo: any) {
     const currentEpochNumber = Math.floor(elapsed / epochDuration);
     currentEpochStart = promoStart + currentEpochNumber * epochDuration;
   }
-  console.log("determine status",promo,currentTimestamp,"epoch start",currentEpochStart)
+  // console.log("determine status",promo,currentTimestamp,"epoch start",currentEpochStart)
 
   return currentEpochStart;
 }

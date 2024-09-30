@@ -101,7 +101,7 @@ const {overview} = useOverview()
       setWinStartIndex(winStartIndex + 1);
     }
   };
-
+console.log("wins??")
   const calculateTotalAmountWon = (flatWins: any, overview: any) => {
     return flatWins
       .reduce((acc: any, win: any) => {
@@ -115,7 +115,8 @@ const {overview} = useOverview()
           const prizeTokenPrice = overview.prices.geckos[prizeToken.GECKO];
           
           if (prizeTokenPrice && ethPrice) {
-            // Convert non-WETH prize value to ETH equivalent
+            // Convert non-WETH prizeconso value to ETH equivalent
+            console.log("converting non eth")
             payout = (payout * BigInt(Math.floor((prizeTokenPrice / ethPrice) * 1e18))) / BigInt(1e18);
           }
         }
@@ -240,6 +241,7 @@ const {overview} = useOverview()
   
         // console.log("Processed and sorted wins:", flattenedWins);
         setWins(flattenedWins);
+        console.log(overview?.prices?.geckos)
         if (overview?.prices?.geckos) {
           setTotalAmountWon(calculateTotalAmountWon(flattenedWins, overview));
         }      } catch (error) {
