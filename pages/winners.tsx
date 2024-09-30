@@ -373,12 +373,12 @@ const handleCloseModal = () => {
                       <div className="stat-details">
                         Total&nbsp;&nbsp;
                         {/* <PrizeIcon size={17} />
-                        &nbsp; */}
-                        <PrizeValueIcon size={25}/>
+                        &nbsp; */}{chain && <>
+                        <PrizeValueIcon size={25}  chainname={chain.label}/>
                         <span className="stat-value-poolers">
-                          <PrizeValue amount={BigInt(totalPrizeValueCounter.toString())} size={25}/>
+                          <PrizeValue amount={BigInt(totalPrizeValueCounter.toString())} size={25} chainname={chain.label}/>
                           {/* {PrizeToke(BigInt(totalPrizeValueCounter.toString()))} */}
-                        </span>
+                        </span></>}
                       </div>
                     </div>
                   </div>
@@ -458,8 +458,9 @@ const handleCloseModal = () => {
                 )?.NAME.replace(/PoolTogether|Prize Token/g, "").trim()}
         </td>
         <td className="amount" style={{ textAlign: "right" }}>
-            <PrizeValueIcon size={20} />
-            <PrizeValue amount={BigInt(item.p)} size={20} />
+          {chain && <>
+            <PrizeValueIcon size={20}  chainname={chain.label}/>
+            <PrizeValue amount={BigInt(item.p)} size={20} chainname={chain.label}/></>}
             &nbsp;&nbsp;&nbsp;
         </td>
     </tr>

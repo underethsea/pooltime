@@ -57,8 +57,8 @@ if (currency === 'ETH') {
     if (currency === 'USD') {
       const usdValue = parseFloat(tokenValue) * (isWeth || !chainname ? ethPrice : (overview?.prices.geckos[prizeTokenGeckoId] || 0));
       return rounded
-        ? `${CropDecimals(usdValue, true)} USD`
-        : `${NumberWithCommas(CropDecimals(usdValue))} USD`;
+        ? `${CropDecimals(usdValue, true)}`
+        : `${NumberWithCommas(CropDecimals(usdValue))}`;
     }
 
     // Default formatting
