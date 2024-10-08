@@ -1821,7 +1821,7 @@ const Vault: React.FC<VaultProps> = ({
             amount={BigInt(
               Math.round(
                 parseFloat(vaultData.contributed24h) > parseFloat(vaultData.contributed7d) / 3
-                  ? Number(vaultData.contributed24h) * 1e18 * 7 // Use 24h data (extrapolated to 7 days)
+                  ? Number(vaultData.contributed24h) * 1e18 
                   : Number(vaultData.contributed7d) * 1e18 // Use 7d data directly
               )
             )}
@@ -1851,7 +1851,9 @@ const Vault: React.FC<VaultProps> = ({
               const contributionValue = annualContribution * prizeTokenPrice;
               const totalAssetsValue = totalAssets * assetPrice;
               const percentage = (contributionValue / totalAssetsValue) * 100;
-
+              console.log("contributed 24h",contributed24h,"prize tokens price",prizeTokenPrice,"contribution value",contributionValue)
+              console.log("apr",percentage)
+              console.log("total asset value",totalAssetsValue)
               return (
                 <>
                  
