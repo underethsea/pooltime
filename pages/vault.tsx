@@ -59,6 +59,7 @@ interface vaultApi {
   price: number;
   contributed7d: string;
   contributed24h: string;
+  contributed28d: string;
   won7d: string;
   prizes7d: string;
   prizesPerDraw7d: string;
@@ -94,6 +95,7 @@ interface VaultData {
   userVaultBalance: ethers.BigNumber;
   price: number;
   contributed7d: string;
+  contributed28d: string;
   won7d: string;
   prizes7d: string;
   prizesPerDraw7d: string;
@@ -510,6 +512,7 @@ const Vault: React.FC<VaultProps> = ({
             price,
             contributed7d,
             contributed24h,
+            contributed28d,
             won7d,
             prizes7d,
             prizesPerDraw7d,
@@ -529,6 +532,7 @@ const Vault: React.FC<VaultProps> = ({
               price,
               contributed7d,
               contributed24h,
+              contributed28d,
               won7d,
               prizes7d,
               prizesPerDraw7d,
@@ -568,6 +572,7 @@ const Vault: React.FC<VaultProps> = ({
                     price,
                     contributed7d,
                     contributed24h,
+                    contributed28d,
                     won7d,
                     prizes7d,
                     poolers,
@@ -689,6 +694,7 @@ const Vault: React.FC<VaultProps> = ({
             price,
             contributed7d,
             contributed24h,
+            contributed28d,
             won7d,
             prizes7d,
             poolers,
@@ -1803,72 +1809,155 @@ const Vault: React.FC<VaultProps> = ({
                               </span>
                             </div>
                           )}
-                      {(parseFloat(vaultData.contributed7d) > 0 || parseFloat(vaultData.contributed24h) > 0) && (
-  <div className="data-row hidden-mobile">
-    <span className="vault-label">
-      {/* Determine whether to display 24h or 7d label */}
-      {parseFloat(vaultData.contributed24h) > parseFloat(vaultData.contributed7d) / 3 ? "24h Vault Yield" : "7d Vault Yield"}
-    </span>
-    <div className="vault-data">
-      <span className="value-and-apr">
-        <div className="value-container">
-          <div>
-          <PrizeValueIcon
-            size={20}
-            chainname={GetChainName(activeVaultChain)}
-          />
-          <PrizeValue
-            amount={BigInt(
-              Math.round(
-                parseFloat(vaultData.contributed24h) > parseFloat(vaultData.contributed7d) / 3
-                  ? Number(vaultData.contributed24h) * 1e18 
-                  : Number(vaultData.contributed7d) * 1e18 // Use 7d data directly
-              )
-            )}
-            size={20}
-            chainname={GetChainName(activeVaultChain)}
-          />
-        </div>
-        {prizeTokenPrice > 0 && assetPrice > 0 && (
-          <>
-            {(() => {
-              const contributed7d = Number(vaultData.contributed7d);
-              const contributed24h = Number(vaultData.contributed24h);
+                          {(() => {
+                            console.log("yes", vaultData);
+                            return null; // You need to return null or something renderable
+                          })()}
+                          {(parseFloat(vaultData.contributed7d) > 0 ||
+                            parseFloat(vaultData.contributed24h) > 0 ||
+                            parseFloat(vaultData.contributed28d) > 0) && (
+                            <div className="data-row hidden-mobile">
+                              <span className="vault-label">
+                                {(() => {
+                                  console.log("yes", vaultData);
+                                  return null; // You need to return null or something renderable
+                                })()}
+                                {parseFloat(vaultData.contributed24h) >
+                                parseFloat(vaultData.contributed7d) / 3
+                                  ? "24h Vault Yield"
+                                  : parseFloat(vaultData.contributed7d) > 0
+                                  ? "7d Vault Yield"
+                                  : parseFloat(vaultData.contributed28d) > 0
+                                  ? "28d Vault Yield"
+                                  : "No Yield Data Available"}
+                              </span>
+                              <div className="vault-data">
+                                  <div className="value-container">
+                                    <div className="value-element">
+                                      <PrizeValueIcon
+                                        size={20}
+                                        chainname={GetChainName(
+                                          activeVaultChain
+                                        )}
+                                      />
+                                      <PrizeValue
+                                        amount={BigInt(
+                                          Math.round(
+                                            parseFloat(
+                                              vaultData.contributed24h
+                                            ) >
+                                              parseFloat(
+                                                vaultData.contributed7d
+                                              ) /
+                                                3
+                                              ? Number(
+                                                  vaultData.contributed24h
+                                                ) * 1e18 // Use 24h data
+                                              : parseFloat(
+                                                  vaultData.contributed7d
+                                                ) > 0
+                                              ? Number(
+                                                  vaultData.contributed7d
+                                                ) * 1e18 // Use 7d data
+                                              : parseFloat(
+                                                  vaultData.contributed28d
+                                                ) > 0
+                                              ? Number(
+                                                  vaultData.contributed28d
+                                                ) * 1e18 // Use 28d data as fallback
+                                              : 0 // Fallback to 0 if no contribution data is available
+                                          )
+                                        )}
+                                        size={20}
+                                        chainname={GetChainName(
+                                          activeVaultChain
+                                        )}
+                                      />
+                                    </div>
+                                    {prizeTokenPrice > 0 && assetPrice > 0 && (
+                                      <>
+                                        {(() => {
+                                          const contributed7d = Number(
+                                            vaultData.contributed7d
+                                          );
+                                          const contributed24h = Number(
+                                            vaultData.contributed24h
+                                          );
+                                          // Determine the effective contribution based on 24h, 7d, or 28d data
+                                          const effectiveContribution =
+                                            parseFloat(
+                                              vaultData.contributed24h
+                                            ) >
+                                            parseFloat(
+                                              vaultData.contributed7d
+                                            ) /
+                                              3
+                                              ? parseFloat(
+                                                  vaultData.contributed24h
+                                                ) * 7 // Use 24-hour contribution (extrapolated to 7 days)
+                                              : parseFloat(
+                                                  vaultData.contributed7d
+                                                ) > 0
+                                              ? parseFloat(
+                                                  vaultData.contributed7d
+                                                ) // Use 7-day contribution directly
+                                              : parseFloat(
+                                                  vaultData.contributed28d
+                                                ) > 0
+                                              ? parseFloat(
+                                                  vaultData.contributed28d
+                                                ) / 4 // Use 28-day contribution (quarterly)
+                                              : 0; // Fallback if all contributions are 0
 
-              // Use the effective contribution based on 24h vs 7d comparison
-              const effectiveContribution =
-                contributed24h > contributed7d / 3
-                  ? contributed24h * 7 // Use 24-hour contribution (extrapolated to 7 days)
-                  : contributed7d; // Otherwise, use the 7-day contribution
+                                          // Annualize the effective contribution
+                                          const annualContribution =
+                                            parseFloat(
+                                              vaultData.contributed24h
+                                            ) >
+                                            parseFloat(
+                                              vaultData.contributed7d
+                                            ) /
+                                              3
+                                              ? effectiveContribution * 52 // Annualize for 24-hour contribution
+                                              : parseFloat(
+                                                  vaultData.contributed7d
+                                                ) > 0
+                                              ? (effectiveContribution * 52) / 7 // Annualize for 7-day contribution
+                                              : effectiveContribution * 13; // Annualize for 28-day contribution
 
-              const annualContribution = effectiveContribution * 52; // Annualize contribution
-              const totalAssets = Number(
-                ethers.utils.formatUnits(
-                  vaultData.totalAssets,
-                  vaultData.decimals
-                )
-              );
-              const contributionValue = annualContribution * prizeTokenPrice;
-              const totalAssetsValue = totalAssets * assetPrice;
-              const percentage = (contributionValue / totalAssetsValue) * 100;
-              console.log("contributed 24h",contributed24h,"prize tokens price",prizeTokenPrice,"contribution value",contributionValue)
-              console.log("apr",percentage)
-              console.log("total asset value",totalAssetsValue)
-              return (
-                <>
-                 
-                  {`(${percentage.toFixed(1)}% APR)`}
-                </>
-              );
-            })()}
-          </>
-        )}</div>
-      </span>
-    </div>
-  </div>
-)}
-
-
+                                          const totalAssets = Number(
+                                            ethers.utils.formatUnits(
+                                              vaultData.totalAssets,
+                                              vaultData.decimals
+                                            )
+                                          );
+                                          const contributionValue =
+                                            annualContribution *
+                                            prizeTokenPrice;
+                                          const totalAssetsValue =
+                                            totalAssets * assetPrice;
+                                          const percentage =
+                                            (contributionValue /
+                                              totalAssetsValue) *
+                                            100;
+                                          // console.log("contributed 24h",contributed24h,"prize tokens price",prizeTokenPrice,"contribution value",contributionValue)
+                                          // console.log("apr",percentage)
+                                          // console.log("total asset value",totalAssetsValue)
+                                          return (
+                                            <div className="value-element">
+                                              {`(${percentage.toFixed(
+                                                1
+                                              )}% APR)`}
+                                            </div>
+                                          );
+                                        })()}
+                                      </>
+                                    )}
+                                  </div>
+                            
+                              </div>
+                            </div>
+                          )}
 
                           {vaultData.yieldFeePercentage.gt(0) && (
                             <div className="data-row">

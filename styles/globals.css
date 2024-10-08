@@ -491,12 +491,21 @@ tr {
   align-items: flex-end;
 }
 
-.vault-data .value-container {
+.vault-data  {
   display: flex;
-  align-items: center;
   justify-content: flex-end;
-  flex-direction: column;
 }
+
+.value-container {
+  /* display: flex; */
+  flex-wrap: wrap;  /* Allows wrapping when content doesn't fit */
+  justify-content: space-between;  }
+  
+  .value-element {
+    flex: 1 1 0;  /* Flex-grow and flex-shrink are enabled, flex-basis is set to 0 */
+
+  }
+  
 
 .vault-data .value-and-apr {
   display: flex;
