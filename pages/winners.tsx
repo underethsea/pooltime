@@ -435,7 +435,8 @@ const handleCloseModal = () => {
                             {item.w.substring(0, 6)}{"..."}{item.w.substring(item.w.length - 4)}
                         </span>
                         <span className="hidden-mobile">
-                            {item.w === "0x327b2ea9668a552fe5dec8e3c6e47e540a0a58c6" || item.w === "0xdeef914a2ee2f2014ce401dcb4e13f6540d20ba7" || item.w === "0x1dcfb8b47c2f05ce86c21580c167485de1202e12" ? "Grand Prize Boost" : item.w}
+                            {item.w === "0x327b2ea9668a552fe5dec8e3c6e47e540a0a58c6" || item.w === "0xdeef914a2ee2f2014ce401dcb4e13f6540d20ba7" || item.w === "0x1dcfb8b47c2f05ce86c21580c167485de1202e12" 
+                            || item.w === "0x65f3aea2594d82024b7ee98ddcf08f991ab1c626" || item.w === "0x2d3ad415198d7156e8c112a508b8306699f6e4cc" ? "Grand Prize Boost" : item.w}
                         </span>
                         {item.p === "0xb37b3b78022e6964fe80030c9161525880274010" && (
                             <Image
