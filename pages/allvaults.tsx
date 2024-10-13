@@ -852,6 +852,7 @@ function AllVaults() {
 
           const contributed7d = parseFloat(vault.contributed7d);
           const contributed24h = parseFloat(vault.contributed24h);
+          const contributed28d = parseFloat(vault.contributed28d)
 
           // Calculate Prize APR here
           let prizeTokenPriceValue = 0;
@@ -910,12 +911,15 @@ function AllVaults() {
             );
 
             const effectiveContribution =
-              contributed7d === 0
-                ? contributed24h * 7
-                : contributed24h > contributed7d / 3
-                ? contributed24h * 7
-                : contributed7d;
-
+            contributed7d === 0 && contributed24h === 0
+              ? contributed28d / 4 // Fallback to 28d / 4 if both 7d and 24h contributions are 0
+              : contributed7d === 0
+              ? contributed24h * 7 // Use 24h contribution annualized
+              : contributed24h > contributed7d / 3
+              ? contributed24h * 7 // Use 24h contribution if it's significantly higher than 7d
+              : contributed7d; // Otherwise, use the 7d contribution
+          
+            console.log("vault",vault.vault,"effective contribution",effectiveContribution,"prize token price",prizeTokenPriceValue,"deposits delegeate dollar value",depositsDelegateDollarvalue)
             if (depositsDollarValue > 0 && effectiveContribution > 0) {
               vaultAPR = (
                 (((365 / 7) * effectiveContribution * prizeTokenPriceValue) /

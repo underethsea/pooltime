@@ -1885,45 +1885,19 @@ const Vault: React.FC<VaultProps> = ({
                                           );
                                           // Determine the effective contribution based on 24h, 7d, or 28d data
                                           const effectiveContribution =
-                                            parseFloat(
-                                              vaultData.contributed24h
-                                            ) >
-                                            parseFloat(
-                                              vaultData.contributed7d
-                                            ) /
-                                              3
-                                              ? parseFloat(
-                                                  vaultData.contributed24h
-                                                ) * 7 // Use 24-hour contribution (extrapolated to 7 days)
-                                              : parseFloat(
-                                                  vaultData.contributed7d
-                                                ) > 0
-                                              ? parseFloat(
-                                                  vaultData.contributed7d
-                                                ) // Use 7-day contribution directly
-                                              : parseFloat(
-                                                  vaultData.contributed28d
-                                                ) > 0
-                                              ? parseFloat(
-                                                  vaultData.contributed28d
-                                                ) / 4 // Use 28-day contribution (quarterly)
-                                              : 0; // Fallback if all contributions are 0
-
+                                          parseFloat(vaultData.contributed7d) === 0 &&
+                                          parseFloat(vaultData.contributed24h) === 0
+                                            ? parseFloat(vaultData.contributed28d) / 4 // Use 28d / 4 if both 7d and 24h are 0
+                                            : parseFloat(vaultData.contributed7d) === 0
+                                            ? parseFloat(vaultData.contributed24h) * 7 // Use 24h contribution annualized if 7d is 0
+                                            : parseFloat(vaultData.contributed24h) >
+                                              parseFloat(vaultData.contributed7d) / 3
+                                            ? parseFloat(vaultData.contributed24h) * 7 // Use 24h contribution if it's significantly higher than 7d
+                                            : parseFloat(vaultData.contributed7d); // Otherwise, use the 7d contribution
+                                        
                                           // Annualize the effective contribution
                                           const annualContribution =
-                                            parseFloat(
-                                              vaultData.contributed24h
-                                            ) >
-                                            parseFloat(
-                                              vaultData.contributed7d
-                                            ) /
-                                              3
-                                              ? effectiveContribution * 52 // Annualize for 24-hour contribution
-                                              : parseFloat(
-                                                  vaultData.contributed7d
-                                                ) > 0
-                                              ? (effectiveContribution * 52) / 7 // Annualize for 7-day contribution
-                                              : effectiveContribution * 13; // Annualize for 28-day contribution
+                                            effectiveContribution * (365/7)
 
                                           const totalAssets = Number(
                                             ethers.utils.formatUnits(
