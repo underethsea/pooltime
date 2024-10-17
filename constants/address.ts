@@ -654,6 +654,7 @@ const WHITELIST_VAULTS = [
   "0x29499e2eb8ff1d076a35c275aeddd613afb1fa9b", // pool scroll
   "0xb75af20ecadabed9049cc2f50e38bad2768b35cf", // ppool gnosis
   "0xbb7e99abccce01589ad464ff698ad139b0705d90",
+  "0x11271bF9855B679Bc484a0C80a69D8cc72fcEf89", // wineth
 ];
 
 const WHITELIST_REWARDS: {
