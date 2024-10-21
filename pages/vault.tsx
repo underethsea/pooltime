@@ -1935,7 +1935,7 @@ const Vault: React.FC<VaultProps> = ({
 
                           {vaultData.yieldFeePercentage.gt(0) && (
                             <div className="data-row">
-                              <span className="vault-label">Vault Fee</span>
+                              <span className="vault-label">Yield Fee</span>
                               <span className="vault-data">
                                 {NumberWithCommas(
                                   CropDecimals(
