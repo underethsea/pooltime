@@ -469,27 +469,27 @@ function AllVaults() {
           // value now directly contains the totalYield computed by the accessor
           // original contains the full data of the row
           const displayValue =
-            name.length > 25
+            name.length >= 25
               ? name.substring(0, 22) + "..."
               : name.substring(0, 28);
           const mobileDisplayValue =
-            name.length > 15 ? name.substring(0, 21) : name.substring(0, 15);
+            name.length >= 15 ? name.substring(0, 24) : name.substring(0, 15);
 
           return (
             <div>
               {/* <ChainTag chainId={c}/>&nbsp; */}
               <ChainTag chainId={c} />
-              {name.startsWith("Prize ") ? (
+              {name.startsWith("Prize ") || name.startsWith("PoolTogether") ? ( // Updated condition to check for both "Prize" and "PoolTogether"
                 <>
                   &nbsp;
                   <span style={{ marginLeft: "-15px" }}>
-                    <IconDisplay name={name.substring(6)} />
+                    <IconDisplay name={name.startsWith("Prize ") ? name.substring(6) : name.substring(13)} /> {/* Adjusted to handle both cases */}
                   </span>{" "}
                   <span className="hidden-mobile">
-                    {displayValue.substring(6)}
+                    {displayValue.substring(name.startsWith("Prize ") ? 6 : 13)} {/* Adjusted to handle both cases */}
                   </span>
                   <span className="hidden-desktop">
-                    {mobileDisplayValue.substring(6)}
+                    {mobileDisplayValue.substring(name.startsWith("Prize ") ? 6 : 13)} {/* Adjusted to handle both cases */}
                   </span>
                   <FontAwesomeIcon
                     icon={faSquareArrowUpRight}
@@ -527,6 +527,7 @@ function AllVaults() {
                       height: "15px",
                       paddingLeft: "9px",
                     }}
+                    className="hidden-mobile"
                   />
                   {/* {!showStats && <>&nbsp;&nbsp;&nbsp;&nbsp;<ChainTag chainId={c} /></>} */}
                 </span>
