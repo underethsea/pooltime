@@ -433,7 +433,7 @@ function AllVaults() {
     if (showPrzPOOLVaults) {
       // Only show vaults with "pool" in the name if the przPOOL toggle is active
       return vaults.filter((vault: any) =>
-        vault.name.toLowerCase().includes("pool")
+        vault.name.toLowerCase().includes("pool") && !vault.name.toLowerCase().startsWith("pooltogether")
       );
     }
 
