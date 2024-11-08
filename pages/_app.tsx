@@ -1,73 +1,79 @@
 import "@rainbow-me/rainbowkit/styles.css";
-
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { OverviewProvider } from "../components/contextOverview"; // Adjust path as necessary
+import { OverviewProvider } from "../components/contextOverview";
 import "../styles/globals.css";
 import "../styles/table.css";
+import type { AppProps } from "next/app";
+
 
 import {
   getDefaultConfig,
-  getDefaultWallets,
   RainbowKitProvider,
+  Chain,
 } from "@rainbow-me/rainbowkit";
 import { WagmiProvider } from "wagmi";
-import type { AppProps } from "next/app";
-// import { configureChains, createConfig, WagmiConfig } from 'wagmi';
-import { optimism, mainnet, arbitrum, base, scroll, gnosis } from "wagmi/chains";
-import {
-  braveWallet,
-  coinbaseWallet,
-  injectedWallet,
-  metaMaskWallet,
-  okxWallet,
-  rabbyWallet,
-  rainbowWallet,
-  safeWallet,
-  walletConnectWallet,
-} from "@rainbow-me/rainbowkit/wallets";
+import { optimism, mainnet, arbitrum, base } from "wagmi/chains";
+
+// Define Scroll as a custom chain
+const scroll:Chain = {
+  id: 534352, // Replace with Scroll's actual chain ID
+  name: 'Scroll',
+  iconUrl: '/images/scroll2.webp',  // Ensure this path is correct and accessible
+  iconBackground: 'transparent', 
+  nativeCurrency: {
+    name: 'Ethereum',
+    symbol: 'ETH',
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: { http: ['https://scroll.drpc.org'] }, // Replace with actual Scroll RPC URL
+  },
+  blockExplorers: {
+    default: { name: 'ScrollScan', url: 'https://scrollscan.com' }, // Replace with actual block explorer if available
+  },
+  contracts: {
+    multicall3: {
+      address: '0x74CAE2839919f0493E7f3a53A284C42197dF9616', 
+      blockCreated: 3512, // Replace with actual block number if needed
+    },
+  },
+} 
+const gnosis:Chain = {
+  id: 100, // Replace with Scroll's actual chain ID
+  name: 'Gnosis',
+  iconUrl: '/images/gnosis2.webp',  // Ensure this path is correct and accessible
+  iconBackground: 'transparent', // Red background for Scroll icon
+  nativeCurrency: {
+    name: 'XDAI',
+    symbol: 'XDAI',
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: { http: ['https://1rpc.io/gnosis'] }, // Replace with actual Scroll RPC URL
+  },
+  blockExplorers: {
+    default: { name: 'GnosisScan', url: 'https://gnosisscan.io/' }, // Replace with actual block explorer if available
+  },
+  contracts: {
+    multicall3: {
+      address: '0xcA11bde05977b3631167028862bE2a173976CA11', 
+      blockCreated: 21022491, // Replace with actual block number if needed
+    },
+  },
+} 
 
 let WALLET_CONNECT_KEY: string = "";
 if (process.env.NEXT_PUBLIC_WALLET_CONNECT) {
   WALLET_CONNECT_KEY = process.env.NEXT_PUBLIC_WALLET_CONNECT;
 }
+
+// Config setup with Scroll as a custom chain
 const config = getDefaultConfig({
   appName: "Pooltime",
   projectId: WALLET_CONNECT_KEY,
-  chains: [
-    {
-      ...optimism,
-      iconWidth: "15px",
-      iconHeight: "15px",
-    },
-    base,
-    arbitrum,
-    mainnet,
-    {...scroll,
-      iconBackground: '#ff0000',
-      iconURL: "/images/scroll.svg"},
-      gnosis
-  ],
-  ssr: true, // If your dApp uses server side rendering (SSR)
+  chains: [optimism, mainnet, arbitrum, base, scroll, gnosis],
+  ssr: true,
 });
-// const connectors = connectorsForWallets(
-//   [
-//     {
-//       groupName: 'Suggested',
-//       wallets: [
-//         braveWallet,
-//         coinbaseWallet,
-//         injectedWallet,
-//         metaMaskWallet,
-//         okxWallet,
-//         rabbyWallet,
-//         rainbowWallet,
-//         safeWallet,
-//         walletConnectWallet,
-//       ],
-//     },
-//   ],
-//   { appName: 'Pooltime', projectId: WALLET_CONNECT_KEY },
-// );
 
 const queryClient = new QueryClient();
 
