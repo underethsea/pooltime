@@ -729,6 +729,12 @@ const WHITELIST_REWARDS: {
       GECKO: "arbitrum",
       ICON: "https://assets.coingecko.com/coins/images/16547/standard/photo_2023-03-29_21.47.00.jpeg?1696516109",
     },
+    {
+      TOKEN: "0xCF934E2402A5e072928a39a956964eb8F2B5B79C",
+      SYMBOL: "POOL",
+      GECKO: "pooltogether",
+      ICON: "htps://assets.coingecko.com/coins/images/14003/standard/PoolTogether.png?1696513732",
+    },
   ],
   GNOSIS: [
     {
@@ -758,6 +764,14 @@ const WHITELIST_REWARDS: {
       ICON: "https://assets.coingecko.com/coins/images/39669/standard/BASED.jpg?1723603780",
     },
   ],
+  SCROLL:[
+    {
+      TOKEN: "0xF9Af83FC41e0cc2af2fba93644D542Df6eA0F2b7",
+      SYMBOL: "POOL",
+      GECKO: "pooltogether",
+      ICON: "htps://assets.coingecko.com/coins/images/14003/standard/PoolTogether.png?1696513732",
+    },
+  ]
 };
 
 export { ADDRESS, STARTBLOCK, ICONS, WHITELIST_REWARDS, WHITELIST_VAULTS };
