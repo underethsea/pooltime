@@ -733,7 +733,7 @@ const WHITELIST_REWARDS: {
       TOKEN: "0xCF934E2402A5e072928a39a956964eb8F2B5B79C",
       SYMBOL: "POOL",
       GECKO: "pooltogether",
-      ICON: "htps://assets.coingecko.com/coins/images/14003/standard/PoolTogether.png?1696513732",
+      ICON: "https://assets.coingecko.com/coins/images/14003/standard/PoolTogether.png?1696513732",
     },
   ],
   GNOSIS: [
@@ -769,7 +769,7 @@ const WHITELIST_REWARDS: {
       TOKEN: "0xF9Af83FC41e0cc2af2fba93644D542Df6eA0F2b7",
       SYMBOL: "POOL",
       GECKO: "pooltogether",
-      ICON: "htps://assets.coingecko.com/coins/images/14003/standard/PoolTogether.png?1696513732",
+      ICON: "https://assets.coingecko.com/coins/images/14003/standard/PoolTogether.png?1696513732",
     },
   ]
 };
