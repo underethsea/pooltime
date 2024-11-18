@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons";
 
 import { useOverview } from '../components/contextOverview';
+import Image from "next/image";
 
 export const Menu = () => {
   const router = useRouter();
@@ -78,6 +79,16 @@ export const Menu = () => {
     >
       {isMobile && (
         <div className="top-margin-16">
+          <Link href="/">
+            <a>
+            <Image
+              src={`/images/squarepool.png`}
+              height={30}
+              width={30}
+              alt="pool party"
+            />
+            </a>
+          </Link>
           <button
             onClick={handleMenuToggle}
             style={{ border: "none", background: "none", cursor: "pointer" }}

@@ -1191,6 +1191,7 @@ function AllVaults() {
           alignItems: "center",
           justifyContent: "center",
         }}>
+        <div className="hidden-mobile">
         <Image
           src={`/images/squarepool.png`}
           height={90}
@@ -1198,7 +1199,9 @@ function AllVaults() {
           alt="pool party"
         />
         &nbsp;&nbsp;
+        
         <h1 style={{ margin: "0 0 0 10px", lineHeight: "120px" }}>POOLTIME</h1>
+        </div>
       </div>
       <br></br>
       <div>
