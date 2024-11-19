@@ -87,7 +87,8 @@ const PrizeInPool: React.FC = () => {
     <>
       {totalPrizeInDollars > 0 && (
         <div style={{ fontSize: "22px", display: "inline-block" }}>
-          PRIZES&nbsp;&nbsp;
+          <span className="hidden-mobile">PRIZES&nbsp;&nbsp;</span>
+          <span className="hidden-desktop">SAVE TO WIN&nbsp;&nbsp;</span>
           <span
             style={{
               margin: "0",

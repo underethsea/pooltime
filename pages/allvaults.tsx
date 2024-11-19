@@ -1184,6 +1184,7 @@ function AllVaults() {
 
   return (
     <center>
+    <div className="hidden-mobile">
       <div
         className="vault-header"
         style={{
@@ -1191,7 +1192,6 @@ function AllVaults() {
           alignItems: "center",
           justifyContent: "center",
         }}>
-        <div className="hidden-mobile">
         <Image
           src={`/images/squarepool.png`}
           height={90}
