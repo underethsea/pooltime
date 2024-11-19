@@ -78,13 +78,13 @@ export const Menu = () => {
       }}
     >
       {isMobile && (
-        <div className="top-margin-16">
+        <div className="top-margin-16" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
           <Link href="/">
             <a>
             <Image
               src={`/images/squarepool.png`}
-              height={30}
-              width={30}
+              height={37}
+              width={37}
               alt="pool party"
             />
             </a>
@@ -113,8 +113,8 @@ export const Menu = () => {
               <div className="zindex-1">
                 <svg
                   viewBox="0 0 24 24"
-                  width="24"
-                  height="24"
+                  width="28"
+                  height="28"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                 >
