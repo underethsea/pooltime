@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import LoadGrid from "../components/loadGrid";
+import { vaultsAPIFormatted } from "../utils/vaultsFromConstantsAdapter";
 // import { useRouter } from "next/router";
 import { ethers } from "ethers";
 import { useTable, useSortBy, useGlobalFilter } from "react-table";
@@ -43,7 +44,7 @@ interface YieldTooltipProps {
   total?: number; // Optional number
   symbol?: string;
 }
-
+// console.log("api formatted", vaultsAPIFormatted);
 type VaultData = {
   name: string;
   poolers: number;
@@ -569,12 +570,13 @@ function AllVaults() {
                   <span
                     className="hidden-mobile"
                     style={{ verticalAlign: "middle", marginLeft: "30px" }}>
-                    {poolers} poolers
-                  </span>
+                    {poolers > 0 && <>{poolers} poolers</>}
+                    </span>
                   <span
                     className="hidden-desktop"
                     style={{ marginLeft: "0px" }}>
-                    {poolers} poolers
+
+                    {poolers > 0 && <>{poolers} poolers</>}
                   </span>
                 </div>
               )}
@@ -742,34 +744,52 @@ function AllVaults() {
       try {
         setIsLoading(true);
         const secondsInAYear = 31536000; // 60 * 60 * 24 * 365
-
-        const [vaultsResponse, pricesFetch]: [any, any] = await Promise.all([
-          fetch(`https://poolexplorer.xyz/vaults`),
-          fetch(`https://poolexplorer.xyz/prices`),
-        ]);
-        // const pricesResponse = aw
-        // // Safely get prices from context, or fallback to an empty object
-        // const prices = overviewFromContext?.overview?.prices || {
-        //   geckos: {},
-        //   assets: {},
-        // };
-
-        // // Declare geckoPrices and assetPrices once, outside the block
-        // let geckoPrices: any = {};
-        // let assetPrices: any = {};
-
-        // // Check if prices exist and assign the values if available
-        // if (prices.geckos && prices.assets) {
-        //   geckoPrices = prices.geckos;
-        //   assetPrices = prices.assets;
-
-        // console.log("Gecko prices", geckoPrices);
-        // console.log("asset prices", assetPrices);
-        let prices = await pricesFetch.json();
-        const geckoPrices = prices.geckos;
-        const assetPrices = prices.assets;
-        if (geckoPrices && assetPrices) {
-          let vaults: VaultData[] = await vaultsResponse.json();
+        let vaultsResponse: Response | null = null;
+        let pricesFetch: Response | null = null;
+        let prices = { geckos: {}, assets: {} };
+        let vaults: VaultData[] = vaultsAPIFormatted as any; // Default to static data
+        
+        try {
+          // Fetch both vaults and prices
+          [vaultsResponse, pricesFetch] = await Promise.all([
+            fetch(`https://poolexplorer.xyz/vaults`),
+            fetch(`https://poolexplorer.xyz/prices`),
+          ]);
+        } catch (error) {
+          console.error("Error during API fetch:", error);
+        }
+        
+        // Handle `pricesFetch` response
+        if (pricesFetch && pricesFetch.ok) {
+          try {
+            prices = await pricesFetch.json();
+          } catch (error) {
+            console.error("Failed to parse prices response:", error);
+          }
+        } else {
+          console.log(
+            `Failed to fetch prices. ${
+              pricesFetch ? `Status: ${pricesFetch.status}` : "No response"
+            }`
+          );
+        }
+        const geckoPrices:any = prices.geckos;
+        const assetPrices:any = prices.assets;
+        // Handle `vaultsResponse` response
+        if (vaultsResponse && vaultsResponse.ok) {
+          try {
+            vaults = await vaultsResponse.json();
+          } catch (error) {
+            console.error("Failed to parse vaults response:", error);
+          }
+        } else {
+          console.log(
+            `Failed to fetch vaults. ${
+              vaultsResponse ? `Status: ${vaultsResponse.status}` : "No response"
+            }. Using static data.`
+          );
+        }
+          if(true){
           const tvlApiValues = vaults.reduce((acc: any, vault: any) => {
             acc[vault.vault] = parseFloat(vault.tvl);
             return acc;
@@ -777,7 +797,7 @@ function AllVaults() {
 
           // Extract vault addresses
           const vaultAddresses = vaults.map((vault: any) => vault.vault);
-
+          // console.log("vault addresses", vaultAddresses);
           const [promotionsResult, multicallResults] = await Promise.allSettled(
             [
               GetActivePromotionsForVaults(vaultAddresses, true, prices),
@@ -840,7 +860,7 @@ function AllVaults() {
               activePromotions: activePromotions[vaultAddress] || [],
             };
           });
-
+          // console.log("multicall results", multicallResults);
           const allResults =
             multicallResults.status === "fulfilled"
               ? multicallResults.value
@@ -913,18 +933,22 @@ function AllVaults() {
             ) {
               assetPrice = assetPrices[chainName][vault.asset.toLowerCase()];
             } else {
-              console.log(assetPrices);
-              console.error(
-                "Asset not found for chain:",
-                chainName,
-                "Asset:",
-                vault.asset.toLowerCase()
-              );
+              assetPrice = 0;
+              // console.log(assetPrices);
+              // console.error(
+              //   "Asset not found for chain:",
+              //   chainName,
+              //   "Asset:",
+              //   vault.asset.toLowerCase()
+              // );
             }
             // const assetPrice = assetPrices[chainName][vault.asset.toLowerCase()];
             if (assetPrice > 0) {
               dollarValue = parseFloat(totalSupplyValue) * assetPrice;
               ethValue = dollarValue / geckoPrices["ethereum"];
+            } else {
+              dollarValue = 0;
+              ethValue = 0;
             }
 
             let delegateDollarValue = null;
@@ -960,16 +984,16 @@ function AllVaults() {
                   ? contributed24h * 7 // Use 24h contribution if it's significantly higher than 7d
                   : contributed7d; // Otherwise, use the 7d contribution
 
-              console.log(
-                "vault",
-                vault.vault,
-                "effective contribution",
-                effectiveContribution,
-                "prize token price",
-                prizeTokenPriceValue,
-                "deposits delegeate dollar value",
-                depositsDelegateDollarvalue
-              );
+              // console.log(
+              //   "vault",
+              //   vault.vault,
+              //   "effective contribution",
+              //   effectiveContribution,
+              //   "prize token price",
+              //   prizeTokenPriceValue,
+              //   "deposits delegeate dollar value",
+              //   depositsDelegateDollarvalue
+              // );
               if (depositsDollarValue > 0 && effectiveContribution > 0) {
                 vaultAPR = (
                   (((365 / 7) * effectiveContribution * prizeTokenPriceValue) /
@@ -1049,7 +1073,7 @@ function AllVaults() {
               incentiveSymbol: promoTokenSymbol,
             };
           });
-
+          // console.log("enriched vaults", enrichedVaults);
           vaults = sortData(enrichedVaults, geckoPrices, assetPrices);
 
           setData((prevData) => {
@@ -1128,7 +1152,7 @@ function AllVaults() {
       );
 
       // Update the state with the new enriched data array
-      console.log("overview for sort", overviewFromContext);
+      // console.log("overview for sort", overviewFromContext);
       let sortedVaults;
       if (
         overviewFromContext === null ||
@@ -1141,7 +1165,7 @@ function AllVaults() {
           overviewFromContext.overview.prices.geckos,
           overviewFromContext.overview.prices.assets
         );
-        console.log("sort vaults", sortedVaults);
+        // console.log("sort vaults", sortedVaults);
         setAllVaults(sortedVaults);
       }
 
@@ -1181,26 +1205,26 @@ function AllVaults() {
     const filtered = filterVaultsByChainAndSearch(allVaults, chains, value);
     setFilteredVaults(filtered);
   };
-
   return (
     <center>
-    <div className="hidden-mobile">
-      <div
-        className="vault-header"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}>
-        <Image
-          src={`/images/squarepool.png`}
-          height={90}
-          width={90}
-          alt="pool party"
-        />
-        &nbsp;&nbsp;
-        
-        <h1 style={{ margin: "0 0 0 10px", lineHeight: "120px" }}>POOLTIME</h1>
+      <div className="hidden-mobile">
+        <div
+          className="vault-header"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}>
+          <Image
+            src={`/images/squarepool.png`}
+            height={90}
+            width={90}
+            alt="pool party"
+          />
+          &nbsp;&nbsp;
+          <h1 style={{ margin: "0 0 0 10px", lineHeight: "120px" }}>
+            POOLTIME
+          </h1>
         </div>
       </div>
       <br></br>

@@ -53,7 +53,7 @@ interface ChainAddresses {
   // WINBOOSTER: string;
 }
 
-interface Addresses {
+export interface Addresses {
   [key: string]: ChainAddresses;
 }
 
