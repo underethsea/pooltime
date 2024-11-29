@@ -230,6 +230,9 @@ background-color: #c2baf2;
 .vault-yield-tvl {
   text-align: right;
   margin-right:14px;
+  @media (max-width: 501px) {
+    visibility: hidden;
+  }
 }
 
 .vaults-header {
@@ -295,6 +298,11 @@ background-color: #c2baf2;
   .vault-cell {
     text-align: left;
     padding: 4px 0;
+
+    @media (max-width: 501px) {
+      padding: 1px 0;
+      }
+
   }
 
   .vault-yield-tvl,
@@ -332,6 +340,16 @@ background-color: #c2baf2;
   display: flex;
   justify-content: space-between; /* Space items evenly */
   align-items: center;
+
+  @media (max-width: 501px) {
+    display: flex;
+  justify-content: flex-end; /* Align all items to the right */
+  align-items: center;       /* Align items vertically in the center */
+  width: 100%;               /* Ensure the container takes full width */
+  text-align: right;         /* Align text to the right */
+  gap: 8px; 
+  min-width: none;     
+  }
 }
 
 .token-icon-box {
@@ -343,6 +361,12 @@ background-color: #c2baf2;
   height: 40px; /* Consistent height */
   width: fit-content;
   gap: 8px;
+
+  @media (max-width: 501px) {
+    justify-content: right;
+    min-width: 0px;
+    height: auto;
+  }
 }
 
 .token-container {
@@ -355,4 +379,25 @@ background-color: #c2baf2;
   .token-container {
     margin-top: 10px; 
   }
+}
+
+.token-container-outer {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 2px; 
+}
+@media (max-width: 501px) {
+  .token-container-outer {
+    margin-top: 10px; 
+  }
+}
+
+.token-container-mobile {
+  display: flex;
+  justify-content: flex-end; /* Align all items to the right */
+  align-items: center;       /* Align items vertically in the center */
+  width: 100%;               /* Ensure the container takes full width */
+  text-align: right;         /* Align text to the right */
+  gap: 8px;       
 }

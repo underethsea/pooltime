@@ -1059,6 +1059,25 @@ tr {
   font-size: 17px;
 }
 
+.deposit-button-mobile {
+  width: auto;
+  display: inline-block;
+  /* display: flex;
+  justify-content: space-between;
+  align-items: center; */
+  background-color: #fff;
+  padding: 2px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* width: 100%; */
+  /* min-width: 280px; */
+  /* margin-bottom: 10px; */
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: background-color 0.3s; /* smooth transition for background color change */
+  font-size: 14px;
+}
+
 .deposit-button.hidden {
   visibility: hidden; /* Hide the button but keep the space */
 }
@@ -1626,7 +1645,7 @@ padding:15px;
   }
 
 .column-tickets {
-  margin-left:45px;
+  margin-left:0px;
 }
 .glow-yield {
     /* color: #9624dd; Bright blue text color */
@@ -2278,6 +2297,11 @@ padding:15px;
   /* margin-left: -5px; */
   background: white;
   border: 1px solid #ddd;
+
+  @media (max-width: 500px) {
+    width: 20px;
+    height: 20px;
+  }
 }
 
 .icon:first-child {
@@ -2383,4 +2407,16 @@ padding:15px;
 
 .rounded-icon img {
   border-radius: 50%;
+}
+
+.tickets-container {
+  justify-content: center; /* Default for desktop */
+  display: flex;
+  align-items: center;
+}
+
+@media screen and (max-width: 500px) {
+  .tickets-container {
+    justify-content: flex-end; /* Only flex-end for mobile */
+  }
 }

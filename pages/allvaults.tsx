@@ -309,7 +309,12 @@ const sortData = (data: any, geckoPrices: any, assetPrices: any) => {
 };
 
 function AllVaults() {
-  const [showStats, setShowStats] = useState(false);
+  const [showStats, setShowStats] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 501;
+    }
+    return false;
+  });
   const [data, setData] = useState<VaultData[]>([]);
   const [searchInput, setSearchInput] = useState("");
   // const [poolPrice, setPoolPrice] = useState("");
@@ -533,17 +538,25 @@ function AllVaults() {
                     className="hidden-mobile"
                   />
                   <span className="hidden-desktop">
-                    <span className="right-align">
-                      {/* Pass the correct props to Tooltip */}
-                      {vaultAPR !== undefined && apr !== undefined && (
-                        <>
-                          {(Number(vaultAPR || 0) + Number(apr * 100)).toFixed(
-                            1
-                          )}
-                          %
-                        </>
-                      )}
-                    </span>
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center',
+                      marginTop: '3px',
+                      paddingLeft: '15px'
+                    }}>
+                      <div className="vaults-font-small">
+                        <span>{poolers} poolers</span>
+                      </div>
+                      <span>
+                        {vaultAPR !== undefined && apr !== undefined && (
+                          <>
+                            {(Number(vaultAPR || 0) + Number(apr * 100)).toFixed(1)}%
+                            <span>&nbsp;APR</span>
+                          </>
+                        )}
+                      </span>
+                    </div>
                   </span>
                 </>
               ) : (
@@ -564,7 +577,7 @@ function AllVaults() {
                 </span>
               )}
               {showStats && (
-                <div className="vaults-font-small">
+                <div className="vaults-font-small hidden-mobile">
                   &nbsp;&nbsp;&nbsp;
                   {/* <ChainTag chainId={c} /> */}
                   <span
@@ -572,12 +585,7 @@ function AllVaults() {
                     style={{ verticalAlign: "middle", marginLeft: "30px" }}>
                     {poolers > 0 && <>{poolers} poolers</>}
                     </span>
-                  <span
-                    className="hidden-desktop"
-                    style={{ marginLeft: "0px" }}>
 
-                    {poolers > 0 && <>{poolers} poolers</>}
-                  </span>
                 </div>
               )}
             </div>
@@ -594,16 +602,42 @@ function AllVaults() {
           // Convert BigNumber to string for display
           const assetBalanceDisplay =
             assetBalance && assetBalance.gt(0) && status !== 1 ? (
-              <div className="token-container">
-                <div className="token-icon-box">
-                  <IconDisplay name={assetSymbol} size={20} />
-                  {NumberWithCommas(
-                    CropDecimals(
+              <div className="token-container-outer">
+                <span className="hidden-mobile">
+                <div className="token-container">
+                  
+                    <div className="token-icon-box">
+                      <IconDisplay name={assetSymbol} size={20} />
+                      {NumberWithCommas(
+                      CropDecimals(
                       ethers.utils.formatUnits(assetBalance, decimals)
                     )
-                  )}
+                    )}
+                  </div>
+                  &nbsp;<div className="animated deposit-button">DEPOSIT</div>
+                   
                 </div>
-                &nbsp;<div className="animated deposit-button">DEPOSIT</div>
+                </span>               
+                <span className="hidden-desktop">
+                <div className="token-container-mobile">
+                
+                <div className="animated deposit-button-mobile">DEPOSIT</div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }} className="hidden-desktop">
+                  <span style={{ textAlign: 'right' }}>
+                  <div className="token-icon-box hidden-desktop">
+                    <IconDisplay name={assetSymbol} size={20} />
+                    &nbsp;
+                    {NumberWithCommas(
+                      CropDecimals(
+                        ethers.utils.formatUnits(assetBalance, decimals)
+                      )
+                    )}
+                  </div>
+                  </span>
+                </div>
+                
+                </div>
+                </span>
               </div>
             ) : (
               ""
@@ -648,26 +682,28 @@ function AllVaults() {
                 <span className="mobile-vault-header">
                   Your Tickets<br></br>
                 </span>
-                <span className="column-tickets">
-                  <FontAwesomeIcon
-                    icon={faTicket}
-                    size="sm"
-                    style={{
-                      color: "#1a4160",
-                      height: "17px",
-                      marginRight: "3px",
-                    }}
-                  />
-                  &nbsp;
-                  {NumberWithCommas(
-                    CropDecimals(
-                      ethers.utils.formatUnits(
-                        row.original.vaultBalance,
-                        decimals
+                <div style={{ display: 'flex' }} className="tickets-container">
+                  <span className="column-tickets" style={{ textAlign: 'right' }}>
+                    <FontAwesomeIcon
+                      icon={faTicket}
+                      size="sm"
+                      style={{
+                        color: "#1a4160",
+                        height: "17px",
+                        marginRight: "3px",
+                      }}
+                    />
+                    &nbsp;
+                    {NumberWithCommas(
+                      CropDecimals(
+                        ethers.utils.formatUnits(
+                          row.original.vaultBalance,
+                          decimals
+                        )
                       )
-                    )
-                  )}
-                </span>
+                    )}
+                  </span>
+                </div>
               </>
             ) : (
               ""
