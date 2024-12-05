@@ -50,6 +50,7 @@ export const Menu = () => {
       onClick: () => {
         console.log('Currency toggle clicked');
         toggleCurrency();
+        setIsMenuOpen(false);
       },
       show: true,
       showMobileOnly: true,
@@ -78,7 +79,12 @@ export const Menu = () => {
       }}
     >
       {isMobile && (
-        <div className="top-margin-16" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <div className="top-margin-16" style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '5px',
+          marginTop: '10px'
+        }}>
           <Link href="/">
             <a>
             <Image
@@ -213,6 +219,7 @@ export const Menu = () => {
                     onClick={() => {
                       console.log('Currency toggle clicked');
                       toggleCurrency();
+                      setIsMenuOpen(false);
                     }}
                   >
                     Change currency to {currency === 'USD' ? 'ETH' : 'USD'}

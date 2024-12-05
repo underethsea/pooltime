@@ -753,6 +753,7 @@ function AllVaults() {
                     <PrizeValue
                       amount={BigInt(Math.round(parseFloat(depositsEthValue)))}
                       size={16}
+                      rounded={true}
                     />
                   </>
                 )}
@@ -1357,6 +1358,7 @@ function AllVaults() {
                     }}>
                     TVL&nbsp;&nbsp;
                     <PrizeValueIcon size={22} />
+                    {/* desktop tvl */}
                     <PrizeValue
                       amount={BigInt(Math.round(Number(tvl.totalTVL)))}
                       size={22}
@@ -1375,7 +1377,7 @@ function AllVaults() {
                         <div key={chainId}>
                           {GetChainName(Number(chainId))}&nbsp;&nbsp;
                           <PrizeValueIcon size={15} />
-                          <PrizeValue amount={BigInt(tvl)} size={15} />
+                          <PrizeValue amount={BigInt(tvl)} size={15} rounded={true} />
                           {/* $ {NumberWithCommas(tvl.toFixed(0))} */}
                         </div>
                       ))}
@@ -1414,9 +1416,11 @@ function AllVaults() {
                     }}>
                     TVL&nbsp;&nbsp;
                     <PrizeValueIcon size={22} />
+                    {/* mobile tvl */}
                     <PrizeValue
                       amount={BigInt(Math.round(Number(tvl.totalTVL)))}
                       size={22}
+                      rounded={true}
                     />
                   </div>
                   &nbsp;
@@ -1431,7 +1435,7 @@ function AllVaults() {
                         <div key={chainId}>
                           {GetChainName(Number(chainId))}&nbsp;&nbsp;
                           <PrizeValueIcon size={15} />
-                          <PrizeValue amount={BigInt(tvl)} size={15} />
+                          <PrizeValue amount={BigInt(tvl)} size={15} rounded={true}/>
                           {/* $ {NumberWithCommas(tvl.toFixed(0))} */}
                         </div>
                       ))}

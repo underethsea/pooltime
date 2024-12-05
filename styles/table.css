@@ -243,6 +243,9 @@ background-color: #c2baf2;
 .vault-deposits-tvl {
   text-align: right;
   margin-right:10px;
+  @media (max-width: 501px) {
+    margin-right: 0px;
+  }
 }
 
 .vault-table-body {
