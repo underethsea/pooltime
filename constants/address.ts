@@ -643,6 +643,7 @@ const ICONS: { [key: string]: string } = {
     "https://assets.coingecko.com/coins/images/36084/standard/200x200logo.png?1710427814",
   based:
     "https://assets.coingecko.com/coins/images/39669/standard/BASED.jpg?1723603780",
+    eurc: "https://assets.coingecko.com/coins/images/26045/standard/euro.png?1696525125"
 };
 
 const WHITELIST_VAULTS = [
@@ -683,6 +684,9 @@ const WHITELIST_VAULTS = [
   "0xb75af20ecadabed9049cc2f50e38bad2768b35cf", // ppool gnosis
   "0xbb7e99abccce01589ad464ff698ad139b0705d90",
   "0x11271bF9855B679Bc484a0C80a69D8cc72fcEf89", // wineth
+  "0xada66220fe59c7374ea6a93bd211829d5d0af75d", // morpho usdc
+  "0xdd5e858c0aa9311c4b49bc8d35951f7f069ff46a", // morpho eurc
+  "0xD56F6f32473D6321512956a1351D4BceC07914cb", // morpho eth
 ];
 
 const WHITELIST_REWARDS: {
