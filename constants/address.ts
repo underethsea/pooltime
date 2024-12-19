@@ -652,7 +652,7 @@ const WHITELIST_VAULTS = [
   "0xa52e38a9147f5ea9e0c5547376c21c9e3f3e5e1f",
   "0x2998c1685e308661123f64b333767266035f5020",
   "0x3e8dbe51da479f7e8ac46307af99ad5b4b5b41dc",
-  "0xf1d934d5a3c6e530ac1450c92af5ba01eb90d4de",
+  // "0xf1d934d5a3c6e530ac1450c92af5ba01eb90d4de", // op beefy sonne
   "0x9b53ef6f13077727d22cb4acad1119c79a97be17",
   "0x6b5a5c55e9dd4bb502ce25bbfbaa49b69cf7e4dd",
   "0x7f5c2b379b88499ac2b997db583f8079503f25b9",
@@ -665,7 +665,7 @@ const WHITELIST_VAULTS = [
   "0xcacba8be4bc225fb8d15a9a3b702f84ca3eba991",
   "0x97a9c02cfbbf0332d8172331461ab476df1e8c95",
   "0x8653084e01Bd8c9e24B9a8fEb2036251Ee0C16A9", // angle stUSD arbitrum
-  "0x6Bb041d7E70b7040611ef688b5e707a799ADe60A", // angle stUSD base
+  // "0x6Bb041d7E70b7040611ef688b5e707a799ADe60A", // angle stUSD base
   "0xcadeacae6976bee87ec5ba44b0a5608a2259c517", // degen
   "0x4e42f783db2d0c5bdff40fdc66fcae8b1cda4a43", // base aave weth
   // "0xfdd33b8413a69ba9ce140b479f27ee7ab133850e", //OP Silo Beefy
@@ -673,7 +673,7 @@ const WHITELIST_VAULTS = [
   // "0xa58163334eba40fa6e81a77c2b36f252a945928a", //Prize WETH - WETH Silo Beefy
   // "0xcc3fefb704be360245f8dd0386ac206941e66467", //WstETH Silo Beefy
   "0x9b4c0de59628c64b02d7ce86f21db9a579539d5a", //WSTETH Beefy
-  "0xb4911efd3d53352f658536afd37e7897cb7dd7f6", //TBTC WBTC Beefy
+  // "0xb4911efd3d53352f658536afd37e7897cb7dd7f6", //TBTC WBTC Beefy
   "0xa99ec0a1018bf964931c7dc421a5de8bca0e32f1", // USDC Aave Base
   "0x3acd377dA549010a197b9Ed0F271e1f621e4b62e", // ethereum weth
   "0x96fE7B5762bD4405149a9A313473e68a8E870F6C", // eth usdc
