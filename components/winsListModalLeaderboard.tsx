@@ -175,11 +175,26 @@ const {overview} = useOverview()
                     </div>
                   </h2>
   
-                  <h5 style={{ color: "#ffffff", wordWrap: "break-word" }}>
+                  <h5 style={{ color: "#ffffff", wordWrap: "break-word", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
                     {address &&
                       `${address.slice(0, 6)}...${address.slice(
                         address.length - 4
                       )}`}
+                    {address && (
+                      <a
+                        href={`https://debank.com/profile/${address}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ display: "inline-flex" }}
+                      >
+                        <Image
+                          src="/images/debank.png"
+                          width={16}
+                          height={16}
+                          alt="View on Debank"
+                        />
+                      </a>
+                    )}
                   </h5>
                   <div>
                     {limitedWins.map((win: any, index: any) => (
