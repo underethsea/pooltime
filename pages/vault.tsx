@@ -467,6 +467,13 @@ const Vault: React.FC<VaultProps> = ({
     if (approveWaitIsSuccess && !actionCompleted.approve) {
       setActionCompleted((prev) => ({ ...prev, approve: true }));
       handleShowToast("approve");
+
+      // Automatically trigger the "buy" transaction if the approval succeeds
+    if (parseFloat(buyAmount) > 0 && vaultData) {
+      console.log("Approval successful. Initiating buy...");
+      handleBuy(); // Trigger the buy function
+    }
+
       setRefreshData((refresh) => refresh + 1);
     }
 
