@@ -687,6 +687,7 @@ const WHITELIST_VAULTS = [
   "0xada66220fe59c7374ea6a93bd211829d5d0af75d", // morpho usdc
   "0xdd5e858c0aa9311c4b49bc8d35951f7f069ff46a", // morpho eurc
   "0xD56F6f32473D6321512956a1351D4BceC07914cb", // morpho eth
+  "0x78adc13c9ab327c79d10cab513b7c6bd3b346858", // superOETHb
 ];
 
 const WHITELIST_REWARDS: {
