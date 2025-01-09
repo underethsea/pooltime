@@ -245,8 +245,22 @@ const Vault: React.FC<VaultProps> = ({
       },
     },
   });
-
-  const { data: redeemSimulate } = useSimulateContract({
+  console.log("Simulate args:", {
+    chainId,
+    address: vaultData?.address,
+    functionName: "withdraw",
+    args: [
+      redeemAmount &&
+        parseFloat(redeemAmount) > 0 &&
+        ethers.utils.parseUnits(redeemAmount, vaultData?.decimals).toString(),
+      address,
+      address,
+      redeemAmount &&
+        parseFloat(redeemAmount) > 0 &&
+        ethers.utils.parseUnits(redeemAmount, vaultData?.decimals).toString(),
+    ],
+  });
+  const { data: redeemSimulate, error: redeemError } = useSimulateContract({
     chainId: chainId,
     address: vaultData?.address as any,
     abi: ABI.VAULT,
@@ -258,10 +272,10 @@ const Vault: React.FC<VaultProps> = ({
         parseFloat(redeemAmount) > 0 &&
         ethers.utils.parseUnits(redeemAmount, vaultData?.decimals).toString(),
       address as any,
-      address as any,
-      redeemAmount &&
-        parseFloat(redeemAmount) > 0 &&
-        ethers.utils.parseUnits(redeemAmount, vaultData?.decimals).toString(),
+      address as any,0
+      // redeemAmount &&
+      //   parseFloat(redeemAmount) > 0 &&
+      //   ethers.utils.parseUnits(redeemAmount, vaultData?.decimals).toString(),
     ],
   });
   // console.log("redeem sim",redeemSimulate)
@@ -280,7 +294,7 @@ const Vault: React.FC<VaultProps> = ({
       },
     },
   });
-
+console.log("redeem error",redeemError)
   const {
     // isLoading: buyWaitIsLoading,
     isSuccess: buyWaitIsSuccess,
@@ -316,24 +330,24 @@ const Vault: React.FC<VaultProps> = ({
     isFetching: approveWaitIsFetching,
   } = useWaitForTransactionReceipt({ hash: approveData });
 
-  const handleRedeem = async () => {
-    try {
-      console.log("handling redeem");
-      if (!chainId || !address) {
-        toast("error, see console", {
-          position: toast.POSITION.BOTTOM_LEFT,
-        });
-        console.log("error deposit / redeem, wrong chain or address ");
-        return;
-      }
-      if (parseFloat(redeemAmount) > 0) {
-        if (chainId === activeVaultChain && vaultData) {
+  // const handleRedeem = async () => {
+  //   try {
+  //     console.log("handling redeem");
+  //     if (!chainId || !address) {
+  //       toast("error, see console", {
+  //         position: toast.POSITION.BOTTOM_LEFT,
+  //       });
+  //       console.log("error deposit / redeem, wrong chain or address ");
+  //       return;
+  //     }
+  //     if (parseFloat(redeemAmount) > 0) {
+  //       if (chainId === activeVaultChain && vaultData) {
           // console.log("trying here ya")
-          const vaultContract = new ethers.Contract(
-            vaultData.address,
-            ABI.VAULT,
-            PROVIDERS[GetChainName(activeVaultChain)]
-          );
+          // const vaultContract = new ethers.Contract(
+          //   vaultData.address,
+          //   ABI.VAULT,
+          //   PROVIDERS[GetChainName(activeVaultChain)]
+          // );
           // const amountToCheck = ethers.utils
           //   .parseUnits(redeemAmount, vaultData?.decimals)
           //   .toString();
@@ -347,44 +361,67 @@ const Vault: React.FC<VaultProps> = ({
           //   });
           // }
           // else {
-          if (!writeRedeem) {
-            console.log("writeRedeem is not defined");
-            toast("write error, see console", {
-              position: toast.POSITION.BOTTOM_LEFT,
-            });
-          } else if (!redeemSimulate) {
-            console.log(
-              "redeemSimulate is not defined",
-              "vault data",
-              vaultData,
-              "redeem amt",
-              redeemAmount,
-              "simulation",
-              redeemSimulate
-            );
+            const handleRedeem = async () => {
+              try {
+                console.log("Handling redeem...");
+                if (!chainId || !address) {
+                  toast("Error: Wallet not connected or wrong chain.", {
+                    position: toast.POSITION.BOTTOM_LEFT,
+                  });
+                  console.log("Error: Wallet not connected or wrong chain.");
+                  return;
+                }
+            
+                if (parseFloat(redeemAmount) > 0 && vaultData) {
+                  const redeemAmountParsed = ethers.utils.parseUnits(
+                    redeemAmount,
+                    vaultData.decimals
+                  );
+            
+                  // Ensure chainId matches activeVaultChain
+                  if (chainId === activeVaultChain) {
+                    if (!writeRedeem) {
+                      console.log("writeRedeem is not defined.");
+                      toast("Redeem error: Contract function not ready.", {
+                        position: toast.POSITION.BOTTOM_LEFT,
+                      });
+                      return;
+                    }
+            
+                    // Directly execute the redeem function
+                    writeRedeem({
+                      chainId,
+                      address: vaultData.address as any,
+                      abi: ABI.VAULT,
+                      functionName: "withdraw",
+                      args: [
+                        redeemAmountParsed.toString(), // Amount to redeem
+                        address, // Receiver address
+                        address, // Beneficiary address (can also be msg.sender)
+                        redeemAmountParsed.toString(), // Amount to redeem
 
-            toast("simulation error, retry or see console", {
-              position: toast.POSITION.BOTTOM_LEFT,
-            });
-          } else {
-            writeRedeem(redeemSimulate.request);
-          }
-        } else {
-          toast("wrong chain", {
-            position: toast.POSITION.BOTTOM_LEFT,
-          });
-          console.log("invalid redeem, wrong chain");
-        }
-      } else {
-        console.log("invalid redeem amount");
-      }
-    } catch (err) {
-      console.log("error on redeem", err);
-      toast("error on redeem, see console", {
-        position: toast.POSITION.BOTTOM_LEFT,
-      });
-    }
-  };
+                      ],
+                    });
+                  } else {
+                    toast("Error: Please switch to the correct chain.", {
+                      position: toast.POSITION.BOTTOM_LEFT,
+                    });
+                    console.log("Invalid redeem: Wrong chain.");
+                  }
+                } else {
+                  toast("Error: Invalid redeem amount.", {
+                    position: toast.POSITION.BOTTOM_LEFT,
+                  });
+                  console.log("Invalid redeem amount.");
+                }
+              } catch (err) {
+                console.error("Error during redeem:", err);
+                toast("Error during redeem: See console for details.", {
+                  position: toast.POSITION.BOTTOM_LEFT,
+                });
+              }
+            };
+            
 
   const handleBuy = () => {
     try {
@@ -467,6 +504,13 @@ const Vault: React.FC<VaultProps> = ({
     if (approveWaitIsSuccess && !actionCompleted.approve) {
       setActionCompleted((prev) => ({ ...prev, approve: true }));
       handleShowToast("approve");
+
+      // Automatically trigger the "buy" transaction if the approval succeeds
+    if (parseFloat(buyAmount) > 0 && vaultData) {
+      console.log("Approval successful. Initiating buy...");
+      handleBuy(); // Trigger the buy function
+    }
+
       setRefreshData((refresh) => refresh + 1);
     }
 
