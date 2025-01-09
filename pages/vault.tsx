@@ -1240,20 +1240,14 @@ const Vault: React.FC<VaultProps> = ({
                                     justifyContent: "space-between",
                                   }}>
                                   <span className="chances">
-                                    Current 1 in{" "}
-                                    {NumberWithCommas(
-                                      chance.grandPrize.toFixed(0)
-                                    )}
+                                    Current 1 in {CropDecimals(chance.grandPrize, true)}
                                   </span>
                                   <span className="chances">
-                                    Projected 1 in{" "}
-                                    {NumberWithCommas(
-                                      (
-                                        1 /
-                                        ((Number(vaultData.userVaultBalance) /
-                                          Number(vaultData.totalAssets)) *
-                                          chance.grandPrizeVaultPortion)
-                                      ).toFixed(0)
+                                    Projected 1 in {CropDecimals(
+                                      1 / ((Number(vaultData.userVaultBalance) /
+                                      Number(vaultData.totalAssets)) *
+                                      chance.grandPrizeVaultPortion),
+                                      true
                                     )}
                                   </span>
                                 </div>
@@ -1348,21 +1342,14 @@ const Vault: React.FC<VaultProps> = ({
                                     justifyContent: "space-between",
                                   }}>
                                   <span className="chances">
-                                    Current 1 in{" "}
-                                    {NumberWithCommas(
-                                      chance.firstTier.toFixed(0)
-                                    )}
+                                    Current 1 in {CropDecimals(chance.firstTier, true)}
                                   </span>
                                   <span className="chances">
-                                    Projected 1 in{" "}
-                                    {NumberWithCommas(
-                                      (
-                                        1 /
-                                        ((Number(vaultData.userVaultBalance) /
-                                          Number(vaultData.totalAssets)) *
-                                          chance.firstTierVaultPortion) /
-                                        4
-                                      ).toFixed(0)
+                                    Projected 1 in {CropDecimals(
+                                      1 / ((Number(vaultData.userVaultBalance) /
+                                      Number(vaultData.totalAssets)) *
+                                      chance.firstTierVaultPortion) / 4,
+                                      true
                                     )}
                                   </span>
                                 </div>

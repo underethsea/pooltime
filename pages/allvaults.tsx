@@ -177,7 +177,7 @@ const VaultYieldTooltip: React.FC<YieldTooltipProps> = ({
   total,
   symbol,
 }) => {
-  return total && total > 0 ? (
+  return total && total > 0 && isFinite(total) && total < 1000000 ? (
     <>
       <div className="vault-tooltip-container">
         <span className="mobile-vault-header">
@@ -1032,11 +1032,13 @@ function AllVaults() {
               //   depositsDelegateDollarvalue
               // );
               if (depositsDollarValue > 0 && effectiveContribution > 0) {
-                vaultAPR = (
-                  (((365 / 7) * effectiveContribution * prizeTokenPriceValue) /
-                    depositsDelegateDollarvalue) *
-                  100
-                ).toFixed(2);
+                const calculatedAPR = (((365 / 7) * effectiveContribution * prizeTokenPriceValue) /
+                  depositsDelegateDollarvalue) * 100;
+                
+                // Only set vaultAPR if it's a finite number and not too large
+                vaultAPR = isFinite(calculatedAPR) && calculatedAPR < 1000000 ? 
+                  calculatedAPR.toFixed(2) : 
+                  null;
               }
             }
             won7d = vault.won7d;
