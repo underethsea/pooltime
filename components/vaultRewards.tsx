@@ -5,7 +5,7 @@ import { CropDecimals } from "../utils/tokenMaths";
 import Image from "next/image";
 import { ethers } from "ethers";
 import { ADDRESS, CONFIG, ABI, WHITELIST_REWARDS } from "../constants";
-import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useWriteContract, useWaitForTransactionReceipt, useSwitchChain } from "wagmi";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useChainId } from "wagmi";
@@ -36,7 +36,7 @@ interface VaultRewardsProps {
   chainId: number;
   address: string;
   vaults: string[];
-  prices:any;
+  prices: any;
 }
 
 export const VaultRewards: React.FC<VaultRewardsProps> = ({
@@ -44,8 +44,10 @@ export const VaultRewards: React.FC<VaultRewardsProps> = ({
   chainId,
   address,
   vaults,
-  prices
+  prices,
 }) => {
+  const { chains, switchChain } = useSwitchChain();
+
   const {
     data: claimData,
     isPending: claimIsLoading,
@@ -73,7 +75,7 @@ export const VaultRewards: React.FC<VaultRewardsProps> = ({
     active: [],
   });
 
-  const chainIdConnected = useChainId()
+  const chainIdConnected = useChainId();
   useEffect(() => {
     if (claimWaitSuccess) {
       const toastId = "claim-success";
@@ -85,7 +87,7 @@ export const VaultRewards: React.FC<VaultRewardsProps> = ({
       }
     }
   }, [claimWaitSuccess]);
-  useEffect(()=>{},[chainIdConnected])
+  useEffect(() => {}, [chainIdConnected]);
 
   useEffect(() => {
     fetchPromotions();
@@ -99,7 +101,9 @@ export const VaultRewards: React.FC<VaultRewardsProps> = ({
   function getPromoTokenInfo(address: string) {
     for (const chain in WHITELIST_REWARDS) {
       const tokens = WHITELIST_REWARDS[chain];
-      const tokenInfo = tokens.find(token => token.TOKEN.toLowerCase() === address.toLowerCase());
+      const tokenInfo = tokens.find(
+        (token) => token.TOKEN.toLowerCase() === address.toLowerCase()
+      );
       if (tokenInfo) {
         return {
           chain,
@@ -127,63 +131,73 @@ export const VaultRewards: React.FC<VaultRewardsProps> = ({
 
           return (
             <div
-              className="claim-animated claimWin"
-              key={index}
+            className="claim-animated claimWin"
+            key={index}
+            style={{
+              backgroundColor: "#e5f3f5",
+              color: "black",
+              borderRadius: "6px",
+              display: "inline-flex",
+              flexDirection: "column",
+              padding: "10px",
+              alignItems: "flex-end",
+              maxWidth: "250px",
+            }}
+            onClick={() => {
+              if (chainId !== chainIdConnected) {
+                console.log(`Switching to the correct chain: ${chainId}`);
+                switchChain({ chainId: chainId });
+                return;
+              }
+              console.log("claiming on vault", promo.vault);
+              claimWrite({
+                address: ADDRESS[chainName].TWABREWARDS as any,
+                abi: ABI.TWABREWARDS,
+                functionName: "claimRewards",
+                args: [address, promo.promotionId, promo.completedEpochs],
+              });
+            }}
+          >
+            <div
               style={{
-                backgroundColor: "#e5f3f5",
-                color: "black",
-                borderRadius: "6px",
-                display: "inline-flex",
-                flexDirection: "column",
-                padding: "10px",
-                alignItems: "flex-end",
-                maxWidth: "250px",
-              }}
-              onClick={() => {
-                console.log("claiming on vault", promo.vault);
-                claimWrite({
-                  address: ADDRESS[chainName].TWABREWARDS as any,
-                  abi: ABI.TWABREWARDS,
-                  functionName: "claimRewards",
-                  args: [address, promo.promotionId, promo.completedEpochs],
-                });
+                display: "flex",
+                justifyContent: "flex-end",
+                width: "100%",
+                alignItems: "center",
+                marginBottom: "4px",
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  width: "100%",
-                  alignItems: "center",
-                  marginBottom: "4px",
-                }}
-              >
-                <Image
-                  src={icon}
-                  className="emoji"
-                  alt={symbol}
-                  width={15}
-                  height={15}
-                  layout="fixed"
-                  objectFit="contain"
-                />
-                &nbsp;
-                {CropDecimals(
-                  ethers.utils.formatUnits(promo.totalRewards, promo.decimals)
-                )}
-                &nbsp;
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  width: "100%",
-                  fontSize: "10px",
-                }}
-              >
-               {chainId===chainIdConnected ?<>Claim Now</>: <>Switch Chains</> }
-              </div>
+              <Image
+                src={icon}
+                className="emoji"
+                alt={symbol}
+                width={15}
+                height={15}
+                layout="fixed"
+                objectFit="contain"
+              />
+              &nbsp;
+              {CropDecimals(
+                ethers.utils.formatUnits(promo.totalRewards, promo.decimals)
+              )}
+              &nbsp;
             </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                width: "100%",
+                fontSize: "10px",
+              }}
+            >
+              {chainId === chainIdConnected ? (
+                <>Claim Now</>
+              ) : (
+                <>Switch Chains</>
+              )}
+            </div>
+          </div>
+          
           );
         })}
 
@@ -211,8 +225,7 @@ export const VaultRewards: React.FC<VaultRewardsProps> = ({
                 marginLeft: "5px",
                 alignItems: "flex-end",
                 maxWidth: "250px",
-              }}
-            >
+              }}>
               <div
                 style={{
                   display: "flex",
@@ -220,8 +233,7 @@ export const VaultRewards: React.FC<VaultRewardsProps> = ({
                   width: "100%",
                   alignItems: "center",
                   marginBottom: "4px",
-                }}
-              >
+                }}>
                 <Image
                   src={icon}
                   className="emoji"
@@ -240,8 +252,8 @@ export const VaultRewards: React.FC<VaultRewardsProps> = ({
                     height={13}
                   />
                   <span className="tooltipText">
-                    Your rewards are building up! Claim them after the timer ends.
-                    Current value $
+                    Your rewards are building up! Claim them after the timer
+                    ends. Current value $
                     {CropDecimals(epoch.price * epoch.accumulatedReward)}
                   </span>
                 </div>
@@ -252,8 +264,7 @@ export const VaultRewards: React.FC<VaultRewardsProps> = ({
                   justifyContent: "flex-end",
                   width: "100%",
                   fontSize: "10px",
-                }}
-              >
+                }}>
                 Claim in &nbsp;
                 <Timer
                   seconds={+epoch.epochStarted + +epoch.epochDuration}
