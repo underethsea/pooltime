@@ -67,11 +67,18 @@ if (process.env.NEXT_PUBLIC_WALLET_CONNECT) {
   WALLET_CONNECT_KEY = process.env.NEXT_PUBLIC_WALLET_CONNECT;
 }
 
+// Customize optimism chain
+const customOptimism = {
+  ...optimism,
+  iconUrl: '/images/optimism.svg#svgView(preserveAspectRatio(none))',
+  iconBackground: 'transparent',
+}
+
 // Config setup with Scroll as a custom chain
 const config = getDefaultConfig({
   appName: "Pooltime",
   projectId: WALLET_CONNECT_KEY,
-  chains: [optimism, mainnet, arbitrum, base, scroll, gnosis],
+  chains: [customOptimism, mainnet, arbitrum, base, scroll, gnosis],
   ssr: true,
 });
 
