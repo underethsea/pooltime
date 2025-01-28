@@ -109,7 +109,7 @@ export const MyConnect: React.FC<ConnectProps> = ({ connectText }) => {
                               <img
                                 alt={chain.name ?? "Chain icon"}
                                 src={chain.iconUrl}
-                                style={{ width: 14, height: 14 }}
+                                style={chain.name === 'Optimism' ? {} : { width: 14, height: 14 }}
                               />
                             )}
                           </div>

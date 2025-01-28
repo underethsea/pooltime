@@ -159,7 +159,7 @@ const ADDRESS: Addresses = {
   },
 
   OPTIMISM: {
-    ICON: "/images/op.png",
+    ICON: "/images/optimism.svg",
     COLOR: "#f64154",
     FIRSTDRAWOPENEDAT: 1713477600,
     DRAWPERIODSECONDS: 86400,
