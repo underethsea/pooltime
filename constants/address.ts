@@ -339,7 +339,7 @@ const ADDRESS: Addresses = {
         ASSETSYMBOL: "POOL",
         ICON: "https://assets.coingecko.com/coins/images/14003/standard/PoolTogether.png?1696513732",
         GECKO: "pooltogether",
-        VAULTICON: "",
+        VAULTICON: "https://app.cabana.fi/icons/przPOOL.svg",
       },
       {
         VAULT: "0xBB7E99abCCCE01589Ad464Ff698aD139b0705d90",
@@ -384,6 +384,18 @@ const ADDRESS: Addresses = {
     CLAIMERFACTORY: "0x4457025dff44e3d9085d9195828e7d53fe6a7088",
     CLAIMER: "0x98cc81798954c35c39b960dfca3d8b170154aa7e",
     VAULTS: [
+      {
+        VAULT: "0x9ee31e845ff1358bf6b1f914d3918c6223c75573",
+        LIQUIDATIONPAIR: "0x0000000000000000000000000000000000000000",
+        SYMBOL: "przPOOL",
+        NAME: "Prize POOL",
+        DECIMALS: 18,
+        ASSET: "0x0cEC1A9154Ff802e7934Fc916Ed7Ca50bDE6844e",
+        ASSETSYMBOL: "POOL",
+        ICON: "https://assets.coingecko.com/coins/images/14003/standard/PoolTogether.png?1696513732",
+        GECKO: "pooltogether",
+        VAULTICON: "",
+      },
       {
         VAULT: "0x96fE7B5762bD4405149a9A313473e68a8E870F6C",
         LIQUIDATIONPAIR: "0x7d888E2119F687666e8c1d84cf7974CbdD8cD817",
