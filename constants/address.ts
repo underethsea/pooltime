@@ -678,7 +678,7 @@ const WHITELIST_VAULTS = [
   "0x97a9c02cfbbf0332d8172331461ab476df1e8c95",
   "0x8653084e01Bd8c9e24B9a8fEb2036251Ee0C16A9", // angle stUSD arbitrum
   // "0x6Bb041d7E70b7040611ef688b5e707a799ADe60A", // angle stUSD base
-  "0xcadeacae6976bee87ec5ba44b0a5608a2259c517", // degen
+  // "0xcadeacae6976bee87ec5ba44b0a5608a2259c517", // degen
   "0x4e42f783db2d0c5bdff40fdc66fcae8b1cda4a43", // base aave weth
   // "0xfdd33b8413a69ba9ce140b479f27ee7ab133850e", //OP Silo Beefy
   // "0x7affb8cb92ddf9f9d0ba6fdcd7cd7905cb6d2ec1", //rETH Silo Beefy
