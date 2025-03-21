@@ -167,7 +167,7 @@ export async function GetUsersAwards(
         );
      
         metaCompletedCalls.push(
-          metaRewardsContract.callStatic.calculateRewards(
+          metaRewardsContract.callStatic.claimRewards(
             promo.vault,
             userAddress,
             promo.promotionId,
@@ -192,8 +192,9 @@ export async function GetUsersAwards(
 
   // Append meta rewards to completed with meta: true
   metaCompletedPromotions.forEach((promo: any, index: number) => {
-    const rewardArray = metaRewardsData[index];
-    const rewardAmount = rewardArray.reduce((sum, r) => sum.add(r), ethers.BigNumber.from(0));    
+    // const rewardArray = metaRewardsData[index];
+    // const rewardAmount = rewardArray.reduce((sum, r) => sum.add(r), ethers.BigNumber.from(0));    
+    const rewardAmount = metaRewardsData[index] as any;
     console.log("Reward amount",rewardAmount)
     if (rewardAmount.gt(0)) {
       userRewards.completed.push({
