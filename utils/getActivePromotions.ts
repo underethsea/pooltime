@@ -2,9 +2,9 @@
 // import { FetchPriceForAsset } from "./tokenPrices";
 // import { useOverview } from "../components/contextOverview";
 
-async function fetchPromotions(): Promise<any> {
+async function fetchPromotions(meta:boolean): Promise<any> {
   try {
-    const fetchUrl = "https://poolexplorer.xyz/twabrewards";
+    const fetchUrl = meta? "https://poolexplorer.xyz/metatwabrewards":"https://poolexplorer.xyz/twabrewards";
     const response = await fetch(fetchUrl);
 
     if (!response.ok) {
@@ -39,11 +39,13 @@ function calculateTokensPerSecond(
 export async function GetActivePromotionsForVaults(
   vaults: any[],
   active = false,
-  priceData: any
+  priceData: any,
+  meta = false,
+  chainName: string,
 ): Promise<any[]> {
   // console.log("vaults input:", vaults);
   const currentTimestamp = Math.floor(Date.now() / 1000);
-  const data = await fetchPromotions();
+  const data = await fetchPromotions(meta);
 
   let allPromotions: any = [];
   
@@ -62,8 +64,9 @@ export async function GetActivePromotionsForVaults(
         const promoEnd =
           promoStart +
           parseInt(promo.epochDuration) * parseInt(promo.initialNumberOfEpochs);
-
-        const isValidVault = lowercaseVaultAddresses.includes(promo.vault.toLowerCase());
+        let isValidVault = true
+        if(!meta){
+        const isValidVault = lowercaseVaultAddresses.includes(promo.vault.toLowerCase());}
         const isWithinTimeframe = currentTimestamp >= promoStart && (!active || currentTimestamp < promoEnd);
 
         // console.log(`Promo vault: ${promo.vault}, is valid vault: ${isValidVault}, is within timeframe: ${isWithinTimeframe}`);
@@ -90,6 +93,7 @@ export async function GetActivePromotionsForVaults(
               price: price,
               epochStartedAt: determineEpochStatus(currentTimestamp, promo),
               chain: chain, // Add chain information to the promotion
+              meta: meta,
             };
           }
           return null;
@@ -103,11 +107,20 @@ export async function GetActivePromotionsForVaults(
 
   // Group promotions by vault addresses
   const promotionsByVault = vaults.reduce((acc, vaultAddress) => {
-    const vaultPromotions = allPromotions.filter(
-      (promo: any) => promo.vault.toLowerCase() === vaultAddress.toLowerCase()
-    );
+    let vaultPromotions = allPromotions
+    if (meta) {
+      vaultPromotions = allPromotions
+        .filter((promo: any) => promo.chain === chainName)
+        .map((promo: any) => ({ ...promo, vault: vaultAddress })); // ✅ Add vault manually
+    }
+  
+    else{
+      vaultPromotions = allPromotions.filter(
+        (promo: any) => promo.vault.toLowerCase() === vaultAddress.toLowerCase()
+      )
+    }
 
-    // console.log(`Promotions for vault ${vaultAddress}:`, vaultPromotions);
+    console.log(meta ? "meta":"",`Promotions for vault ${vaultAddress}:`, vaultPromotions);
 
     if (vaultPromotions.length > 0) {
       acc[vaultAddress.toLowerCase()] = vaultPromotions;
@@ -144,3 +157,5 @@ function determineEpochStatus(currentTimestamp: any, promo: any) {
 
   return currentEpochStart;
 }
+
+

@@ -61,6 +61,9 @@ type ContractsType = {
   TWABREWARDS: {
     [key: string]: ethers.Contract;
   };
+  METAREWARDS: {
+    [key: string]: ethers.Contract;
+  };
 
   // LINK: {
   //   [key: string]: ethers.Contract;
@@ -198,6 +201,14 @@ const CONTRACTS: ContractsType = {
     [CONFIG.CHAINNAME]: new ethers.Contract(
       ADDRESS[CONFIG.CHAINNAME].TWABREWARDS,
       ABI.TWABREWARDS,
+      PROVIDERS[CONFIG.CHAINNAME]
+    ),
+  },
+
+  METAREWARDS: {
+    [CONFIG.CHAINNAME]: new ethers.Contract(
+      ADDRESS[CONFIG.CHAINNAME].METAREWARDS,
+      ABI.METAREWARDS,
       PROVIDERS[CONFIG.CHAINNAME]
     ),
   },

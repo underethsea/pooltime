@@ -63,10 +63,31 @@ export const VaultRewards: React.FC<VaultRewardsProps> = ({
     },
   });
 
+
+  const {
+    data: metaClaimData,
+    isPending: metaClaimIsLoading,
+    isSuccess: metaClaimIsSuccess,
+    writeContract: metaClaimWrite,
+  } = useWriteContract({
+    mutation: {
+      onSuccess: () => {
+        toast("Claiming!", {
+          position: toast.POSITION.BOTTOM_LEFT,
+        });
+      },
+    },
+  });
   const { isLoading: claimWaitLoading, isSuccess: claimWaitSuccess } =
     useWaitForTransactionReceipt({
       hash: claimData,
     });
+
+
+  const { isLoading: metaClaimWaitLoading, isSuccess: metaClaimWaitSuccess } =
+  useWaitForTransactionReceipt({
+    hash: metaClaimData,
+  });
 
   const [refresh, setRefresh] = useState(true);
 
@@ -86,7 +107,16 @@ export const VaultRewards: React.FC<VaultRewardsProps> = ({
         });
       }
     }
-  }, [claimWaitSuccess]);
+    if (metaClaimWaitSuccess) {
+      const toastId = "claim-success";
+      if (!toast.isActive(toastId)) {
+        toast("Claim success!", {
+          position: toast.POSITION.BOTTOM_LEFT,
+          toastId: toastId,
+        });
+      }
+    }
+  }, [claimWaitSuccess,metaClaimWaitSuccess]);
   useEffect(() => {}, [chainIdConnected]);
 
   useEffect(() => {
@@ -150,12 +180,21 @@ export const VaultRewards: React.FC<VaultRewardsProps> = ({
                 return;
               }
               console.log("claiming on vault", promo.vault);
+              if(promo.meta){
+                metaClaimWrite({
+                  address: ADDRESS[chainName].METAREWARDS as any,
+                  abi: ABI.METAREWARDS,
+                  functionName: "claimRewards",
+                  args: [promo.vault,address, promo.promotionId, promo.completedEpochs],
+                })
+
+              }else{
               claimWrite({
                 address: ADDRESS[chainName].TWABREWARDS as any,
                 abi: ABI.TWABREWARDS,
                 functionName: "claimRewards",
                 args: [address, promo.promotionId, promo.completedEpochs],
-              });
+              });}
             }}
           >
             <div
