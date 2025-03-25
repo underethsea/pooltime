@@ -806,7 +806,7 @@ console.log("redeem error",redeemError)
           const promoPromise = GetActivePromotionsForVaults(
             [activeVaultAddress],
             true,
-            overviewFromContext.overview.prices
+            overviewFromContext.overview.prices,false,"NULL"
           ).then((promos) => {
             setActivePromos(promos);
           });

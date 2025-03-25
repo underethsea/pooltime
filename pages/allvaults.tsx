@@ -837,7 +837,7 @@ function AllVaults() {
           // console.log("vault addresses", vaultAddresses);
           const [promotionsResult, multicallResults] = await Promise.allSettled(
             [
-              GetActivePromotionsForVaults(vaultAddresses, true, prices),
+              GetActivePromotionsForVaults(vaultAddresses, true, prices,false,""),
               Promise.all(
                 groupVaultsByChain(vaults).map(
                   async ({
