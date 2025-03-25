@@ -1,0 +1,18 @@
+{
+    "accountAssociation": {
+      "header": "eyJmaWQiOjExNTkxLCJ0eXBlIjoiY3VzdG9keSIsImtleSI6IjB4MDNkYkRmZjQ2YzY0YThBNDA0NUUwNjdGMzBkYjE3ODZlOTVGNzBkMyJ9",
+      "payload": "eyJkb21haW4iOiJwb29sdGltZS5hcHAifQ",
+      "signature": "MHg0ZmUyMjk2NjBiNWQzNzgyMWMyNGM1NDgyOWZjYTA3ZDlhMjBmNzIxYzMwZDJmY2JiZTk4N2EzYzcyZmY4MmVhNThiZGJkYmMwNTk2MThmNWM5ZGQ5OTE1OWU0ZGIyYTEzMWNlYzMwZjg2YWMyODBhN2Y3NDMwZDcxMDNjMzc2MTFi"
+    },
+    "frame": {
+      "version": "1",
+      "name": "PoolTime",
+      "iconUrl": "https://pooltime.app/images/squarepool.png",
+      "homeUrl": "https://pooltime.app",
+      "imageUrl": "https://pooltime.app/images/embed.png",
+      "buttonTitle": "Launch",
+      "splashImageUrl": "https://pooltime.app/images/squarepool.png",
+      "splashBackgroundColor": "#1a415e",
+      "webhookUrl": "https://pooltime.app/"
+    }
+  }

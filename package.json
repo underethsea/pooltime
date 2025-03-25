@@ -12,6 +12,8 @@
     "@walletconnect/ethereum-provider": "2.7.0"
   },
   "dependencies": {
+    "@farcaster/frame-sdk": "^0.0.31",
+    "@farcaster/frame-wagmi-connector": "^0.0.19",
     "@fortawesome/fontawesome-svg-core": "^6.5.1",
     "@fortawesome/free-solid-svg-icons": "^6.5.1",
     "@fortawesome/react-fontawesome": "^0.2.0",
