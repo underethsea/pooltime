@@ -5,14 +5,18 @@ import "../styles/globals.css";
 import "../styles/table.css";
 import type { AppProps } from "next/app";
 
+import { useEffect, useState } from 'react';
 
 import {
   getDefaultConfig,
   RainbowKitProvider,
   Chain,
 } from "@rainbow-me/rainbowkit";
-import { WagmiProvider } from "wagmi";
+import { WagmiProvider, createConfig } from "wagmi";
 import { optimism, mainnet, arbitrum, base } from "wagmi/chains";
+
+import { connect } from 'wagmi/actions';
+import { http } from "viem";
 
 // Define Scroll as a custom chain
 const scroll:Chain = {
@@ -75,14 +79,66 @@ const customOptimism = {
 }
 
 // Config setup with Scroll as a custom chain
-const config = getDefaultConfig({
+const rainbowConfig = getDefaultConfig({
   appName: "Pooltime",
   projectId: WALLET_CONNECT_KEY,
   chains: [customOptimism, mainnet, arbitrum, base, scroll, gnosis],
   ssr: true,
 });
 
+const config = createConfig({
+  chains: [customOptimism, mainnet, arbitrum, base, scroll, gnosis],
+  transports: {
+    [customOptimism.id]: http(customOptimism.rpcUrls.default.http[0]),
+    [mainnet.id]: http(mainnet.rpcUrls.default.http[0]),
+    [arbitrum.id]: http(arbitrum.rpcUrls.default.http[0]),
+    [base.id]: http(base.rpcUrls.default.http[0]),
+    [scroll.id]: http(scroll.rpcUrls.default.http[0]),
+    [gnosis.id]: http(gnosis.rpcUrls.default.http[0]),
+  },
+  connectors: [],
+});
+
 const queryClient = new QueryClient();
+
+function FarcasterFrameProvider({ children }: React.PropsWithChildren<{}>) {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+    
+    // Only run on client-side
+    if (typeof window !== 'undefined') {
+      const initFarcaster = async () => {
+        try {
+          // Dynamically import the Farcaster modules
+          const FrameSDK = (await import('@farcaster/frame-sdk')).default;
+          const farcasterFrame = (await import('@farcaster/frame-wagmi-connector')).default;
+          
+          const context = await FrameSDK.context;
+          
+          // Autoconnect if running in a frame
+          if (context?.client.clientFid) {
+            connect(config, { connector: farcasterFrame() });
+          }
+          
+          // Hide splash screen after UI renders
+          setTimeout(() => {
+            FrameSDK.actions.ready();
+          }, 500);
+        } catch (error) {
+          console.error("Error initializing Farcaster Frame:", error);
+        }
+      };
+      
+      initFarcaster();
+    }
+  }, []);
+
+  // Only render children on client-side
+  if (!isClient) return null;
+  return <>{children}</>;
+}
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
@@ -91,6 +147,8 @@ function MyApp({ Component, pageProps }: AppProps) {
         <QueryClientProvider client={queryClient}>
           <RainbowKitProvider>
             <Component {...pageProps} />
+            <FarcasterFrameProvider>
+             </FarcasterFrameProvider>
           </RainbowKitProvider>
         </QueryClientProvider>
       </WagmiProvider>
