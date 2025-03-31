@@ -65,6 +65,76 @@ interface StartBlock {
 }
 
 const ADDRESS: Addresses = {
+  WORLD: {
+    ICON: "/images/world.png",
+
+    COLOR: "#9ed5ee",
+    FIRSTDRAWOPENEDAT: 1743112800,
+    DRAWPERIODSECONDS: 86400,
+    CHAINID: 480,
+    TOKENFAUCET: "",
+    METAREWARDS: "",
+    ETHERSCAN: "https://basescan.org/",
+    PRIZEPOOLSUBGRAPH:
+      "https://subgraph.satsuma-prod.com/lonsers-team--313225/pt-v5-world",
+
+    DRAWMANAGER: "0x62800f9bd164ea909224e19b7fdfa33a0f3f6373",
+    RNG: "0x4a411d67cd47bfc41395946be069deb97a171437",
+    TWABCONTROLLER: "0xa13d89cf3e7f59ba1a2b5b5c260bdfc64dd1044c",
+    TWABREWARDS: "0x18e9e34cfccadcac465a8b6eaf337546b0980897",
+    LIQUIDATIONROUTER: "0xfde1b3202ae55349bd4fecd38ca886fd1ed38e62",
+    VAULTFACTORY: "0x08f8ebc3afc32371d40ef59a951cb7b2da425159",
+    PRIZEPOOL: "0x99ffb0a6c0cd543861c8de84dd40e059fd867dcf",
+    CLAIMERFACTORY: "0x078b27f64d02b404467d3a560d4acb3d3736c3a6",
+    CLAIMER: "0x9035072fe640d5ef80edc41aef47b1a793809070",
+    PRIZETOKEN: {
+      ADDRESS: "0x2cFc85d8E48F8EAB294be644d9E25C3030863003",
+      SYMBOL: "WLD",
+      NAME: "World",
+      DECIMALS: 18,
+      GECKO: "worldcoin-wld",
+      ICON: "https://assets.coingecko.com/coins/images/31069/standard/worldcoin.jpeg?1696529903",
+    },
+    VAULTS: [
+      {
+        VAULT: "0x0045cC66eCf34da9D8D89aD5b36cB82061c0907C",
+        LIQUIDATIONPAIR: "0x0000000000000000000000000000000000000000",
+        SYMBOL: "przPOOL",
+        NAME: "Prize POOL",
+        DECIMALS: 18,
+        ASSET: "0x7077C71B4AF70737a08287E279B717Dcf64fdC57",
+        ASSETSYMBOL: "POOL",
+        GECKO: "pooltogether",
+        VAULTICON: "",
+        ICON: "https://assets.coingecko.com/coins/images/14003/standard/PoolTogether.png?1696513732",
+      },
+      {
+        VAULT: "0x8ad5959c9245b64173d4c0c3cd3ff66dac3cab0e",
+        LIQUIDATIONPAIR: "",
+        SYMBOL: "przWLD",
+        NAME: "Prize WORLD",
+        DECIMALS: 18,
+        ASSET: "",
+        ASSETSYMBOL: "WLD",
+        ICON: "https://assets.coingecko.com/coins/images/31069/standard/worldcoin.jpeg?1696529903",
+        GECKO: "worldcoin-wld",
+        VAULTICON: "",
+      },
+    ],
+    BOOSTERS: [
+      {
+        LIQUIDATIONPAIR: "0xd7C720269aBd189cDdCceDb4339D75A4eb8a72A3",
+        SYMBOL: "wldBooster",
+        NAME: "wldbooster",
+        DECIMALS: 18,
+        ASSET: "0x2cFc85d8E48F8EAB294be644d9E25C3030863003",
+        ASSETSYMBOL: "WLD",
+        GECKO: "worldcoin-world",
+        VAULT: "",
+        ICON: "",
+      },
+    ],
+  },
   BASE: {
     ICON: "/images/base.png",
     COLOR: "#437bf6",
@@ -634,7 +704,7 @@ const ICONS: { [key: string]: string } = {
     "https://assets.coingecko.com/coins/images/20764/standard/reth.png?1696520159",
   pool: "https://assets.coingecko.com/coins/images/14003/standard/PoolTogether.png?1696513732",
   lonser:
-    "https://sjc6.discourse-cdn.com/standard11/user_avatar/gov.pooltogether.com/lonser/288/591_2.png",
+    "https://cdn.discordapp.com/avatars/202181199937011712/db0c72d4715f2507d3f60ec1b59f3253?size=1024",
   op: "https://assets.coingecko.com/coins/images/25244/standard/Optimism.png?1696524385",
   timbit:
     "https://cdn.discordapp.com/emojis/1012391997924966491.webp?size=240&quality=lossless",
@@ -662,7 +732,7 @@ const ICONS: { [key: string]: string } = {
     "https://assets.coingecko.com/coins/images/36084/standard/200x200logo.png?1710427814",
   based:
     "https://assets.coingecko.com/coins/images/39669/standard/BASED.jpg?1723603780",
-    eurc: "https://assets.coingecko.com/coins/images/26045/standard/euro.png?1696525125"
+  eurc: "https://assets.coingecko.com/coins/images/26045/standard/euro.png?1696525125",
 };
 
 const WHITELIST_VAULTS = [
@@ -707,6 +777,8 @@ const WHITELIST_VAULTS = [
   "0xdd5e858c0aa9311c4b49bc8d35951f7f069ff46a", // morpho eurc
   "0xD56F6f32473D6321512956a1351D4BceC07914cb", // morpho eth
   "0x78adc13c9ab327c79d10cab513b7c6bd3b346858", // superOETHb
+  "0x8ad5959c9245b64173d4c0c3cd3ff66dac3cab0e", // wld
+  "0x0045cC66eCf34da9D8D89aD5b36cB82061c0907C", // pool on wld
 ];
 
 const WHITELIST_REWARDS: {
@@ -788,14 +860,14 @@ const WHITELIST_REWARDS: {
       ICON: "https://assets.coingecko.com/coins/images/39669/standard/BASED.jpg?1723603780",
     },
   ],
-  SCROLL:[
+  SCROLL: [
     {
       TOKEN: "0xF9Af83FC41e0cc2af2fba93644D542Df6eA0F2b7",
       SYMBOL: "POOL",
       GECKO: "pooltogether",
       ICON: "https://assets.coingecko.com/coins/images/14003/standard/PoolTogether.png?1696513732",
     },
-  ]
+  ],
 };
 
 export { ADDRESS, STARTBLOCK, ICONS, WHITELIST_REWARDS, WHITELIST_VAULTS };

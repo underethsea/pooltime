@@ -38,6 +38,31 @@ const scroll:Chain = {
     },
   },
 } 
+
+// Define world as a custom chain
+const world:Chain = {
+  id: 480, // Replace with Scroll's actual chain ID
+  name: 'World',
+  iconUrl: '/images/world.png',  // Ensure this path is correct and accessible
+  iconBackground: 'transparent', 
+  nativeCurrency: {
+    name: 'Ethereum',
+    symbol: 'ETH',
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: { http: ['https://worldchain-mainnet.g.alchemy.com/public'] }, // Replace with actual Scroll RPC URL
+  },
+  blockExplorers: {
+    default: { name: 'WorldScan', url: 'https://worldscan.org/' }, // Replace with actual block explorer if available
+  },
+  contracts: {
+    multicall3: {
+      address: '0xcA11bde05977b3631167028862bE2a173976CA11', 
+      blockCreated: 1, // Replace with actual block number if needed
+    },
+  },
+} 
 const gnosis:Chain = {
   id: 100, // Replace with Scroll's actual chain ID
   name: 'Gnosis',
@@ -78,7 +103,7 @@ const customOptimism = {
 const config = getDefaultConfig({
   appName: "Pooltime",
   projectId: WALLET_CONNECT_KEY,
-  chains: [customOptimism, mainnet, arbitrum, base, scroll, gnosis],
+  chains: [customOptimism, mainnet, arbitrum, base, scroll, gnosis, world],
   ssr: true,
 });
 

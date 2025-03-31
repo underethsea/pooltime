@@ -120,7 +120,7 @@ export async function GetActivePromotionsForVaults(
       )
     }
 
-    console.log(meta ? "meta":"",`Promotions for vault ${vaultAddress}:`, vaultPromotions);
+    // console.log(meta ? "meta":"",`Promotions for vault ${vaultAddress}:`, vaultPromotions);
 
     if (vaultPromotions.length > 0) {
       acc[vaultAddress.toLowerCase()] = vaultPromotions;

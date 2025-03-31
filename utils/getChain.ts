@@ -30,6 +30,9 @@ export const GetChainName = (id: number) => {
   else if(id===100) {
     return "GNOSIS"
   }
+  else if(id===480) {
+    return "WORLD"
+  }
   else {
     return CONFIG.CHAINNAME;
   }

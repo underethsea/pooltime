@@ -49,6 +49,7 @@ const ENDPOINTS : ChainEndpoints= {
 
       ARBITRUM: "https://arb-mainnet.g.alchemy.com/v2/" + ALCHEMY_KEY,
       GNOSIS: "https://gnosis-mainnet.g.alchemy.com/v2/" + ALCHEMY_KEY,
+      WORLD: "https://worldchain-mainnet.g.alchemy.com/v2/" + ALCHEMY_KEY,
     },
   "INFURA": {
     "SEPOLIA": "https://sepolia.infura.io/v3/a86edca6bd3040689463a58672d7d8e5",
@@ -70,6 +71,7 @@ PROVIDERS = {
   OPTIMISM: new providers.JsonRpcProvider(ENDPOINTS[rpc].OPTIMISM),
   MAINNET: new providers.JsonRpcProvider(ENDPOINTS[rpc].MAINNET),
   POLYGON: new providers.JsonRpcProvider(ENDPOINTS[rpc].POLYGON),
+  WORLD: new providers.JsonRpcProvider(ENDPOINTS[rpc].WORLD),
   // AVALANCHE: new providers.JsonRpcProvider(ENDPOINTS[rpc].AVALANCHE),
   OPSEPOLIA: new providers.JsonRpcProvider(ENDPOINTS[rpc].OPSEPOLIA),
   BASE: new providers.JsonRpcProvider(ENDPOINTS[rpc].BASE),

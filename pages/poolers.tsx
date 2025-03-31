@@ -31,14 +31,19 @@ function parseAmount(amount: any, decimals: any) {
 }
 
 function Poolers() {
-  const chains: Chain[] = [
-    // { id: '11155111', name: 'SEPOLIA' },
-    { id: '42161', name: 'ARBITRUM'},
-    { id: '8453', name: 'BASE' },
-    { id: CONFIG.CHAINID.toString(), name: CONFIG.CHAINNAME },
-    { id: '1', name: 'ETHEREUM'},
-    {id: '534352', name: 'SCROLL'}
-  ];
+  const chains: Chain[] = Object.entries(ADDRESS).map(([name, data]) => ({
+    id: data.CHAINID.toString(),
+    name,
+  }));
+  
+  // const chains: Chain[] = [
+  //   // { id: '11155111', name: 'SEPOLIA' },
+  //   { id: '42161', name: 'ARBITRUM'},
+  //   { id: '8453', name: 'BASE' },
+  //   { id: CONFIG.CHAINID.toString(), name: CONFIG.CHAINNAME },
+  //   { id: '1', name: 'ETHEREUM'},
+  //   {id: '534352', name: 'SCROLL'}
+  // ];
   // function getChainNameById(chainId: any) {
   //   const chain = chains.find((c) => c.id === chainId);
   //   return chain ? chain.name : chains[0];

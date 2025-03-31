@@ -101,7 +101,6 @@ const {overview} = useOverview()
       setWinStartIndex(winStartIndex + 1);
     }
   };
-console.log("wins??")
   const calculateTotalAmountWon = (flatWins: any, overview: any) => {
     return flatWins
       .reduce((acc: any, win: any) => {
