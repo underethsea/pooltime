@@ -74,7 +74,7 @@ const ADDRESS: Addresses = {
     CHAINID: 480,
     TOKENFAUCET: "",
     METAREWARDS: "",
-    ETHERSCAN: "https://basescan.org/",
+    ETHERSCAN: "https://worldscan.org/",
     PRIZEPOOLSUBGRAPH:
       "https://subgraph.satsuma-prod.com/lonsers-team--313225/pt-v5-world",
 

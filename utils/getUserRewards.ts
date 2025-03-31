@@ -210,7 +210,7 @@ export async function GetUsersAwards(
       });
     }
   });
-console.log("user rewards debug",userRewards)
+// console.log("user rewards debug",userRewards)
   return userRewards;
 }
 

@@ -1841,7 +1841,6 @@ console.log("redeem error",redeemError)
                             </div>
                           )}
                           {(() => {
-                            console.log("yes", vaultData);
                             return null; // You need to return null or something renderable
                           })()}
                           {(parseFloat(vaultData.contributed7d) > 0 ||
@@ -1850,7 +1849,7 @@ console.log("redeem error",redeemError)
                             <div className="data-row hidden-mobile">
                               <span className="vault-label">
                                 {(() => {
-                                  console.log("yes", vaultData);
+                                  // console.log("yes", vaultData);
                                   return null; // You need to return null or something renderable
                                 })()}
                                 {parseFloat(vaultData.contributed24h) >
