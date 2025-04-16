@@ -181,6 +181,7 @@ const Vault: React.FC<VaultProps> = ({
   const [assetPrice, setAssetPrice] = useState(0);
   const [prizeTokenPrice, setPrizeTokenPrice] = useState(0);
   const [chance, setChance] = useState<Chance | null>(null);
+  const [vaultPortion,setVaultPortion] = useState(0)
   // const [ vaultChainId, setVaultChainId] = useState()
 
   const overviewFromContext = useOverview();
@@ -803,15 +804,48 @@ console.log("redeem error",redeemError)
         overviewFromContext.overview.prices
       ) {
         if (activeVaultAddress) {
-          const promoPromise = GetActivePromotionsForVaults(
+          const promoPromiseA = GetActivePromotionsForVaults(
             [activeVaultAddress],
             true,
-            overviewFromContext.overview.prices,false,"NULL"
-          ).then((promos) => {
-            setActivePromos(promos);
-          });
-          promises.push(promoPromise);
+            overviewFromContext.overview.prices,
+            false,
+            "NULL"
+          );
+        
+          const promoPromiseB = GetActivePromotionsForVaults(
+            [activeVaultAddress],
+            true,
+            overviewFromContext.overview.prices,
+            true,
+            GetChainName(activeVaultChain)
+          );
+        
+          const combinedPromoPromise = Promise.all([promoPromiseA, promoPromiseB]).then(
+            async ([promosA, promosB]) => {
+             console.log("promos a",promosA,"prom b",promosB)
+             const combined = { ...promosA, ...promosB };
+             if (promosB && Object.keys(promosB).length > 0) {
+              const prizePoolContract = new ethers.Contract(
+                ADDRESS[GetChainName(activeVaultChain)].PRIZEPOOL,
+                ABI.PRIZEPOOL,
+                PROVIDERS[GetChainName(activeVaultChain)])
+                const openDraw = await prizePoolContract.getOpenDrawId()
+                let drawsToGo = 7
+                if(GetChainName(activeVaultChain) ==="ETHEREUM"){drawsToGo = 1}
+                const fetchedVaultPortion = await prizePoolContract.getVaultPortion(activeVaultAddress,openDraw - drawsToGo,openDraw)
+              console.log("vailt portion",fetchedVaultPortion.toString())
+              setVaultPortion(Number(fetchedVaultPortion)/1e18)
+
+             }
+console.log("combined promo",combined)
+console.log("set vault portion",vaultPortion)
+              setActivePromos(combined);
+            }
+          );
+          
+          promises.push(combinedPromoPromise);
         }
+        
       } else {
         console.log("context is missing");
       }
@@ -875,6 +909,7 @@ console.log("redeem error",redeemError)
   }
 
   const userWinChance = averageDaysToWin();
+  console.log("vault portion",vaultPortion)
   // console.log("user win chance",userWinChance)
   return (
     <Layout>
@@ -1696,7 +1731,8 @@ console.log("redeem error",redeemError)
                           </div>
                         )}
 
-                      {activePromos &&
+                      {
+                      activePromos &&
                         (activePromos as { [key: string]: any[] })[
                           activeVaultAddress.toLowerCase()
                         ] &&
@@ -1786,7 +1822,7 @@ console.log("redeem error",redeemError)
                                           </span>
                                         )}
                                         &nbsp;
-                                        {NumberWithCommas(
+                                        {NumberWithCommas(activePromo.meta ? (annualYieldPercentage * vaultPortion).toFixed(1):
                                           annualYieldPercentage.toFixed(1)
                                         )}
                                         %
