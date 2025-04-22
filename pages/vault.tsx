@@ -64,6 +64,7 @@ interface vaultApi {
   prizes7d: string;
   prizesPerDraw7d: string;
   status?: number;
+  vp?: number;
 }
 interface VaultProps {
   vAddress: string;
@@ -104,6 +105,7 @@ interface VaultData {
   yieldFeePercentage: ethers.BigNumber;
   gnosis?: GnosisInfo; // gnosis is optional and conforms to GnosisInfo interface
   status?: number;
+  vp?: number;
 }
 
 interface Chance {
@@ -181,7 +183,7 @@ const Vault: React.FC<VaultProps> = ({
   const [assetPrice, setAssetPrice] = useState(0);
   const [prizeTokenPrice, setPrizeTokenPrice] = useState(0);
   const [chance, setChance] = useState<Chance | null>(null);
-  const [vaultPortion,setVaultPortion] = useState(0)
+  const [vaultPortion, setVaultPortion] = useState(0);
   // const [ vaultChainId, setVaultChainId] = useState()
 
   const overviewFromContext = useOverview();
@@ -273,7 +275,8 @@ const Vault: React.FC<VaultProps> = ({
         parseFloat(redeemAmount) > 0 &&
         ethers.utils.parseUnits(redeemAmount, vaultData?.decimals).toString(),
       address as any,
-      address as any,0
+      address as any,
+      0,
       // redeemAmount &&
       //   parseFloat(redeemAmount) > 0 &&
       //   ethers.utils.parseUnits(redeemAmount, vaultData?.decimals).toString(),
@@ -295,7 +298,7 @@ const Vault: React.FC<VaultProps> = ({
       },
     },
   });
-console.log("redeem error",redeemError)
+  console.log("redeem error", redeemError);
   const {
     // isLoading: buyWaitIsLoading,
     isSuccess: buyWaitIsSuccess,
@@ -343,86 +346,84 @@ console.log("redeem error",redeemError)
   //     }
   //     if (parseFloat(redeemAmount) > 0) {
   //       if (chainId === activeVaultChain && vaultData) {
-          // console.log("trying here ya")
-          // const vaultContract = new ethers.Contract(
-          //   vaultData.address,
-          //   ABI.VAULT,
-          //   PROVIDERS[GetChainName(activeVaultChain)]
-          // );
-          // const amountToCheck = ethers.utils
-          //   .parseUnits(redeemAmount, vaultData?.decimals)
-          //   .toString();
-          // const redeemPreview = await vaultContract.previewRedeem(
-          //   amountToCheck
-          // );
-          // console.log("redeem preview",redeemPreview.toString())
-          // if (redeemPreview.lt(amountToCheck)) {
-          //   toast("temporary aave utilization issue", {
-          //     position: toast.POSITION.BOTTOM_LEFT,
-          //   });
-          // }
-          // else {
-            const handleRedeem = async () => {
-              try {
-                console.log("Handling redeem...");
-                if (!chainId || !address) {
-                  toast("Error: Wallet not connected or wrong chain.", {
-                    position: toast.POSITION.BOTTOM_LEFT,
-                  });
-                  console.log("Error: Wallet not connected or wrong chain.");
-                  return;
-                }
-            
-                if (parseFloat(redeemAmount) > 0 && vaultData) {
-                  const redeemAmountParsed = ethers.utils.parseUnits(
-                    redeemAmount,
-                    vaultData.decimals
-                  );
-            
-                  // Ensure chainId matches activeVaultChain
-                  if (chainId === activeVaultChain) {
-                    if (!writeRedeem) {
-                      console.log("writeRedeem is not defined.");
-                      toast("Redeem error: Contract function not ready.", {
-                        position: toast.POSITION.BOTTOM_LEFT,
-                      });
-                      return;
-                    }
-            
-                    // Directly execute the redeem function
-                    writeRedeem({
-                      chainId,
-                      address: vaultData.address as any,
-                      abi: ABI.VAULT,
-                      functionName: "withdraw",
-                      args: [
-                        redeemAmountParsed.toString(), // Amount to redeem
-                        address, // Receiver address
-                        address, // Beneficiary address (can also be msg.sender)
-                        redeemAmountParsed.toString(), // Amount to redeem
+  // console.log("trying here ya")
+  // const vaultContract = new ethers.Contract(
+  //   vaultData.address,
+  //   ABI.VAULT,
+  //   PROVIDERS[GetChainName(activeVaultChain)]
+  // );
+  // const amountToCheck = ethers.utils
+  //   .parseUnits(redeemAmount, vaultData?.decimals)
+  //   .toString();
+  // const redeemPreview = await vaultContract.previewRedeem(
+  //   amountToCheck
+  // );
+  // console.log("redeem preview",redeemPreview.toString())
+  // if (redeemPreview.lt(amountToCheck)) {
+  //   toast("temporary aave utilization issue", {
+  //     position: toast.POSITION.BOTTOM_LEFT,
+  //   });
+  // }
+  // else {
+  const handleRedeem = async () => {
+    try {
+      console.log("Handling redeem...");
+      if (!chainId || !address) {
+        toast("Error: Wallet not connected or wrong chain.", {
+          position: toast.POSITION.BOTTOM_LEFT,
+        });
+        console.log("Error: Wallet not connected or wrong chain.");
+        return;
+      }
 
-                      ],
-                    });
-                  } else {
-                    toast("Error: Please switch to the correct chain.", {
-                      position: toast.POSITION.BOTTOM_LEFT,
-                    });
-                    console.log("Invalid redeem: Wrong chain.");
-                  }
-                } else {
-                  toast("Error: Invalid redeem amount.", {
-                    position: toast.POSITION.BOTTOM_LEFT,
-                  });
-                  console.log("Invalid redeem amount.");
-                }
-              } catch (err) {
-                console.error("Error during redeem:", err);
-                toast("Error during redeem: See console for details.", {
-                  position: toast.POSITION.BOTTOM_LEFT,
-                });
-              }
-            };
-            
+      if (parseFloat(redeemAmount) > 0 && vaultData) {
+        const redeemAmountParsed = ethers.utils.parseUnits(
+          redeemAmount,
+          vaultData.decimals
+        );
+
+        // Ensure chainId matches activeVaultChain
+        if (chainId === activeVaultChain) {
+          if (!writeRedeem) {
+            console.log("writeRedeem is not defined.");
+            toast("Redeem error: Contract function not ready.", {
+              position: toast.POSITION.BOTTOM_LEFT,
+            });
+            return;
+          }
+
+          // Directly execute the redeem function
+          writeRedeem({
+            chainId,
+            address: vaultData.address as any,
+            abi: ABI.VAULT,
+            functionName: "withdraw",
+            args: [
+              redeemAmountParsed.toString(), // Amount to redeem
+              address, // Receiver address
+              address, // Beneficiary address (can also be msg.sender)
+              redeemAmountParsed.toString(), // Amount to redeem
+            ],
+          });
+        } else {
+          toast("Error: Please switch to the correct chain.", {
+            position: toast.POSITION.BOTTOM_LEFT,
+          });
+          console.log("Invalid redeem: Wrong chain.");
+        }
+      } else {
+        toast("Error: Invalid redeem amount.", {
+          position: toast.POSITION.BOTTOM_LEFT,
+        });
+        console.log("Invalid redeem amount.");
+      }
+    } catch (err) {
+      console.error("Error during redeem:", err);
+      toast("Error during redeem: See console for details.", {
+        position: toast.POSITION.BOTTOM_LEFT,
+      });
+    }
+  };
 
   const handleBuy = () => {
     try {
@@ -507,10 +508,10 @@ console.log("redeem error",redeemError)
       handleShowToast("approve");
 
       // Automatically trigger the "buy" transaction if the approval succeeds
-    if (parseFloat(buyAmount) > 0 && vaultData) {
-      console.log("Approval successful. Initiating buy...");
-      handleBuy(); // Trigger the buy function
-    }
+      if (parseFloat(buyAmount) > 0 && vaultData) {
+        console.log("Approval successful. Initiating buy...");
+        handleBuy(); // Trigger the buy function
+      }
 
       setRefreshData((refresh) => refresh + 1);
     }
@@ -530,25 +531,26 @@ console.log("redeem error",redeemError)
 
   useEffect(() => {
     async function fetchData() {
-      if (activeVaultAddress) {
-        let priceResponse;
-
-        // console.log("fetching data");
-        try {
-          // const queriedChain = router.isReady
-          //   ? (router.query.chain as string)
-          //   : "";
-          // setUrlChain(queriedChain);
-
-          const normalizedActiveVaultAddress = activeVaultAddress.toLowerCase();
-          const contract = new ethers.Contract(
-            activeVaultAddress,
-            ABI.VAULT,
-            PROVIDERS[GetChainName(activeVaultChain)]
-          );
-          const userAddress = address || "";
-
-          let name,
+      if (!activeVaultAddress) return;
+  
+      try {
+        const normalizedActiveVaultAddress = activeVaultAddress.toLowerCase();
+        const contract = new ethers.Contract(
+          activeVaultAddress,
+          ABI.VAULT,
+          PROVIDERS[GetChainName(activeVaultChain)]
+        );
+        const userAddress = address || "";
+  
+        // These may be filled from props or API
+        let name, symbol, decimals, asset, liquidationPair, owner;
+        let price, contributed7d, contributed24h, contributed28d;
+        let won7d, prizes7d, prizesPerDraw7d, poolers, gnosis, status, tvl, vp;
+  
+        // Try props first
+        if (vaultPropData && Object.keys(vaultPropData).length > 0) {
+          ({
+            name,
             symbol,
             decimals,
             asset,
@@ -562,210 +564,196 @@ console.log("redeem error",redeemError)
             prizes7d,
             prizesPerDraw7d,
             poolers,
-            gnosis,
             status,
-            tvl;
-
-          if (vaultPropData && Object.keys(vaultPropData).length > 0) {
-            ({
-              name,
-              symbol,
-              decimals,
-              asset,
-              liquidationPair,
-              owner,
-              price,
-              contributed7d,
-              contributed24h,
-              contributed28d,
-              won7d,
-              prizes7d,
-              prizesPerDraw7d,
-              poolers,
-              status,
-            } = vaultPropData);
-            console.log("using vault prop", price);
-          } else {
-            // Check the API first
-            try {
-              // console.log(
-              //   "using API for vault data",
-              //   activeVaultChain,
-              //   activeVaultAddress
-              // );
-              const apiResponse = await fetch(
-                `https://poolexplorer.xyz/vaults`
+            vp,
+          } = vaultPropData);
+        }
+  
+        // Fallback to API
+        if (!name || !symbol || !decimals || !asset || !owner || !price) {
+          try {
+            const apiResponse = await fetch(`https://poolexplorer.xyz/vaults`);
+            if (apiResponse.ok) {
+              const apiData: any[] = await apiResponse.json();
+              const vaultApiData = apiData.find(
+                (v) => v.vault.toLowerCase() === normalizedActiveVaultAddress
               );
-
-              if (apiResponse.ok) {
-                const apiData: any[] = await apiResponse.json();
-                const vaultData = apiData.find(
-                  (vault) =>
-                    vault.vault.toLowerCase() === normalizedActiveVaultAddress
-                );
-                // console.log("vault data found", vaultData);
-                if (vaultData) {
-                  // console.log("API Gnosis Data:", gnosis);
-
-                  ({
-                    name,
-                    symbol,
-                    decimals,
-                    asset,
-                    liquidationPair,
-                    owner,
-                    price,
-                    contributed7d,
-                    contributed24h,
-                    contributed28d,
-                    won7d,
-                    prizes7d,
-                    poolers,
-                    gnosis,
-                    status,
-                    tvl,
-                  } = vaultData);
-                }
+              if (vaultApiData) {
+                ({
+                  name,
+                  symbol,
+                  decimals,
+                  asset,
+                  liquidationPair,
+                  owner,
+                  price,
+                  contributed7d,
+                  contributed24h,
+                  contributed28d,
+                  won7d,
+                  prizes7d,
+                  prizesPerDraw7d,
+                  poolers,
+                  gnosis,
+                  status,
+                  tvl,
+                  vp,
+                } = vaultApiData);
+                if (tvl) tvl = ethers.BigNumber.from(tvl);
               }
-            } catch (apiError) {
-              console.error("Error fetching data from API:", apiError);
             }
+          } catch (apiError) {
+            console.error("Vault API fetch failed:", apiError);
           }
-          if (tvl) {
-            tvl = ethers.BigNumber.from(tvl);
+        }
+  
+        // Fallback to onchain
+        let liquidationPairCalled = false;
+        const vaultCalls = [];
+        if (!name) vaultCalls.push(contract.name());
+        if (!symbol) vaultCalls.push(contract.symbol());
+        if (!decimals) vaultCalls.push(contract.decimals());
+        if (!asset) vaultCalls.push(contract.asset());
+  
+        if (liquidationPair === undefined || liquidationPair === null) {
+          try {
+            liquidationPair = await contract.liquidationPair();
+            liquidationPairCalled = true;
+          } catch (err) {
+            console.warn("No liquidationPair():", err);
+            liquidationPair = "";
           }
-          // If any of these values are not set, fetch them from the contract
-          const vaultCalls = [];
-          if (!name) vaultCalls.push(contract.name());
-          if (!symbol) vaultCalls.push(contract.symbol());
-          if (!decimals) vaultCalls.push(contract.decimals());
-          if (!asset) vaultCalls.push(contract.asset());
-          if (!liquidationPair) vaultCalls.push(contract.liquidationPair());
-          if (!owner) vaultCalls.push(contract.owner());
-          if (!tvl) vaultCalls.push(contract.totalSupply());
+        }
+        if (!owner) vaultCalls.push(contract.owner());
+        if (!tvl) vaultCalls.push(contract.totalSupply());
+  
+        try {
+          const vaultResults = vaultCalls.length
+            ? await Multicall(vaultCalls, GetChainName(activeVaultChain))
+            : [];
+  
+          let i = 0;
+          if (!name) name = vaultResults[i++];
+          if (!symbol) symbol = vaultResults[i++];
+          if (!decimals) decimals = vaultResults[i++];
+          if (!asset) asset = vaultResults[i++];
+          if (!liquidationPair && !liquidationPairCalled)
+            liquidationPair = vaultResults[i++];
+          if (!owner) owner = vaultResults[i++];
+          if (!tvl) tvl = vaultResults[i++];
+        } catch (err) {
+          console.error("Vault multicall failed:", err);
+        }
+  
+        let yieldFeePercentage = ethers.BigNumber.from(0);
+try {
+  yieldFeePercentage = await contract.yieldFeePercentage();
+} catch (err) {
+  console.warn("yieldFeePercentage() not found, defaulting to 0");
+}
 
-          const vaultResults =
-            vaultCalls.length > 0
-              ? await Multicall(vaultCalls, GetChainName(activeVaultChain))
-              : [];
-          if (!name) [name] = vaultResults.splice(0, 1);
-          if (!symbol) [symbol] = vaultResults.splice(0, 1);
-          if (!decimals) [decimals] = vaultResults.splice(0, 1);
-          if (!asset) [asset] = vaultResults.splice(0, 1);
-          if (!liquidationPair) [liquidationPair] = vaultResults.splice(0, 1);
-          if (!owner) [owner] = vaultResults.splice(0, 1);
-          if (!tvl) [tvl] = vaultResults;
-          // Fetch user-specific and asset-specific data
-
-          const assetContract = new ethers.Contract(
-            asset.toString(),
-            ABI.ERC20,
-            PROVIDERS[GetChainName(activeVaultChain)]
+        // Fetch asset + user-specific data
+        const assetContract = new ethers.Contract(
+          asset,
+          ABI.ERC20,
+          PROVIDERS[GetChainName(activeVaultChain)]
+        );
+        const twabControllerContract = new ethers.Contract(
+          ADDRESS[GetChainName(activeVaultChain)].TWABCONTROLLER,
+          ABI.TWABCONTROLLER,
+          PROVIDERS[GetChainName(activeVaultChain)]
+        );
+  
+        const assetCalls = [
+          assetContract.name(),
+          assetContract.symbol(),
+          twabControllerContract.totalSupplyDelegateBalance(activeVaultAddress),
+          // contract.yieldFeePercentage(),
+        ];
+  
+        if (userAddress) {
+          assetCalls.push(
+            assetContract.balanceOf(userAddress),
+            assetContract.allowance(userAddress, activeVaultAddress),
+            contract.balanceOf(userAddress),
+            twabControllerContract.delegateBalanceOf(activeVaultAddress, userAddress)
           );
-          const twabControllerContract = new ethers.Contract(
-            ADDRESS[GetChainName(activeVaultChain)].TWABCONTROLLER,
-            ABI.TWABCONTROLLER,
-            PROVIDERS[GetChainName(activeVaultChain)]
-          );
-          const assetCalls = [
-            assetContract.name(),
-            assetContract.symbol(),
-            twabControllerContract.totalSupplyDelegateBalance(
-              activeVaultAddress
-            ),
-            contract.yieldFeePercentage(),
-          ];
-
-          if (userAddress) {
-            assetCalls.push(
-              assetContract.balanceOf(userAddress),
-              assetContract.allowance(userAddress, activeVaultAddress),
-              contract.balanceOf(userAddress),
-              twabControllerContract.delegateBalanceOf(
-                activeVaultAddress,
-                userAddress
-              )
-            );
-          }
-          const [assetResults, assetPrice] = await Promise.all([
+        }
+  
+        let assetResults, assetPrice;
+        try {
+          [assetResults, assetPrice] = await Promise.all([
             Multicall(assetCalls, GetChainName(activeVaultChain)),
             GetAssetPrice(GetChainName(activeVaultChain), asset),
           ]);
-
-          setAssetPrice(assetPrice as any);
-          // console.log("gecko price", assetPrice);
-          const assetName = assetResults[0].toString();
-          const assetSymbol = assetResults[1].toString();
-          const totalAssets = ethers.BigNumber.from(assetResults[2].toString());
-          const yieldFeePercentage = ethers.BigNumber.from(
-            assetResults[3].toString()
-          );
-          // console.log("yield free?!",yieldFeePercentage)
-
-          let userAssetBalance = ethers.BigNumber.from(0);
-          let userAssetAllowance = ethers.BigNumber.from(0);
-          let userVaultBalance = ethers.BigNumber.from(0);
-          let userDelegatedBalance = ethers.BigNumber.from(0);
-          if (userAddress) {
-            userAssetBalance = ethers.BigNumber.from(
-              assetResults[4].toString()
-            );
-            userAssetAllowance = ethers.BigNumber.from(
-              assetResults[5].toString()
-            );
-            userVaultBalance = ethers.BigNumber.from(
-              assetResults[6].toString()
-            );
-            userDelegatedBalance = ethers.BigNumber.from(
-              assetResults[7].toString()
-            );
-          }
-          const fetchedData = {
-            name: name.toString(),
-            address: activeVaultAddress,
-            symbol: symbol.toString(),
-            decimals: Number(decimals),
-            asset: asset.toString(),
-            liquidationPair: liquidationPair.toString(),
-            totalAssets: totalAssets,
-            tvl: tvl,
-            assetName: assetName.toString(),
-            assetSymbol: assetSymbol.toString(),
-            userVaultBalance,
-            userDelegatedBalance,
-            userAssetBalance,
-            userAssetAllowance,
-            owner: owner.toString(),
-            price,
-            contributed7d,
-            contributed24h,
-            contributed28d,
-            won7d,
-            prizes7d,
-            poolers,
-            yieldFeePercentage: yieldFeePercentage,
-            gnosis,
-            status,
-          };
-
-          if (JSON.stringify(fetchedData) !== JSON.stringify(vaultData)) {
-            setVaultData(fetchedData as any);
-          }
-        } catch (error) {
-          console.error("Error fetching data:", error);
-          setIsInvalidVault(true);
+        } catch (err) {
+          console.error("Asset multicall or price fetch failed:", err);
+          return;
         }
+  
+        setAssetPrice(assetPrice);
+  
+        const assetName = assetResults[0].toString();
+        const assetSymbol = assetResults[1].toString();
+        const totalAssets = ethers.BigNumber.from(assetResults[2]);
+        // const yieldFeePercentage = ethers.BigNumber.from(assetResults[3]);
+  
+        let userAssetBalance = ethers.BigNumber.from(0);
+        let userAssetAllowance = ethers.BigNumber.from(0);
+        let userVaultBalance = ethers.BigNumber.from(0);
+        let userDelegatedBalance = ethers.BigNumber.from(0);
+        if (userAddress && assetResults.length >= 7) {
+          userAssetBalance = ethers.BigNumber.from(assetResults[3]);
+          userAssetAllowance = ethers.BigNumber.from(assetResults[4]);
+          userVaultBalance = ethers.BigNumber.from(assetResults[5]);
+          userDelegatedBalance = ethers.BigNumber.from(assetResults[6]);
+        }
+        
+  
+        const fetchedData: VaultData = {
+          name: name.toString(),
+          address: activeVaultAddress,
+          symbol: symbol.toString(),
+          decimals: Number(decimals),
+          asset: asset.toString(),
+          liquidationPair: liquidationPair ? liquidationPair.toString() :"",
+          totalAssets,
+          tvl,
+          assetName,
+          assetSymbol,
+          userVaultBalance,
+          userDelegatedBalance,
+          userAssetBalance,
+          userAssetAllowance,
+          owner: owner.toString(),
+          price,
+          contributed7d,
+          contributed24h,
+          contributed28d,
+          won7d,
+          prizes7d,
+          prizesPerDraw7d,
+          poolers,
+          yieldFeePercentage,
+          gnosis,
+          status,
+          vp,
+        };
+  
+        setVaultData((prev) =>
+          JSON.stringify(prev) !== JSON.stringify(fetchedData)
+            ? fetchedData
+            : prev
+        );
+      } catch (err) {
+        console.error("Error fetching vault data:", err);
+        setIsInvalidVault(true);
       }
     }
-
+  
     fetchData();
-  }, [
-    activeVaultAddress,
-    address,
-    router.isReady,
-    // dripUpdate,
-    refreshData,
-  ]);
+  }, [activeVaultAddress, address, router.isReady, refreshData]);
+  
   useEffect(() => {
     const defaultPrice =
       overviewFromContext?.overview?.prices?.geckos?.ethereum; // Default to ETH price
@@ -811,7 +799,7 @@ console.log("redeem error",redeemError)
             false,
             "NULL"
           );
-        
+
           const promoPromiseB = GetActivePromotionsForVaults(
             [activeVaultAddress],
             true,
@@ -819,33 +807,33 @@ console.log("redeem error",redeemError)
             true,
             GetChainName(activeVaultChain)
           );
-        
-          const combinedPromoPromise = Promise.all([promoPromiseA, promoPromiseB]).then(
-            async ([promosA, promosB]) => {
-             console.log("promos a",promosA,"prom b",promosB)
-             const combined = { ...promosA, ...promosB };
-             if (promosB && Object.keys(promosB).length > 0) {
-              const prizePoolContract = new ethers.Contract(
-                ADDRESS[GetChainName(activeVaultChain)].PRIZEPOOL,
-                ABI.PRIZEPOOL,
-                PROVIDERS[GetChainName(activeVaultChain)])
-                const openDraw = await prizePoolContract.getOpenDrawId()
-                let drawsToGo = 7
-                if(GetChainName(activeVaultChain) ==="ETHEREUM"){drawsToGo = 1}
-                const fetchedVaultPortion = await prizePoolContract.getVaultPortion(activeVaultAddress,openDraw - drawsToGo,openDraw)
-              console.log("vailt portion",fetchedVaultPortion.toString())
-              setVaultPortion(Number(fetchedVaultPortion)/1e18)
 
-             }
-console.log("combined promo",combined)
-console.log("set vault portion",vaultPortion)
-              setActivePromos(combined);
-            }
-          );
-          
+          const combinedPromoPromise = Promise.all([
+            promoPromiseA,
+            promoPromiseB,
+          ]).then(async ([promosA, promosB]) => {
+            // console.log("promos a", promosA, "prom b", promosB);
+            const combined = { ...promosA, ...promosB };
+            //  if (promosB && Object.keys(promosB).length > 0) {
+            //   const prizePoolContract = new ethers.Contract(
+            //     ADDRESS[GetChainName(activeVaultChain)].PRIZEPOOL,
+            //     ABI.PRIZEPOOL,
+            //     PROVIDERS[GetChainName(activeVaultChain)])
+            //     const openDraw = await prizePoolContract.getOpenDrawId()
+            //     let drawsToGo = 7
+            //     if(GetChainName(activeVaultChain) ==="ETHEREUM"){drawsToGo = 1}
+            //     const fetchedVaultPortion = await prizePoolContract.getVaultPortion(activeVaultAddress,openDraw - drawsToGo,openDraw)
+            //   console.log("vailt portion",fetchedVaultPortion.toString())
+            //   setVaultPortion(Number(fetchedVaultPortion)/1e18)
+
+            //  }
+            // console.log("combined promo",combined)
+            // console.log("set vault portion",vaultPortion)
+            setActivePromos(combined);
+          });
+
           promises.push(combinedPromoPromise);
         }
-        
       } else {
         console.log("context is missing");
       }
@@ -909,12 +897,10 @@ console.log("set vault portion",vaultPortion)
   }
 
   const userWinChance = averageDaysToWin();
-  console.log("vault portion",vaultPortion)
-  // console.log("user win chance",userWinChance)
-  return (
+return (
     <Layout>
       <center>
-        {/* <div
+        {/* <div  
           style={{
             display: "flex",
             alignItems: "center",
@@ -1051,6 +1037,22 @@ console.log("set vault portion",vaultPortion)
                   This vault is withdraw only
                 </div>
               )}
+              {vaultData && vaultData.status === 2 && (
+                <div>
+                  <FontAwesomeIcon
+                    icon={faExclamationCircle}
+                    size="sm"
+                    style={{
+                      color: "#f87806",
+                      height: "18px",
+                      marginRight: "8px",
+                      marginLeft: "5px",
+                    }}
+                  />
+                  This vault is special access only
+                </div>
+              )}
+
 
               {isInvalidVault ? (
                 <div className="error-message">Invalid Vault Address</div>
@@ -1319,13 +1321,16 @@ console.log("set vault portion",vaultPortion)
                                     justifyContent: "space-between",
                                   }}>
                                   <span className="chances">
-                                    Current 1 in {CropDecimals(chance.grandPrize, true)}
+                                    Current 1 in{" "}
+                                    {CropDecimals(chance.grandPrize, true)}
                                   </span>
                                   <span className="chances">
-                                    Projected 1 in {CropDecimals(
-                                      1 / ((Number(vaultData.userVaultBalance) /
-                                      Number(vaultData.totalAssets)) *
-                                      chance.grandPrizeVaultPortion),
+                                    Projected 1 in{" "}
+                                    {CropDecimals(
+                                      1 /
+                                        ((Number(vaultData.userVaultBalance) /
+                                          Number(vaultData.totalAssets)) *
+                                          chance.grandPrizeVaultPortion),
                                       true
                                     )}
                                   </span>
@@ -1421,13 +1426,17 @@ console.log("set vault portion",vaultPortion)
                                     justifyContent: "space-between",
                                   }}>
                                   <span className="chances">
-                                    Current 1 in {CropDecimals(chance.firstTier, true)}
+                                    Current 1 in{" "}
+                                    {CropDecimals(chance.firstTier, true)}
                                   </span>
                                   <span className="chances">
-                                    Projected 1 in {CropDecimals(
-                                      1 / ((Number(vaultData.userVaultBalance) /
-                                      Number(vaultData.totalAssets)) *
-                                      chance.firstTierVaultPortion) / 4,
+                                    Projected 1 in{" "}
+                                    {CropDecimals(
+                                      1 /
+                                        ((Number(vaultData.userVaultBalance) /
+                                          Number(vaultData.totalAssets)) *
+                                          chance.firstTierVaultPortion) /
+                                        4,
                                       true
                                     )}
                                   </span>
@@ -1731,8 +1740,8 @@ console.log("set vault portion",vaultPortion)
                           </div>
                         )}
 
-                      {
-                      activePromos &&
+                      {activePromos &&
+                        vaultData && vaultData.vp &&
                         (activePromos as { [key: string]: any[] })[
                           activeVaultAddress.toLowerCase()
                         ] &&
@@ -1822,8 +1831,13 @@ console.log("set vault portion",vaultPortion)
                                           </span>
                                         )}
                                         &nbsp;
-                                        {NumberWithCommas(activePromo.meta ? (annualYieldPercentage * vaultPortion).toFixed(1):
-                                          annualYieldPercentage.toFixed(1)
+                                        {NumberWithCommas(
+                                          activePromo.meta
+                                            ? (
+                                                annualYieldPercentage *
+                                                vaultData.vp
+                                              ).toFixed(1)
+                                            : annualYieldPercentage.toFixed(1)
                                         )}
                                         %
                                       </span>
@@ -1898,103 +1912,109 @@ console.log("set vault portion",vaultPortion)
                                   : "No Yield Data Available"}
                               </span>
                               <div className="vault-data">
-                                  <div className="value-container">
-                                    <div className="value-element">
-                                      <PrizeValueIcon
-                                        size={20}
-                                        chainname={GetChainName(
-                                          activeVaultChain
-                                        )}
-                                      />
-                                      <PrizeValue
-                                        amount={BigInt(
-                                          Math.round(
+                                <div className="value-container">
+                                  <div className="value-element">
+                                    <PrizeValueIcon
+                                      size={20}
+                                      chainname={GetChainName(activeVaultChain)}
+                                    />
+                                    <PrizeValue
+                                      amount={BigInt(
+                                        Math.round(
+                                          parseFloat(vaultData.contributed24h) >
                                             parseFloat(
-                                              vaultData.contributed24h
-                                            ) >
+                                              vaultData.contributed7d
+                                            ) /
+                                              3
+                                            ? Number(vaultData.contributed24h) *
+                                                1e18 // Use 24h data
+                                            : parseFloat(
+                                                vaultData.contributed7d
+                                              ) > 0
+                                            ? Number(vaultData.contributed7d) *
+                                              1e18 // Use 7d data
+                                            : parseFloat(
+                                                vaultData.contributed28d
+                                              ) > 0
+                                            ? Number(vaultData.contributed28d) *
+                                              1e18 // Use 28d data as fallback
+                                            : 0 // Fallback to 0 if no contribution data is available
+                                        )
+                                      )}
+                                      size={20}
+                                      chainname={GetChainName(activeVaultChain)}
+                                    />
+                                  </div>
+                                  {prizeTokenPrice > 0 && assetPrice > 0 && (
+                                    <>
+                                      {(() => {
+                                        const contributed7d = Number(
+                                          vaultData.contributed7d
+                                        );
+                                        const contributed24h = Number(
+                                          vaultData.contributed24h
+                                        );
+                                        // Determine the effective contribution based on 24h, 7d, or 28d data
+                                        const effectiveContribution =
+                                          parseFloat(
+                                            vaultData.contributed7d
+                                          ) === 0 &&
+                                          parseFloat(
+                                            vaultData.contributed24h
+                                          ) === 0
+                                            ? parseFloat(
+                                                vaultData.contributed28d
+                                              ) / 4 // Use 28d / 4 if both 7d and 24h are 0
+                                            : parseFloat(
+                                                vaultData.contributed7d
+                                              ) === 0
+                                            ? parseFloat(
+                                                vaultData.contributed24h
+                                              ) * 7 // Use 24h contribution annualized if 7d is 0
+                                            : parseFloat(
+                                                vaultData.contributed24h
+                                              ) >
                                               parseFloat(
                                                 vaultData.contributed7d
                                               ) /
                                                 3
-                                              ? Number(
-                                                  vaultData.contributed24h
-                                                ) * 1e18 // Use 24h data
-                                              : parseFloat(
-                                                  vaultData.contributed7d
-                                                ) > 0
-                                              ? Number(
-                                                  vaultData.contributed7d
-                                                ) * 1e18 // Use 7d data
-                                              : parseFloat(
-                                                  vaultData.contributed28d
-                                                ) > 0
-                                              ? Number(
-                                                  vaultData.contributed28d
-                                                ) * 1e18 // Use 28d data as fallback
-                                              : 0 // Fallback to 0 if no contribution data is available
-                                          )
-                                        )}
-                                        size={20}
-                                        chainname={GetChainName(
-                                          activeVaultChain
-                                        )}
-                                      />
-                                    </div>
-                                    {prizeTokenPrice > 0 && assetPrice > 0 && (
-                                      <>
-                                        {(() => {
-                                          const contributed7d = Number(
-                                            vaultData.contributed7d
-                                          );
-                                          const contributed24h = Number(
-                                            vaultData.contributed24h
-                                          );
-                                          // Determine the effective contribution based on 24h, 7d, or 28d data
-                                          const effectiveContribution =
-                                          parseFloat(vaultData.contributed7d) === 0 &&
-                                          parseFloat(vaultData.contributed24h) === 0
-                                            ? parseFloat(vaultData.contributed28d) / 4 // Use 28d / 4 if both 7d and 24h are 0
-                                            : parseFloat(vaultData.contributed7d) === 0
-                                            ? parseFloat(vaultData.contributed24h) * 7 // Use 24h contribution annualized if 7d is 0
-                                            : parseFloat(vaultData.contributed24h) >
-                                              parseFloat(vaultData.contributed7d) / 3
-                                            ? parseFloat(vaultData.contributed24h) * 7 // Use 24h contribution if it's significantly higher than 7d
-                                            : parseFloat(vaultData.contributed7d); // Otherwise, use the 7d contribution
-                                        
-                                          // Annualize the effective contribution
-                                          const annualContribution =
-                                            effectiveContribution * (365/7)
+                                            ? parseFloat(
+                                                vaultData.contributed24h
+                                              ) * 7 // Use 24h contribution if it's significantly higher than 7d
+                                            : parseFloat(
+                                                vaultData.contributed7d
+                                              ); // Otherwise, use the 7d contribution
 
-                                          const totalAssets = Number(
-                                            ethers.utils.formatUnits(
-                                              vaultData.totalAssets,
-                                              vaultData.decimals
-                                            )
-                                          );
-                                          const contributionValue =
-                                            annualContribution *
-                                            prizeTokenPrice;
-                                          const totalAssetsValue =
-                                            totalAssets * assetPrice;
-                                          const percentage =
-                                            (contributionValue /
-                                              totalAssetsValue) *
-                                            100;
-                                          // console.log("contributed 24h",contributed24h,"prize tokens price",prizeTokenPrice,"contribution value",contributionValue)
-                                          // console.log("apr",percentage)
-                                          // console.log("total asset value",totalAssetsValue)
-                                          return (
-                                            <div className="value-element">
-                                              {`(${percentage.toFixed(
-                                                1
-                                              )}% APR)`}
-                                            </div>
-                                          );
-                                        })()}
-                                      </>
-                                    )}
-                                  </div>
-                            
+                                        // Annualize the effective contribution
+                                        const annualContribution =
+                                          effectiveContribution * (365 / 7);
+
+                                        const totalAssets = Number(
+                                          ethers.utils.formatUnits(
+                                            vaultData.totalAssets,
+                                            vaultData.decimals
+                                          )
+                                        );
+                                        const contributionValue =
+                                          annualContribution * prizeTokenPrice;
+                                        const totalAssetsValue =
+                                          totalAssets * assetPrice;
+                                        const percentage =
+                                          (contributionValue /
+                                            totalAssetsValue) *
+                                          100;
+                                        // console.log("contributed 24h",contributed24h,"prize tokens price",prizeTokenPrice,"contribution value",contributionValue)
+                                        // console.log("apr",percentage)
+                                        // console.log("total asset value",totalAssetsValue)
+                                        return (
+                                          <div className="value-element">
+                                            {`(${percentage.toFixed(1)}% APR)`}
+                                          </div>
+                                        );
+                                      })()}
+                                    </>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           )}

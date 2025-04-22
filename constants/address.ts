@@ -114,11 +114,11 @@ const ADDRESS: Addresses = {
         SYMBOL: "przWLD",
         NAME: "Prize WORLD",
         DECIMALS: 18,
-        ASSET: "",
+        ASSET: "0x2cFc85d8E48F8EAB294be644d9E25C3030863003",
         ASSETSYMBOL: "WLD",
         ICON: "https://assets.coingecko.com/coins/images/31069/standard/worldcoin.jpeg?1696529903",
         GECKO: "worldcoin-wld",
-        VAULTICON: "",
+        VAULTICON: "https://assets.coingecko.com/coins/images/31069/standard/worldcoin.jpeg?1696529903",
       },
     ],
     BOOSTERS: [
@@ -733,6 +733,7 @@ const ICONS: { [key: string]: string } = {
   based:
     "https://assets.coingecko.com/coins/images/39669/standard/BASED.jpg?1723603780",
   eurc: "https://assets.coingecko.com/coins/images/26045/standard/euro.png?1696525125",
+  world: "https://assets.coingecko.com/coins/images/31069/standard/worldcoin.jpeg?1696529903",
 };
 
 const WHITELIST_VAULTS = [
@@ -777,7 +778,7 @@ const WHITELIST_VAULTS = [
   "0xdd5e858c0aa9311c4b49bc8d35951f7f069ff46a", // morpho eurc
   "0xD56F6f32473D6321512956a1351D4BceC07914cb", // morpho eth
   "0x78adc13c9ab327c79d10cab513b7c6bd3b346858", // superOETHb
-  "0x8ad5959c9245b64173d4c0c3cd3ff66dac3cab0e", // wld
+  // "0x8ad5959c9245b64173d4c0c3cd3ff66dac3cab0e", // wld
   "0x0045cC66eCf34da9D8D89aD5b36cB82061c0907C", // pool on wld
 ];
 
