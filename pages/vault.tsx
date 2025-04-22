@@ -532,7 +532,7 @@ const Vault: React.FC<VaultProps> = ({
   useEffect(() => {
     async function fetchData() {
       if (!activeVaultAddress) return;
-  
+
       try {
         const normalizedActiveVaultAddress = activeVaultAddress.toLowerCase();
         const contract = new ethers.Contract(
@@ -541,12 +541,12 @@ const Vault: React.FC<VaultProps> = ({
           PROVIDERS[GetChainName(activeVaultChain)]
         );
         const userAddress = address || "";
-  
+
         // These may be filled from props or API
         let name, symbol, decimals, asset, liquidationPair, owner;
         let price, contributed7d, contributed24h, contributed28d;
         let won7d, prizes7d, prizesPerDraw7d, poolers, gnosis, status, tvl, vp;
-  
+
         // Try props first
         if (vaultPropData && Object.keys(vaultPropData).length > 0) {
           ({
@@ -568,7 +568,7 @@ const Vault: React.FC<VaultProps> = ({
             vp,
           } = vaultPropData);
         }
-  
+
         // Fallback to API
         if (!name || !symbol || !decimals || !asset || !owner || !price) {
           try {
@@ -606,7 +606,7 @@ const Vault: React.FC<VaultProps> = ({
             console.error("Vault API fetch failed:", apiError);
           }
         }
-  
+
         // Fallback to onchain
         let liquidationPairCalled = false;
         const vaultCalls = [];
@@ -614,7 +614,7 @@ const Vault: React.FC<VaultProps> = ({
         if (!symbol) vaultCalls.push(contract.symbol());
         if (!decimals) vaultCalls.push(contract.decimals());
         if (!asset) vaultCalls.push(contract.asset());
-  
+
         if (liquidationPair === undefined || liquidationPair === null) {
           try {
             liquidationPair = await contract.liquidationPair();
@@ -626,12 +626,12 @@ const Vault: React.FC<VaultProps> = ({
         }
         if (!owner) vaultCalls.push(contract.owner());
         if (!tvl) vaultCalls.push(contract.totalSupply());
-  
+
         try {
           const vaultResults = vaultCalls.length
             ? await Multicall(vaultCalls, GetChainName(activeVaultChain))
             : [];
-  
+
           let i = 0;
           if (!name) name = vaultResults[i++];
           if (!symbol) symbol = vaultResults[i++];
@@ -644,13 +644,13 @@ const Vault: React.FC<VaultProps> = ({
         } catch (err) {
           console.error("Vault multicall failed:", err);
         }
-  
+
         let yieldFeePercentage = ethers.BigNumber.from(0);
-try {
-  yieldFeePercentage = await contract.yieldFeePercentage();
-} catch (err) {
-  console.warn("yieldFeePercentage() not found, defaulting to 0");
-}
+        try {
+          yieldFeePercentage = await contract.yieldFeePercentage();
+        } catch (err) {
+          console.warn("yieldFeePercentage() not found, defaulting to 0");
+        }
 
         // Fetch asset + user-specific data
         const assetContract = new ethers.Contract(
@@ -663,23 +663,26 @@ try {
           ABI.TWABCONTROLLER,
           PROVIDERS[GetChainName(activeVaultChain)]
         );
-  
+
         const assetCalls = [
           assetContract.name(),
           assetContract.symbol(),
           twabControllerContract.totalSupplyDelegateBalance(activeVaultAddress),
           // contract.yieldFeePercentage(),
         ];
-  
+
         if (userAddress) {
           assetCalls.push(
             assetContract.balanceOf(userAddress),
             assetContract.allowance(userAddress, activeVaultAddress),
             contract.balanceOf(userAddress),
-            twabControllerContract.delegateBalanceOf(activeVaultAddress, userAddress)
+            twabControllerContract.delegateBalanceOf(
+              activeVaultAddress,
+              userAddress
+            )
           );
         }
-  
+
         let assetResults, assetPrice;
         try {
           [assetResults, assetPrice] = await Promise.all([
@@ -690,14 +693,14 @@ try {
           console.error("Asset multicall or price fetch failed:", err);
           return;
         }
-  
+
         setAssetPrice(assetPrice);
-  
+
         const assetName = assetResults[0].toString();
         const assetSymbol = assetResults[1].toString();
         const totalAssets = ethers.BigNumber.from(assetResults[2]);
         // const yieldFeePercentage = ethers.BigNumber.from(assetResults[3]);
-  
+
         let userAssetBalance = ethers.BigNumber.from(0);
         let userAssetAllowance = ethers.BigNumber.from(0);
         let userVaultBalance = ethers.BigNumber.from(0);
@@ -708,15 +711,14 @@ try {
           userVaultBalance = ethers.BigNumber.from(assetResults[5]);
           userDelegatedBalance = ethers.BigNumber.from(assetResults[6]);
         }
-        
-  
+
         const fetchedData: VaultData = {
           name: name.toString(),
           address: activeVaultAddress,
           symbol: symbol.toString(),
           decimals: Number(decimals),
           asset: asset.toString(),
-          liquidationPair: liquidationPair ? liquidationPair.toString() :"",
+          liquidationPair: liquidationPair ? liquidationPair.toString() : "",
           totalAssets,
           tvl,
           assetName,
@@ -735,13 +737,13 @@ try {
           prizesPerDraw7d,
           poolers,
           yieldFeePercentage: ethers.BigNumber.isBigNumber(yieldFeePercentage)
-          ? yieldFeePercentage
-          : ethers.BigNumber.from(yieldFeePercentage),
-                  gnosis,
+            ? yieldFeePercentage
+            : ethers.BigNumber.from(yieldFeePercentage),
+          gnosis,
           status,
           vp,
         };
-  
+
         setVaultData((prev) =>
           JSON.stringify(prev) !== JSON.stringify(fetchedData)
             ? fetchedData
@@ -752,10 +754,10 @@ try {
         setIsInvalidVault(true);
       }
     }
-  
+
     fetchData();
   }, [activeVaultAddress, address, router.isReady, refreshData]);
-  
+
   useEffect(() => {
     const defaultPrice =
       overviewFromContext?.overview?.prices?.geckos?.ethereum; // Default to ETH price
@@ -899,7 +901,7 @@ try {
   }
 
   const userWinChance = averageDaysToWin();
-return (
+  return (
     <Layout>
       <center>
         {/* <div  
@@ -1054,7 +1056,6 @@ return (
                   This vault is special access only
                 </div>
               )}
-
 
               {isInvalidVault ? (
                 <div className="error-message">Invalid Vault Address</div>
@@ -1743,7 +1744,8 @@ return (
                         )}
 
                       {activePromos &&
-                        vaultData && vaultData.vp &&
+                        vaultData &&
+                        vaultData.vp &&
                         (activePromos as { [key: string]: any[] })[
                           activeVaultAddress.toLowerCase()
                         ] &&
@@ -1837,7 +1839,7 @@ return (
                                           activePromo.meta
                                             ? (
                                                 annualYieldPercentage *
-                                                vaultData.vp
+                                                (vaultData.vp ?? 1)
                                               ).toFixed(1)
                                             : annualYieldPercentage.toFixed(1)
                                         )}
@@ -2021,8 +2023,9 @@ return (
                             </div>
                           )}
 
-                          {vaultData.yieldFeePercentage.gt(ethers.BigNumber.from(0))
- && (
+                          {vaultData.yieldFeePercentage.gt(
+                            ethers.BigNumber.from(0)
+                          ) && (
                             <div className="data-row">
                               <span className="vault-label">Yield Fee</span>
                               <span className="vault-data">

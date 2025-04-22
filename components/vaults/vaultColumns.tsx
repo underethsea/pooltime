@@ -184,8 +184,8 @@ export const getVaultColumns = (showStats: boolean): Column<VaultData>[] => [
     id: "tickets",
     accessor: (row) =>
       row.vaultBalance?.gt(0) ? row.formattedVaultBalance : 0,
-    Cell: ({ value, row }) => {
-      let display =
+    Cell: ({ value, row }: any) => {
+        let display =
         value > 0 ? (
           <>
             <span className="mobile-vault-header">
@@ -220,8 +220,8 @@ export const getVaultColumns = (showStats: boolean): Column<VaultData>[] => [
     Header: <div style={{ margin: "0px 30px 0px 0px" }}>Yield</div>,
     id: "yieldAndVaultAPR",
     accessor: (row) => (Number(row.vaultAPR) || 0) + (row.apr || 0) * 100,
-    Cell: ({ cell: { value }, row: { original } }) => {
-      const { vaultAPR, apr, incentiveSymbol } = original;
+    Cell: ({ cell: { value }, row: { original } }: any) => {
+        const { vaultAPR, apr, incentiveSymbol } = original;
       return (
         <div className="hidden-mobile">
           <VaultYieldTooltip
@@ -238,8 +238,8 @@ export const getVaultColumns = (showStats: boolean): Column<VaultData>[] => [
     Header: "Deposits & TVL",
     id: "depositsAndTVL",
     accessor: (row) => row,
-    Cell: ({ value }) => {
-      const { totalSupply, depositsEthValue, depositsEthBigInt } = value;
+    Cell: ({ value }: { value: any }) => {
+        const { totalSupply, depositsEthValue, depositsEthBigInt } = value;
       return (
         <div style={{ textAlign: "right" }}>
           <div>
