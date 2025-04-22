@@ -734,8 +734,10 @@ try {
           prizes7d,
           prizesPerDraw7d,
           poolers,
-          yieldFeePercentage,
-          gnosis,
+          yieldFeePercentage: ethers.BigNumber.isBigNumber(yieldFeePercentage)
+          ? yieldFeePercentage
+          : ethers.BigNumber.from(yieldFeePercentage),
+                  gnosis,
           status,
           vp,
         };
@@ -2019,7 +2021,8 @@ return (
                             </div>
                           )}
 
-                          {vaultData.yieldFeePercentage.gt(0) && (
+                          {vaultData.yieldFeePercentage.gt(ethers.BigNumber.from(0))
+ && (
                             <div className="data-row">
                               <span className="vault-label">Yield Fee</span>
                               <span className="vault-data">
