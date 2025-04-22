@@ -4,23 +4,21 @@ import { vaultsAPIFormatted } from "../utils/vaultsFromConstantsAdapter";
 // import { useRouter } from "next/router";
 import { ethers } from "ethers";
 import { useTable, useSortBy, useGlobalFilter } from "react-table";
-import { Column } from "react-table";
 import { PROVIDERS } from "../constants/providers";
 import { ABI } from "../constants/constants";
 import { Multicall } from "../utils/multicall";
 import { CropDecimals, NumberWithCommas } from "../utils/tokenMaths";
+import { getVaultColumns } from "../components/vaults/vaultColumns";
 // import VaultModal from "../components/vaultModal.tsx.OLD";
 // import Layout from ".";
 import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCircleInfo,
-  faTicket,
   faSquareArrowUpRight,
   faArrowAltCircleUp,
   faArrowAltCircleDown,
   faStar,
-  faCropSimple,
 } from "@fortawesome/free-solid-svg-icons";
 // import { FetchPriceForAsset } from "../utils/tokenPrices";
 import { GetActivePromotionsForVaults } from "../utils/getActivePromotions";
@@ -31,7 +29,7 @@ import { GetChainName } from "../utils/getChain";
 import PrizeIcon from "../components/prizeIcon";
 import IconDisplay from "../components/icons";
 import PrizeInPool from "../components/prizeInPool";
-import ChainTag from "../components/chainTag";
+// import ChainTag from "../components/chainTag";
 import PrizeValueIcon from "../components/prizeValueIcon";
 import PrizeValue from "../components/prizeValue";
 import Link from "next/link";
@@ -65,6 +63,11 @@ type VaultData = {
   assetSymbol: string;
   status?: number;
   c: number;
+  formattedAssetBalance?: string;
+  numericAssetBalance?: number;
+  formattedVaultBalance?: string;
+  numericVaultBalance?: number;
+  depositsEthBigInt: number;
 };
 
 type VaultsByChain = {
@@ -254,14 +257,10 @@ const sortData = (data: any, geckoPrices: any, assetPrices: any) => {
 
     const tokenBalance =
       vault.assetBalance && vault.status !== 1
-        ? parseFloat(
-            ethers.utils.formatUnits(vault.assetBalance, vault.decimals)
-          )
+        ? vault.formattedAssetBalance
         : 0;
 
-    const ticketBalance = vault.vaultBalance
-      ? parseFloat(ethers.utils.formatUnits(vault.vaultBalance, vault.decimals))
-      : 0;
+    const ticketBalance = vault.vaultBalance ? vault.formattedVaultBalance : 0;
 
     return {
       ...vault,
@@ -310,7 +309,7 @@ const sortData = (data: any, geckoPrices: any, assetPrices: any) => {
 
 function AllVaults() {
   const [showStats, setShowStats] = useState(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       return window.innerWidth < 501;
     }
     return false;
@@ -482,289 +481,7 @@ function AllVaults() {
       </div>
     );
   }, []);
-
-  const columns: Column<VaultData>[] = useMemo(
-    () => [
-      {
-        Header: "Vault",
-        id: "vaults",
-        accessor: "name",
-        Cell: ({ row }) => {
-          const { name, poolers, c, vaultAPR, apr } = row.original;
-          // value now directly contains the totalYield computed by the accessor
-          // original contains the full data of the row
-          const displayValue =
-            name.length >= 25
-              ? name.substring(0, 22) + "..."
-              : name.substring(0, 28);
-          const mobileDisplayValue =
-            name.length >= 15 ? name.substring(0, 24) : name.substring(0, 15);
-
-          return (
-            <div>
-              {/* <ChainTag chainId={c}/>&nbsp; */}
-              <ChainTag chainId={c} />
-              {name.startsWith("Prize ") || name.startsWith("PoolTogether") ? ( // Updated condition to check for both "Prize" and "PoolTogether"
-                <>
-                  &nbsp;
-                  <span style={{ marginLeft: "-15px" }}>
-                    <IconDisplay
-                      name={
-                        name.startsWith("Prize ")
-                          ? name.substring(6)
-                          : name.substring(13)
-                      }
-                    />{" "}
-                    {/* Adjusted to handle both cases */}
-                  </span>{" "}
-                  <span className="hidden-mobile">
-                    {displayValue.substring(name.startsWith("Prize ") ? 6 : 13)}{" "}
-                    {/* Adjusted to handle both cases */}
-                  </span>
-                  <span className="hidden-desktop">
-                    {mobileDisplayValue.substring(
-                      name.startsWith("Prize ") ? 6 : 13
-                    )}{" "}
-                    {/* Adjusted to handle both cases */}
-                  </span>
-                  <FontAwesomeIcon
-                    icon={faSquareArrowUpRight}
-                    size="sm"
-                    style={{
-                      color: "#1a4160",
-                      height: "15px",
-                      paddingLeft: "9px",
-                    }}
-                    className="hidden-mobile"
-                  />
-                  <span className="hidden-desktop">
-                    <div style={{ 
-                      display: 'flex', 
-                      justifyContent: 'space-between', 
-                      alignItems: 'center',
-                      marginTop: '3px',
-                      paddingLeft: '15px'
-                    }}>
-                      <div className="vaults-font-small">
-                        <span>{poolers} poolers</span>
-                      </div>
-                      <span>
-                        {vaultAPR !== undefined && apr !== undefined && (
-                          <>
-                            {(Number(vaultAPR || 0) + Number(apr * 100)).toFixed(1)}%
-                            <span>&nbsp;APR</span>
-                          </>
-                        )}
-                      </span>
-                    </div>
-                  </span>
-                </>
-              ) : (
-                <span>
-                  <span className="hidden-mobile">{displayValue}</span>
-                  <span className="hidden-desktop">{mobileDisplayValue}</span>
-                  <FontAwesomeIcon
-                    icon={faSquareArrowUpRight}
-                    size="sm"
-                    style={{
-                      color: "#1a4160",
-                      height: "15px",
-                      paddingLeft: "9px",
-                    }}
-                    className="hidden-mobile"
-                  />
-                  {/* {!showStats && <>&nbsp;&nbsp;&nbsp;&nbsp;<ChainTag chainId={c} /></>} */}
-                </span>
-              )}
-              {showStats && (
-                <div className="vaults-font-small hidden-mobile">
-                  &nbsp;&nbsp;&nbsp;
-                  {/* <ChainTag chainId={c} /> */}
-                  <span
-                    className="hidden-mobile"
-                    style={{ verticalAlign: "middle", marginLeft: "30px" }}>
-                    {poolers > 0 && <>{poolers} poolers</>}
-                    </span>
-
-                </div>
-              )}
-            </div>
-          );
-        },
-      },
-
-      {
-        Header: <div style={{ margin: "0px 0px 0px 30px" }}>Your Tokens</div>,
-        id: "tokens",
-        accessor: "apr",
-        Cell: ({ row }) => {
-          const { assetBalance, decimals, assetSymbol, status } = row.original;
-          // Convert BigNumber to string for display
-          const assetBalanceDisplay =
-            assetBalance && assetBalance.gt(0) && status !== 1 ? (
-              <div className="token-container-outer">
-                <span className="hidden-mobile">
-                <div className="token-container">
-                  
-                    <div className="token-icon-box">
-                      <IconDisplay name={assetSymbol} size={20} />
-                      {NumberWithCommas(
-                      CropDecimals(
-                      ethers.utils.formatUnits(assetBalance, decimals)
-                    )
-                    )}
-                  </div>
-                  &nbsp;<div className="animated deposit-button">DEPOSIT</div>
-                   
-                </div>
-                </span>               
-                <span className="hidden-desktop">
-                <div className="token-container-mobile">
-                
-                <div className="animated deposit-button-mobile">DEPOSIT</div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }} className="hidden-desktop">
-                  <span style={{ textAlign: 'right' }}>
-                  <div className="token-icon-box hidden-desktop">
-                    <IconDisplay name={assetSymbol} size={20} />
-                    &nbsp;
-                    {NumberWithCommas(
-                      CropDecimals(
-                        ethers.utils.formatUnits(assetBalance, decimals)
-                      )
-                    )}
-                  </div>
-                  </span>
-                </div>
-                
-                </div>
-                </span>
-              </div>
-            ) : (
-              ""
-            );
-
-          return (
-            <div>
-              <div className="token-cell">
-                {assetBalance && assetBalance.gt(0) && (
-                  <>
-                    <span>{assetBalanceDisplay}</span>
-                  </>
-                )}
-              </div>
-            </div>
-          );
-        },
-      },
-      {
-        Header: <div style={{ margin: "0px 0px 0px 30px" }}>Your Tickets</div>,
-        id: "tickets",
-        accessor: (row) => {
-          // Convert BigNumber to a sortable format (number or string)
-          // Assuming row.vaultBalance is a BigNumber and row.decimals is an integer
-          if (
-            typeof row.vaultBalance === "object" &&
-            typeof row.vaultBalance.gt === "function"
-          ) {
-            return row.vaultBalance.gt(0)
-              ? parseFloat(
-                  ethers.utils.formatUnits(row.vaultBalance, row.decimals)
-                )
-              : 0;
-          }
-        },
-        // @ts-ignore
-        Cell: ({ value, row }) => {
-          const { decimals, assetSymbol } = row.original;
-          let display =
-            value > 0 ? ( // Since value is now a number, compare with 0
-              <>
-                <span className="mobile-vault-header">
-                  Your Tickets<br></br>
-                </span>
-                <div style={{ display: 'flex' }} className="tickets-container">
-                  <span className="column-tickets" style={{ textAlign: 'right' }}>
-                    <FontAwesomeIcon
-                      icon={faTicket}
-                      size="sm"
-                      style={{
-                        color: "#1a4160",
-                        height: "17px",
-                        marginRight: "3px",
-                      }}
-                    />
-                    &nbsp;
-                    {NumberWithCommas(
-                      CropDecimals(
-                        ethers.utils.formatUnits(
-                          row.original.vaultBalance,
-                          decimals
-                        )
-                      )
-                    )}
-                  </span>
-                </div>
-              </>
-            ) : (
-              ""
-            );
-          return <div>{display}</div>;
-        },
-      },
-
-      {
-        Header: <div style={{ margin: "0px 30px 0px 0px" }}>Yield</div>,
-        id: "yieldAndVaultAPR",
-        accessor: (row) => (Number(row.vaultAPR) || 0) + (row.apr || 0) * 100, // Directly return the computed number
-        // screw you typescript
-        // @ts-ignore
-        Cell: ({ cell: { value }, row: { original } }) => {
-          // value now directly contains the totalYield computed by the accessor
-          // original contains the full data of the row
-          const { vaultAPR, apr, incentiveSymbol } = original; // Getting vaultAPR and apr from the original row data
-
-          return (
-            <div className="hidden-mobile">
-              {/* Pass the correct props to Tooltip */}
-              <VaultYieldTooltip
-                vaultAPR={vaultAPR}
-                apr={apr}
-                total={value}
-                symbol={incentiveSymbol}
-              />
-            </div>
-          );
-        },
-      },
-
-      {
-        Header: "Deposits & TVL",
-        id: "depositsAndTVL",
-        accessor: (row) => row,
-        Cell: ({ value }: { value: any }) => {
-          const { totalSupply, depositsDollarValue, depositsEthValue } = value;
-          return (
-            <div style={{ textAlign: "right" }}>
-              <div>{totalSupply}</div>
-              <div className="vaults-font-small">
-                {depositsEthValue > 0 && (
-                  <>
-                    <PrizeValueIcon size={16} />
-                    <PrizeValue
-                      amount={BigInt(Math.round(parseFloat(depositsEthValue)))}
-                      size={16}
-                      rounded={true}
-                    />
-                  </>
-                )}
-              </div>
-            </div>
-          );
-        },
-      },
-    ],
-    [showStats]
-  );
+  const columns = useMemo(() => getVaultColumns(showStats), [showStats]);
 
   const tableInstance = useTable<VaultData>(
     { columns, data: filteredVaults },
@@ -785,7 +502,7 @@ function AllVaults() {
         let pricesFetch: Response | null = null;
         let prices = { geckos: {}, assets: {} };
         let vaults: VaultData[] = vaultsAPIFormatted as any; // Default to static data
-        
+
         try {
           // Fetch both vaults and prices
           [vaultsResponse, pricesFetch] = await Promise.all([
@@ -795,7 +512,7 @@ function AllVaults() {
         } catch (error) {
           console.error("Error during API fetch:", error);
         }
-        
+
         // Handle `pricesFetch` response
         if (pricesFetch && pricesFetch.ok) {
           try {
@@ -810,8 +527,8 @@ function AllVaults() {
             }`
           );
         }
-        const geckoPrices:any = prices.geckos;
-        const assetPrices:any = prices.assets;
+        const geckoPrices: any = prices.geckos;
+        const assetPrices: any = prices.assets;
         // Handle `vaultsResponse` response
         if (vaultsResponse && vaultsResponse.ok) {
           try {
@@ -822,11 +539,13 @@ function AllVaults() {
         } else {
           console.log(
             `Failed to fetch vaults. ${
-              vaultsResponse ? `Status: ${vaultsResponse.status}` : "No response"
+              vaultsResponse
+                ? `Status: ${vaultsResponse.status}`
+                : "No response"
             }. Using static data.`
           );
         }
-          if(true){
+        if (true) {
           const tvlApiValues = vaults.reduce((acc: any, vault: any) => {
             acc[vault.vault] = parseFloat(vault.tvl);
             return acc;
@@ -837,7 +556,13 @@ function AllVaults() {
           // console.log("vault addresses", vaultAddresses);
           const [promotionsResult, multicallResults] = await Promise.allSettled(
             [
-              GetActivePromotionsForVaults(vaultAddresses, true, prices,false,""),
+              GetActivePromotionsForVaults(
+                vaultAddresses,
+                true,
+                prices,
+                false,
+                ""
+              ),
               Promise.all(
                 groupVaultsByChain(vaults).map(
                   async ({
@@ -1032,13 +757,16 @@ function AllVaults() {
               //   depositsDelegateDollarvalue
               // );
               if (depositsDollarValue > 0 && effectiveContribution > 0) {
-                const calculatedAPR = (((365 / 7) * effectiveContribution * prizeTokenPriceValue) /
-                  depositsDelegateDollarvalue) * 100;
-                
+                const calculatedAPR =
+                  (((365 / 7) * effectiveContribution * prizeTokenPriceValue) /
+                    depositsDelegateDollarvalue) *
+                  100;
+
                 // Only set vaultAPR if it's a finite number and not too large
-                vaultAPR = isFinite(calculatedAPR) && calculatedAPR < 1000000 ? 
-                  calculatedAPR.toFixed(2) : 
-                  null;
+                vaultAPR =
+                  isFinite(calculatedAPR) && calculatedAPR < 1000000
+                    ? calculatedAPR.toFixed(2)
+                    : null;
               }
             }
             won7d = vault.won7d;
@@ -1105,6 +833,12 @@ function AllVaults() {
               depositsEthValue: ethValue
                 ? Math.round(ethValue * 1e18).toString()
                 : "0",
+              depositsEthBigInt: Math.round(
+                parseFloat(
+                  ethValue ? Math.round(ethValue * 1e18).toString() : "0"
+                )
+              ),
+
               contributed7d,
               contributed24h,
               won7d,
@@ -1182,10 +916,21 @@ function AllVaults() {
         ({ balances, chainVaults }) =>
           chainVaults.map((vault) => {
             const balance = balances[vault.vault.toLowerCase()];
+            const formattedAssetBalance = balance.tokenBalance
+              ? ethers.utils.formatUnits(balance.tokenBalance, vault.decimals)
+              : "0";
+            const numericAssetBalance = parseFloat(formattedAssetBalance);
+
+            const formattedVaultBalance = balance.vaultBalance
+              ? ethers.utils.formatUnits(balance.vaultBalance, vault.decimals)
+              : "0";
+            const numericVaultBalance = parseFloat(formattedVaultBalance);
             return {
               ...vault,
               assetBalance: balance ? balance.tokenBalance : null, // Add token balance
               vaultBalance: balance ? balance.vaultBalance : null, // Add vault balance
+              formattedAssetBalance,
+              formattedVaultBalance,
             };
           })
       );
@@ -1379,7 +1124,11 @@ function AllVaults() {
                         <div key={chainId}>
                           {GetChainName(Number(chainId))}&nbsp;&nbsp;
                           <PrizeValueIcon size={15} />
-                          <PrizeValue amount={BigInt(tvl)} size={15} rounded={true} />
+                          <PrizeValue
+                            amount={BigInt(tvl)}
+                            size={15}
+                            rounded={true}
+                          />
                           {/* $ {NumberWithCommas(tvl.toFixed(0))} */}
                         </div>
                       ))}
@@ -1437,7 +1186,11 @@ function AllVaults() {
                         <div key={chainId}>
                           {GetChainName(Number(chainId))}&nbsp;&nbsp;
                           <PrizeValueIcon size={15} />
-                          <PrizeValue amount={BigInt(tvl)} size={15} rounded={true}/>
+                          <PrizeValue
+                            amount={BigInt(tvl)}
+                            size={15}
+                            rounded={true}
+                          />
                           {/* $ {NumberWithCommas(tvl.toFixed(0))} */}
                         </div>
                       ))}
@@ -1583,7 +1336,8 @@ function AllVaults() {
                   prepareRow(row);
                   const shouldShowVault = WHITELIST_VAULTS.map((vault) =>
                     vault.toLowerCase()
-                  ).includes(row.original.vault.toLowerCase());
+                  ).includes(row.original.vault.toLowerCase()) || 
+                  (row.original.vaultBalance && !row.original.vaultBalance.isZero());
 
                   if (shouldShowVault || showAllVaults) {
                     return (

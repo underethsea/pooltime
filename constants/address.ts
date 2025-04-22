@@ -738,7 +738,7 @@ const ICONS: { [key: string]: string } = {
 
 const WHITELIST_VAULTS = [
   "0x1f16d3ccf568e96019cedc8a2c79d2ca6257894e",
-  "0x03d3ce84279cb6f54f5e6074ff0f8319d830dafe",
+  "0x03d3ce84279cb6f54f5e6074ff0f8319d830dafe", // usdc op 
   "0xa52e38a9147f5ea9e0c5547376c21c9e3f3e5e1f",
   "0x2998c1685e308661123f64b333767266035f5020",
   "0x3e8dbe51da479f7e8ac46307af99ad5b4b5b41dc",
@@ -772,7 +772,7 @@ const WHITELIST_VAULTS = [
   "0x9ee31e845ff1358bf6b1f914d3918c6223c75573", // pool ethereum
   "0x29499e2eb8ff1d076a35c275aeddd613afb1fa9b", // pool scroll
   "0xb75af20ecadabed9049cc2f50e38bad2768b35cf", // ppool gnosis
-  "0xbb7e99abccce01589ad464ff698ad139b0705d90",
+  "0xbb7e99abccce01589ad464ff698ad139b0705d90", // DAI op
   "0x11271bF9855B679Bc484a0C80a69D8cc72fcEf89", // wineth
   "0xada66220fe59c7374ea6a93bd211829d5d0af75d", // morpho usdc
   "0xdd5e858c0aa9311c4b49bc8d35951f7f069ff46a", // morpho eurc
