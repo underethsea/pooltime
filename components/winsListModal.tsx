@@ -168,6 +168,7 @@ const WinsListModal: React.FC<WinsModalProps> = ({
               <PrizeValue
                 amount={calculateTotalAmountWon(sortedWins,overview)}
                 size={28}
+                rounded={true}
               />
               </div>
             </h2>
@@ -208,7 +209,7 @@ const WinsListModal: React.FC<WinsModalProps> = ({
                   </div>
                   <div style={styles.cellRightAlign}>
                     <PrizeValueIcon size={19}  chainname={GetChainName(win.network)}/>
-                    <PrizeValue amount={BigInt(win.totalPayout)} size={19} chainname={GetChainName(win.network)}/>
+                    <PrizeValue amount={BigInt(win.totalPayout)} size={19} chainname={GetChainName(win.network)} rounded={true}/>
                   </div>
                 </div>
               ))}

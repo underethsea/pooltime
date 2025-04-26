@@ -36,40 +36,13 @@ import Link from "next/link";
 import { GetChainIcon } from "../utils/getChain";
 import { WHITELIST_REWARDS, WHITELIST_VAULTS } from "../constants/address";
 import { useOverview } from "../components/contextOverview";
+import { VaultData,sortData,getTVLPerChain,calculateTotalAndPerChainTVL,groupVaultsByChain } from "../utils/vaultHelpers";
 interface YieldTooltipProps {
   vaultAPR?: number; // Optional number
   apr?: number; // Optional number
   total?: number; // Optional number
   symbol?: string;
 }
-// console.log("api formatted", vaultsAPIFormatted);
-type VaultData = {
-  name: string;
-  poolers: number;
-  totalSupply: string;
-  depositsDollarValue?: string;
-  depositsEthValue?: string;
-  vault: string;
-  decimals: number;
-  symbol: string;
-  contributed7d: string; // add this line
-  contributed24h: string;
-  apr: number;
-  vaultAPR?: string;
-  won7d: string;
-  asset: string;
-  assetBalance: ethers.BigNumber;
-  vaultBalance: ethers.BigNumber;
-  assetSymbol: string;
-  status?: number;
-  c: number;
-  formattedAssetBalance?: string;
-  numericAssetBalance?: number;
-  formattedVaultBalance?: string;
-  numericVaultBalance?: number;
-  depositsEthBigInt: number;
-};
-
 type VaultsByChain = {
   chainId: number;
   vaults: VaultData[];
@@ -103,47 +76,6 @@ const initialChains = Object.keys(ADDRESS).map((chainName) => {
   };
 });
 
-const getTVLPerChain = (vaults: VaultData[]) => {
-  return vaults.reduce((acc: any, vault: any) => {
-    const chainId = vault.c;
-    const rawValue = vault.depositsEthValue;
-    if (rawValue) {
-      // const cleanedValue = rawValue.replace(/[$,]/g, ""); // Remove $ and commas
-      const parsedValue = parseFloat(rawValue);
-      if (!isNaN(parsedValue)) {
-        if (!acc[chainId]) {
-          acc[chainId] = 0;
-        }
-        acc[chainId] += parsedValue;
-      }
-    }
-    return acc;
-  }, {});
-};
-
-const calculateTotalAndPerChainTVL = (vaults: VaultData[]) => {
-  // Extract chain IDs from ADDRESS
-  const chainIds = Object.values(ADDRESS).map((chain) => chain.CHAINID);
-
-  // Calculate TVL per chain
-  const tvlPerChain: any = getTVLPerChain(vaults);
-
-  // Filter TVL per chain to include only those in ADDRESS
-  const filteredTVLPerChain: any = {};
-  for (const chainId of chainIds) {
-    if (tvlPerChain[chainId] !== undefined) {
-      filteredTVLPerChain[chainId] = tvlPerChain[chainId];
-    }
-  }
-
-  // Calculate total TVL
-  const totalTVL = Object.values(filteredTVLPerChain).reduce(
-    (total: any, tvl: any) => total + tvl,
-    0
-  );
-
-  return { totalTVL, tvlPerChain: filteredTVLPerChain };
-};
 
 const hasTokens = (vaults: VaultData[]) => {
   return vaults.some(
@@ -156,23 +88,6 @@ const hasTickets = (vaults: VaultData[]) => {
     (vault) => vault.vaultBalance && !vault.vaultBalance.isZero()
   );
 };
-
-function groupVaultsByChain(vaultData: VaultData[]): VaultsByChain[] {
-  const groupedByChain: { [chainId: number]: VaultData[] } = {};
-
-  vaultData.forEach((vault: VaultData) => {
-    const chainId = vault.c;
-    if (!groupedByChain[chainId]) {
-      groupedByChain[chainId] = [];
-    }
-    groupedByChain[chainId].push(vault);
-  });
-
-  return Object.entries(groupedByChain).map(([chainId, vaults]) => ({
-    chainId: Number(chainId), // Convert chainId to number
-    vaults,
-  }));
-}
 
 const VaultYieldTooltip: React.FC<YieldTooltipProps> = ({
   vaultAPR,
@@ -243,69 +158,7 @@ const VaultYieldTooltip: React.FC<YieldTooltipProps> = ({
     ""
   );
 };
-const sortData = (data: any, geckoPrices: any, assetPrices: any) => {
-  // Return unsorted data if assetPrices is not populated yet
-  if (!assetPrices) {
-    console.log("Asset prices not loaded.");
-    return data;
-  }
 
-  // Pre-calculate `tokenValue` and `ticketValue` to sort on
-  const dataWithValues = data.map((vault: any) => {
-    const chainName = GetChainName(vault.c);
-    const price = assetPrices[chainName]?.[vault.asset.toLowerCase()] ?? 0;
-
-    const tokenBalance =
-      vault.assetBalance && vault.status !== 1
-        ? vault.formattedAssetBalance
-        : 0;
-
-    const ticketBalance = vault.vaultBalance ? vault.formattedVaultBalance : 0;
-
-    return {
-      ...vault,
-      tokenValue:
-        tokenBalance > 0 && price === 0 ? Number.EPSILON : tokenBalance * price,
-      ticketValue:
-        ticketBalance > 0 && price === 0
-          ? Number.EPSILON
-          : ticketBalance * price,
-    };
-  });
-
-  // Sort by contributed value
-  const sortedByContributed = dataWithValues.sort((a: any, b: any) => {
-    const chainNameA = GetChainName(a.c);
-    const chainNameB = GetChainName(b.c);
-
-    const prizeTokenGeckoA =
-      ADDRESS[chainNameA]?.PRIZETOKEN?.GECKO || "ethereum";
-    const prizeTokenGeckoB =
-      ADDRESS[chainNameB]?.PRIZETOKEN?.GECKO || "ethereum";
-
-    const prizeTokenPriceA =
-      geckoPrices[prizeTokenGeckoA] || geckoPrices["ethereum"];
-    const prizeTokenPriceB =
-      geckoPrices[prizeTokenGeckoB] || geckoPrices["ethereum"];
-
-    const contributedA = parseFloat(a.contributed7d) * prizeTokenPriceA;
-    const contributedB = parseFloat(b.contributed7d) * prizeTokenPriceB;
-
-    return contributedB - contributedA;
-  });
-
-  // Sort by token value
-  const sortedByTokenValue = sortedByContributed.sort((a: any, b: any) => {
-    return b.tokenValue - a.tokenValue;
-  });
-
-  // Finally, sort by ticket value
-  const sortedByTicketValue = sortedByTokenValue.sort((a: any, b: any) => {
-    return b.ticketValue - a.ticketValue;
-  });
-
-  return sortedByTicketValue;
-};
 
 function AllVaults() {
   const [showStats, setShowStats] = useState(() => {

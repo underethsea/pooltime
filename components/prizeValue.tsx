@@ -56,9 +56,15 @@ if (currency === 'ETH') {
     // If currency is USD
     if (currency === 'USD') {
       const usdValue = parseFloat(tokenValue) * (isWeth || !chainname ? ethPrice : (overview?.prices.geckos[prizeTokenGeckoId] || 0));
-      return rounded
-        ? `${CropDecimals(usdValue, true)}`
-        : `${NumberWithCommas(CropDecimals(usdValue))}`;
+      if (rounded) {
+        // Force 2 decimals and still apply commas
+        if(usdValue < 1000) {
+        return `${NumberWithCommas(Number(usdValue).toFixed(2))}`}
+        else{
+        return `${NumberWithCommas(Number(usdValue).toFixed(0))}`}
+      } else {
+        return `${NumberWithCommas(CropDecimals(usdValue))}`;
+      }
     }
 
     // Default formatting

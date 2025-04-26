@@ -35,8 +35,18 @@ export function NumberWithCommas(number: string) {
             return Number(absNum.toFixed(1)).toString(); // One decimal for 0.1 to 0.99
         } else if (absNum >= 0.01) {
             return Number(absNum.toFixed(2)).toString(); // Two decimals for 0.01 to 0.099
-        } else {
-            return "<0.01"; // Less than 0.01
+        } 
+        else if (absNum >= 0.001) {
+            return Number(absNum.toFixed(3)).toString(); // Two decimals for 0.01 to 0.099
+        } 
+        else if (absNum >= 0.0001) {
+            return Number(absNum.toFixed(4)).toString(); // Two decimals for 0.01 to 0.099
+        } 
+        else if (absNum >= 0.00001) {
+            return Number(absNum.toFixed(5)).toString(); // Two decimals for 0.01 to 0.099
+        } 
+        else {
+            return "<0.00001"; // Less than 0.01
         }
     } else {
         if (absNum > 99) {
