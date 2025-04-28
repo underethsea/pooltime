@@ -86,37 +86,40 @@ const PrizeInPool: React.FC = () => {
   return (
     <>
       {totalPrizeInDollars > 0 && (
-        <div style={{ fontSize: "22px", display: "inline-block" }}>
-          <span className="hidden-mobile">PRIZES&nbsp;&nbsp;</span>
-          <span className="hidden-desktop">SAVE TO WIN&nbsp;&nbsp;</span>
-          <span
-            style={{
-              margin: "0",
-              fontSize: "27px",
-              display: "inline-block",
-              color: "white",
-              textShadow: "0 0 5px #a3a7ea",
-            }}
-            onClick={toggleModal}
-          >
-            <PrizeValueIcon size={22} />
-            <PrizeValue amount={BigInt(totalPrize * 1e18)} size={30} rounded={true}/>
-          </span>
-          &nbsp;
-          <FontAwesomeIcon
-      icon={faCircleInfo}
-      style={{ color: "#ebeeef", height: "16px", cursor: "pointer", }}
-      onClick={toggleModal}
-    />
-          {/* <Image
-            src="/images/moreInfo.svg"
-            alt="i"
-            width={19}
-            height={19}
-            onClick={toggleModal}
-            style={{ cursor: "pointer" }}
-          /> */}
+        <div style={{ fontSize: "32px", display: "inline-block", color: "white" }}>
           
+          <span style={{ fontSize: "42px", verticalAlign: "middle" }} className="hidden-mobile">
+            <PrizeValueIcon size={42} />
+            
+              <PrizeValue amount={BigInt(totalPrize * 1e18)} size={42}/>&nbsp;
+            
+            <span style={{ fontSize: "24px", verticalAlign: "middle" }}> IN PRIZES </span>
+            <FontAwesomeIcon
+              icon={faCircleInfo}
+              style={{ 
+                color: "white", 
+                height: "20px", 
+                cursor: "pointer",
+                verticalAlign: "middle"
+              }}
+              onClick={toggleModal}
+            />
+            </span>
+          <span className="hidden-desktop" style={{ fontSize: "22px" }}>
+            SAVE TO WIN&nbsp;&nbsp;
+            <PrizeValueIcon size={22} />
+            <PrizeValue amount={BigInt(totalPrize * 1e18)} size={28} rounded={true}/>
+            <FontAwesomeIcon
+              icon={faCircleInfo}
+              style={{ 
+                color: "white", 
+                height: "16px", 
+                cursor: "pointer",
+                verticalAlign: "middle"
+              }}
+              onClick={toggleModal}
+            />
+          </span>
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         </div>
       )}

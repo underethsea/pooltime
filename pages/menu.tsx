@@ -232,7 +232,27 @@ export const Menu = () => {
       )}
 
       {!isMobile && (
-        <ul style={{ display: "flex", listStyle: "none", padding: 0 }}>
+        <ul style={{ display: "flex", listStyle: "none", padding: 0, alignItems: "center" }}>
+        <li style={{ marginRight: "20px", display: "flex", alignItems: "center" }}>
+          <Link href="/">
+            <a style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+              <Image
+                src={`/images/squarepool.png`}
+                height={37}
+                width={37}
+                alt="pool party"
+              />
+              <span style={{ 
+                marginLeft: "10px", 
+                color: "white", 
+                fontSize: "20px",
+                fontWeight: "bold"
+              }}>
+                POOLTIME
+              </span>
+            </a>
+          </Link>
+        </li>
           {menuItems.map((item, index) =>
             item.show !== false && !item.showMobileOnly ? (
               <li key={index} className={`main-menu-item ${item.label.includes("Change currency") ? "hide-regular-currency-toggle" : ""}`} style={{ margin: "0 10px", position: "relative" }}>
