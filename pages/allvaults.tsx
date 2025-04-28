@@ -1253,17 +1253,9 @@ function AllVaults() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            marginBottom: "20px"
           }}>
-          <Image
-            src={`/images/squarepool.png`}
-            height={90}
-            width={90}
-            alt="pool party"
-          />
-          &nbsp;&nbsp;
-          <h1 style={{ margin: "0 0 0 10px", lineHeight: "120px" }}>
-            POOLTIME
-          </h1>
+          {!isLoading && <PrizeInPool />}
         </div>
       </div>
       <br></br>
@@ -1335,7 +1327,7 @@ function AllVaults() {
                 borderRadius: "10px",
                 padding: "5px 8px 5px 8px",
               }}>
-              {!isLoading && <PrizeInPool />}
+              
               {tvl && !isLoading && !showStats && (
                 <div className="more">
                   <span

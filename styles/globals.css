@@ -2420,3 +2420,29 @@ padding:15px;
     justify-content: flex-end; /* Only flex-end for mobile */
   }
 }
+
+/* Add to your global CSS or component styles */
+.vaults-header-container {
+  margin-top: 20px; /* Add some space below the menu bar */
+}
+
+@media (max-width: 900px) {
+  .vaults-header-container {
+    margin-top: 0; /* Remove margin on mobile */
+  }
+}
+
+.vault-search-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px; /* Add space between search and chain toggles */
+}
+
+.vaultsearch {
+  flex: 0 1 auto; /* Allow search to shrink but not grow */
+}
+
+.vaults-chain-toggle {
+  flex: 0 0 auto; /* Don't allow chain toggle to grow or shrink */
+}
