@@ -89,43 +89,40 @@ export const MyConnect: React.FC<ConnectProps> = ({ connectText }) => {
                     );
                   }
                   return (
-                    <div style={{ display: "flex", gap: 10 }}>
-                      <button
-                        onClick={openChainModal}
-                        style={{ display: "flex", ...styles.button }}
-                        type="button"
-                        className="chain-button">
-                        {chain.hasIcon && (
-                          <div
-                            style={{
-                              background: chain.iconBackground,
-                              width: 19,
-                              height: 19,
-                              borderRadius: 999,
-                              overflow: "hidden",
-                              marginRight: 4,
-                            }}>
-                            {chain.iconUrl && (
-                              <img
-                                alt={chain.name ?? "Chain icon"}
-                                src={chain.iconUrl}
-                                style={chain.name === 'Optimism' ? {} : { width: 14, height: 14 }}
-                              />
-                            )}
-                          </div>
+                    <button
+                    onClick={openAccountModal}
+                    style={{ display: "flex", ...styles.button }}
+                    type="button"
+                    className="combined-connect-button">
+                    {chain.hasIcon && (
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openChainModal();
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: chain.iconBackground,
+                          width: 19,
+                          height: 19,
+                          borderRadius: 999,
+                          overflow: "hidden",
+                          marginRight: 8,
+                          cursor: 'pointer',
+                        }}>
+                        {chain.iconUrl && (
+                          <img
+                            alt={chain.name ?? "Chain icon"}
+                            src={chain.iconUrl}
+                            style={chain.name === 'Optimism' ? {} : { width: 14, height: 14 }}
+                          />
                         )}
-                        <span className="chain-name">{chain.name}</span>
-                      </button>
-                      <button
-                        onClick={openAccountModal}
-                        type="button"
-                        style={styles.button}>
-                        {account.displayName}
-                        {/* {account.displayBalance
-                        ? ` (${account.displayBalance})`
-                        : ''} */}
-                      </button>
-                    </div>
+                      </span>
+                    )}
+                    {account.displayName}
+                  </button>
                   );
                 })()}
               </div>
