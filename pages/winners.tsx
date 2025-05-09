@@ -71,6 +71,7 @@ const handleCloseModal = () => {
     actionMeta: ActionMeta<{ label: number; value: number }>
   ) => {
     if (newValue) {
+      setPopup(true);
       const selectedOption = newValue as { label: number; value: number };
       console.log("onChange (draw selected):", selectedOption);
       setDraw(selectedOption);
@@ -114,6 +115,7 @@ const handleCloseModal = () => {
   ) => {
     console.log("onChangeChain: selectedOption", selectedOption);
     if (!selectedOption) return;
+    setPopup(true);
 
     const newChain = selectedOption as { label: string; value: number };
     const newDraws = await fetchDrawsForChain(newChain.label);
@@ -411,38 +413,44 @@ const handleCloseModal = () => {
       }
       if (draw && chain && chain.value) {
         console.log(`useEffect[draw, chain]: Detected change. New Chain: ${chain.label} (${chain.value}), New Draw: ${draw.value}.`);
-        setPopup(true);
-        
-        if (draw.value > 0) {
-            console.log(`Fetching wins for chain ${chain.value} and draw ${draw.value}`);
-        await fetchWins(chain.value, draw.value);
-        } else {
-            console.warn(`useEffect[draw, chain]: Draw is ${draw.value}. Clearing transaction data instead of fetching.`);
-            setTransactions([]);
-            setTotalPrizeValueCounter(ethers.BigNumber.from(0));
-            setUnique(0);
-            setUniqueVaults(0);
-            setPrizeCount(0);
-        }
+        // popup should have been set to true by onChange or onChangeChain
 
         const targetPath = draw.value > 0 
             ? `/winners?chain=${chain.value}&draw=${draw.value}`
             : `/winners?chain=${chain.value}`;
 
         if (router.asPath !== targetPath) {
-            console.log(`useEffect[draw, chain]: Updating URL to: ${targetPath}`);
+            console.log(`useEffect[draw, chain]: URL needs update. Current: ${router.asPath}, Target: ${targetPath}. Pushing URL.`);
+            // Data fetching for the new URL will be handled by the initial useEffect.
+            // The popup should remain true (set by onChange/onChangeChain) until the initial useEffect completes.
             router.push(targetPath, undefined, { shallow: true });
+            // DO NOT setPopup(false) here; the initial useEffect (reacting to asPath change) will handle it.
         } else {
-            console.log("useEffect[draw, chain]: URL is already up-to-date with selected chain/draw.");
+            // URL is already up-to-date with the selected chain/draw.
+            // This means either the initial useEffect already handled this state, or it's a redundant update.
+            // We need to fetch data for the current state as the initial useEffect might not re-run if asPath didn't change.
+            // Then, turn off the popup that was presumably set by onChange/onChangeChain.
+            console.log("useEffect[draw, chain]: URL is already up-to-date. Fetching data for current state and turning off loader.");
+            if (draw.value > 0) {
+                console.log(`Fetching wins for current state: chain ${chain.value}, draw ${draw.value}`);
+                await fetchWins(chain.value, draw.value);
+            } else {
+                console.warn(`useEffect[draw, chain]: Draw is ${draw.value}. Clearing transaction data.`);
+                setTransactions([]);
+                setTotalPrizeValueCounter(ethers.BigNumber.from(0));
+                setUnique(0);
+                setUniqueVaults(0);
+                setPrizeCount(0);
+            }
+            setPopup(false); // Turn off loader as this effect is handling the final state for an unchanged URL.
         }
-        setPopup(false);
       } else {
         console.log("useEffect[draw, chain]: draw or chain is not fully set, skipping update.", {draw, chain, firstRender});
       }
     };
     fetchDataAndUpdateURL().catch(err => {
         console.error("Error in useEffect[draw,chain]:", err);
-        setPopup(false);
+        setPopup(false); // Ensure popup is off on error.
     });
   }, [draw, chain, firstRender, router, fetchWins]);
 
