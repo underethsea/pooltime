@@ -5,10 +5,16 @@ import { MyConnect } from "../components/connectButton";
 import { Multicall } from "../utils/multicall";
 import { useAccount, useSimulateContract } from "wagmi";
 import { NumberWithCommas, CropDecimals } from "../utils/tokenMaths";
+import {encodeFunctionData} from "viem"
 import {
   useWriteContract,
   useWaitForTransactionReceipt,
   useSwitchChain,
+  useCapabilities,
+  useSendTransaction,
+  useSendCalls,
+  createConfig,
+  useCallsStatus
 } from "wagmi";
 // usewitchnetwork
 import { ToastContainer, toast } from "react-toastify";
@@ -43,6 +49,8 @@ import { WHITELIST_REWARDS } from "../constants/address";
 import { GetChance } from "../utils/getChance";
 import { GetChainIcon } from "../utils/getChain";
 import ChainTag from "../components/chainTag";
+import { optimism } from "viem/chains";
+import { call } from "viem/actions";
 
 // import Drip from "./drip";
 
@@ -124,6 +132,7 @@ const dripUpdate = () => {
   return 1;
 };
 
+
 function CopyToClipboardButton(text: any) {
   navigator.clipboard
     .writeText(text)
@@ -184,13 +193,135 @@ const Vault: React.FC<VaultProps> = ({
   const [prizeTokenPrice, setPrizeTokenPrice] = useState(0);
   const [chance, setChance] = useState<Chance | null>(null);
   const [vaultPortion, setVaultPortion] = useState(0);
+  const [batchId, setBatchId] = useState<string | null>(null);
+
   // const [ vaultChainId, setVaultChainId] = useState()
 
   const overviewFromContext = useOverview();
+  const { data: capabilities } = useCapabilities({
+    account: address, // account address
+});
+const {
+  data: id,
+    isPending: isBatchWaiting,
+  isError: isSendingError,
+  isSuccess: isSendingSuccess,
+  sendCalls: _sendCalls
+} = useSendCalls();
 
+const { data: callStatusData, refetch: refetchCallStatus } = useCallsStatus({
+  id: id?.id || '',
+  query: {
+    enabled: !!id,
+    refetchInterval: (data) =>
+      data.state.data?.status === "success" ? false : 1000,
+  },
+});
+console.log("call status data")
+useEffect(() => {
+  if(callStatusData){
+  if (callStatusData.status === "success") {
+    toast("Deposit success!", {
+      position: toast.POSITION.BOTTOM_LEFT,
+    });
+    setBatchId(null); // Reset batch ID after success
+    setRefreshData((refresh) => refresh + 1);
+
+  } else if (callStatusData.status === "failure") {
+    toast("Deposit failed. Check console for details.", {
+      position: toast.POSITION.BOTTOM_LEFT,
+    });
+    console.error("Deposit error:", callStatusData);
+    setBatchId(null); // Reset batch ID after failure
+  }}
+}, [callStatusData]);
+
+
+console.log(capabilities);  console.log("capable",capabilities)
+if(vaultData){console.log("allow",  ethers.utils.formatUnits(
+  vaultData.userAssetAllowance,
+  vaultData.decimals
+))}
+const canBatchTransactions = (chainId:number) => {
+  return capabilities?.[chainId]?.atomic?.status === 'ready' || 'supported';
+};
+console.log("can batch",canBatchTransactions(chainId as number))
   const handleCloseModal = () => {
     setIsDepositSuccessModalOpen(false);
   };
+  const handleBatchDeposit = async () => {
+    try {
+      if (!chainId || !address || !vaultData || parseFloat(buyAmount) <= 0) {
+        toast("Invalid batch deposit request", {
+          position: toast.POSITION.BOTTOM_LEFT,
+        });
+        console.log("Invalid batch deposit request");
+        return;
+      }
+  
+      const amountToApprove = ethers.utils.parseUnits(buyAmount, vaultData.decimals);
+  
+      // Encode function data
+      const approveData = encodeFunctionData({
+        abi: ABI.ERC20,
+        functionName: 'approve',
+        args: [vaultData.address, amountToApprove],
+      });
+  
+      const depositData = encodeFunctionData({
+        abi: ABI.VAULT,
+        functionName: 'deposit',
+        args: [amountToApprove, address],
+      });
+  
+      // Prepare the batch calls
+      const calls = [
+        {
+          to: vaultData.asset,
+          data: approveData,
+        },
+        {
+          to: vaultData.address,
+          data: depositData,
+        },
+      ];
+  
+      // Trigger the batch call
+      _sendCalls({
+        account: address as `0x${string}`,
+        chainId: chainId,
+        calls: calls,
+      });
+  
+      // Log the status immediately after triggering
+      console.log("Batch call triggered");
+  
+    } catch (err) {
+      console.error("Error in batch deposit:", err);
+      toast("Error in batch deposit: See console for details", {
+        position: toast.POSITION.BOTTOM_LEFT,
+      });
+    }
+  };
+  
+  // Use useEffect to monitor the status and data after the call is made
+  useEffect(() => {
+    if (isSendingSuccess) {
+      console.log("Batch call success:", id);
+      toast("Deposit processing...", {
+        position: toast.POSITION.BOTTOM_LEFT,
+      });
+    }
+  
+    if (isSendingError) {
+      console.error("Batch call failed");
+      toast("Batch deposit failed: Check console for details", {
+        position: toast.POSITION.BOTTOM_LEFT,
+      });
+    }
+  
+  }, [isSendingSuccess, isSendingError, id]);
+
 
   const handleShowToast = (action: any) => {
     toast.dismiss();
@@ -1169,7 +1300,13 @@ const Vault: React.FC<VaultProps> = ({
                                     <div className="spinner-small"></div>
                                     PROCESSING
                                   </button>
-                                ) : parseFloat(
+                                ) : 
+                                redeemWaitIsFetching ? (
+                                  <button className="vault-button">
+                                    <div className="spinner-small"></div>
+                                    PROCESSING
+                                  </button>
+                                ): parseFloat(
                                     ethers.utils.formatUnits(
                                       vaultData.userVaultBalance || 0,
                                       vaultData.decimals || 0
@@ -1521,7 +1658,6 @@ const Vault: React.FC<VaultProps> = ({
                                 onChange={handleBuyAmountChange}
                               />
                               {/* <button className="vault-button">BUY TICKETS</button> */}
-
                               {!chainId ? (
                                 <button className="vault-button no-cursor">
                                   CONNECT WALLET
@@ -1535,7 +1671,7 @@ const Vault: React.FC<VaultProps> = ({
                                   }>
                                   SWITCH NETWORKS
                                 </button>
-                              ) : buyIsLoading ? (
+                              ) : buyIsLoading  || isBatchWaiting ? (
                                 <button className="vault-button">
                                   <div className="spinner-small"></div>
                                   SEE WALLET
@@ -1585,7 +1721,6 @@ const Vault: React.FC<VaultProps> = ({
                               ) : parseFloat(buyAmount) > 0 ? (
                                 <button
                                   onClick={() => {
-                                    // console.log("CHAIN ID",chainId,"CONFIG",CONFIG.CHAINID)
                                     if (chainId === activeVaultChain) {
                                       if (
                                         vaultData?.address.toLowerCase() ===
@@ -1600,6 +1735,11 @@ const Vault: React.FC<VaultProps> = ({
                                               toast.POSITION.BOTTOM_LEFT,
                                           }
                                         );
+                                      } else if (
+                                        canBatchTransactions(chainId) &&
+                                        parseFloat(buyAmount) > 0
+                                      ) {
+                                        handleBatchDeposit();
                                       } else {
                                         toast.dismiss();
                                         const args: [string, string] = [
@@ -1617,7 +1757,6 @@ const Vault: React.FC<VaultProps> = ({
                                           )}`,
                                           abi: ABI.ERC20,
                                           functionName: "approve",
-
                                           args: args,
                                         });
                                       }
@@ -1629,7 +1768,7 @@ const Vault: React.FC<VaultProps> = ({
                                     }
                                   }}
                                   className="vault-button">
-                                  APPROVE
+                                  {canBatchTransactions(chainId) ? "DEPOSIT" : "APPROVE"}
                                 </button>
                               ) : (
                                 <>
@@ -1645,6 +1784,7 @@ const Vault: React.FC<VaultProps> = ({
                                   </button>
                                 </>
                               )}
+
                             </div>
                           )}
                       </div>

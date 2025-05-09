@@ -31,8 +31,8 @@
     "react-table": "7",
     "react-toastify": "^9.1.3",
     "recharts": "^2.10.4",
-    "viem": "^2.22.2",
-    "wagmi": "^2.14.6"
+    "viem": "2.29",
+    "wagmi": "2.15"
   },
   "devDependencies": {
     "@types/react": "^18.0.9",
