@@ -242,9 +242,13 @@ if(vaultData){console.log("allow",  ethers.utils.formatUnits(
   vaultData.userAssetAllowance,
   vaultData.decimals
 ))}
-const canBatchTransactions = (chainId:number) => {
-  return capabilities?.[chainId]?.atomic?.status === 'ready' || 'supported';
+const canBatchTransactions = (chainId: number) => {
+  return (
+    capabilities?.[chainId]?.atomic?.status === 'ready' ||
+    capabilities?.[chainId]?.atomic?.status === 'supported'
+  );
 };
+
 console.log("can batch",canBatchTransactions(chainId as number))
   const handleCloseModal = () => {
     setIsDepositSuccessModalOpen(false);
