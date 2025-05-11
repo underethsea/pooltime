@@ -36,7 +36,13 @@ import Link from "next/link";
 import { GetChainIcon } from "../utils/getChain";
 import { WHITELIST_REWARDS, WHITELIST_VAULTS } from "../constants/address";
 import { useOverview } from "../components/contextOverview";
-import { VaultData,sortData,getTVLPerChain,calculateTotalAndPerChainTVL,groupVaultsByChain } from "../utils/vaultHelpers";
+import {
+  VaultData,
+  sortData,
+  getTVLPerChain,
+  calculateTotalAndPerChainTVL,
+  groupVaultsByChain,
+} from "../utils/vaultHelpers";
 interface YieldTooltipProps {
   vaultAPR?: number; // Optional number
   apr?: number; // Optional number
@@ -75,7 +81,6 @@ const initialChains = Object.keys(ADDRESS).map((chainName) => {
     color: chainData.COLOR,
   };
 });
-
 
 const hasTokens = (vaults: VaultData[]) => {
   return vaults.some(
@@ -158,7 +163,6 @@ const VaultYieldTooltip: React.FC<YieldTooltipProps> = ({
     ""
   );
 };
-
 
 function AllVaults() {
   const [showStats, setShowStats] = useState(() => {
@@ -972,17 +976,32 @@ function AllVaults() {
                       style={{ color: "#ebeeef", height: "16px" }}
                     />
                     <span className="tooltipText">
-                      <div>Total Value Locked</div>
+                      {/* <div style={{ textAlign: "left", marginBottom: "4px" }}>Total Value Locked</div> */}
                       {Object.entries(tvl.tvlPerChain).map(([chainId, tvl]) => (
-                        <div key={chainId}>
-                          {GetChainName(Number(chainId))}&nbsp;&nbsp;
-                          <PrizeValueIcon size={15} />
-                          <PrizeValue
-                            amount={BigInt(tvl)}
-                            size={15}
-                            rounded={false}
-                          />
-                          {/* $ {NumberWithCommas(tvl.toFixed(0))} */}
+                        <div
+                          key={chainId}
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            gap: "5px", // Optional gap between items
+                            padding: "5px 0 0 5px",
+                          }}>
+                          <span style={{ flex: 1, textAlign: "left" }}>
+                            {GetChainName(Number(chainId))}
+                          </span>
+                          <span
+                            style={{
+                              textAlign: "right",
+                              padding: "0 5px 0 0",
+                            }}>
+                            <PrizeValueIcon size={15} />
+                            <PrizeValue
+                              amount={BigInt(tvl)}
+                              size={15}
+                              rounded={true}
+                            />
+                          </span>
                         </div>
                       ))}
                     </span>
@@ -1034,17 +1053,32 @@ function AllVaults() {
                       style={{ color: "#ebeeef", height: "16px" }}
                     />
                     <span className="tooltipText">
-                      <div>Total Value Locked</div>
+                      <div style={{ textAlign: "left", marginBottom: "4px" }}>
+                        Total Value Locked
+                      </div>
                       {Object.entries(tvl.tvlPerChain).map(([chainId, tvl]) => (
-                        <div key={chainId}>
-                          {GetChainName(Number(chainId))}&nbsp;&nbsp;
-                          <PrizeValueIcon size={15} />
-                          <PrizeValue
-                            amount={BigInt(tvl)}
-                            size={15}
-                            rounded={true}
-                          />
-                          {/* $ {NumberWithCommas(tvl.toFixed(0))} */}
+                        <div
+                          key={chainId}
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            padding: "2px 0",
+                          }}>
+                          <span style={{ textAlign: "left", flex: 1 }}>
+                            {GetChainName(Number(chainId))}
+                          </span>
+                          <span
+                            style={{
+                              textAlign: "right",
+                              whiteSpace: "nowrap",
+                            }}>
+                            <PrizeValueIcon size={15} />
+                            <PrizeValue
+                              amount={BigInt(tvl)}
+                              size={15}
+                              rounded={true}
+                            />
+                          </span>
                         </div>
                       ))}
                     </span>
@@ -1187,10 +1221,12 @@ function AllVaults() {
               <>
                 {rows.map((row: any) => {
                   prepareRow(row);
-                  const shouldShowVault = WHITELIST_VAULTS.map((vault) =>
-                    vault.toLowerCase()
-                  ).includes(row.original.vault.toLowerCase()) || 
-                  (row.original.vaultBalance && !row.original.vaultBalance.isZero());
+                  const shouldShowVault =
+                    WHITELIST_VAULTS.map((vault) =>
+                      vault.toLowerCase()
+                    ).includes(row.original.vault.toLowerCase()) ||
+                    (row.original.vaultBalance &&
+                      !row.original.vaultBalance.isZero());
 
                   if (shouldShowVault || showAllVaults) {
                     return (
