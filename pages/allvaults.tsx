@@ -962,7 +962,7 @@ function AllVaults() {
                     <PrizeValue
                       amount={BigInt(Math.round(Number(tvl.totalTVL)))}
                       size={22}
-                      rounded={true}
+                      rounded={false}
                     />
                   </div>
                   &nbsp;
@@ -980,7 +980,7 @@ function AllVaults() {
                           <PrizeValue
                             amount={BigInt(tvl)}
                             size={15}
-                            rounded={true}
+                            rounded={false}
                           />
                           {/* $ {NumberWithCommas(tvl.toFixed(0))} */}
                         </div>
