@@ -369,6 +369,7 @@ background-color: #c2baf2;
     justify-content: right;
     min-width: 0px;
     height: auto;
+    gap: 0px;
   }
 }
 

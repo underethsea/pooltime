@@ -159,7 +159,6 @@ export const getVaultColumns = (showStats: boolean): Column<VaultData>[] => [
                       &nbsp;
                       {NumberWithCommas(
                         formattedAssetBalance as string
-                        
                       )}
                     </div>
                   </span>
@@ -244,8 +243,9 @@ export const getVaultColumns = (showStats: boolean): Column<VaultData>[] => [
         <div style={{ textAlign: "right" }}>
           <div>
             {totalSupply || "0"}
+            <div className="hidden-desktop" style={{ display: "inline-block", marginLeft: "4px" }}>TVL</div>
           </div>
-          <div className="vaults-font-small">
+          <div className="vaults-font-small hidden-mobile">
             {depositsEthValue > 0 && (
               <>
                 <PrizeValueIcon size={16} />
