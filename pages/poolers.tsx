@@ -21,6 +21,12 @@ type Player = {
   balance: string;
 };
 
+type PoolerResponse = {
+  poolers: Player[];
+  totalBalance: string;
+  uniqueCount: number;
+};
+
 type Chain = {
   id: string;
   name: string;
@@ -52,7 +58,7 @@ function Poolers() {
   const [selectedChain, setSelectedChain] = useState(chains[0].id);
   const [vaults, setVaults] = useState<Vault[]>([]);
   const [selectedVault, setSelectedVault] = useState("");
-  const [poolers, setPoolers] = useState<Player[]>([]);
+  const [poolers, setPoolers] = useState<PoolerResponse>({poolers: [], totalBalance: "0", uniqueCount: 0});
   const [popup, setPopup] = useState<boolean>(true);
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
 
@@ -63,54 +69,94 @@ function Poolers() {
 const handleCloseModal = () => {
     setSelectedAddress(null);
 };
+// NEW EFFECT 1: Handles the entire data load when the CHAIN changes.
+useEffect(() => {
+  let isMounted = true;
 
-
-  useEffect(() => {
+  const fetchDataForChain = async () => {
     setPopup(true);
-    const poolersUrl = `https://poolexplorer.xyz/${selectedChain}-${ADDRESS[GetChainName(Number(selectedChain))].PRIZEPOOL}-poolers`
-    // console.log(poolersUrl)
-    fetch(
-      poolersUrl
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        const sortedVaults = [...data].sort((a, b) => b.poolers - a.poolers);
-        // Extract the addresses of the vaults for the selected chain
-        const chainVaultAddresses = ADDRESS[
-          GetChainName(Number(selectedChain))
-        ].VAULTS.map((v: any) => v.VAULT.toLowerCase());
+    // Clear all previous data to prevent showing stale info
+    setPoolers({ poolers: [], totalBalance: "0", uniqueCount: 0 });
+    setVaults([]);
+    setSelectedVault("");
 
-        // Filter the vaults based on their address
-        // console.log("sorted vaults",sortedVaults)
-        const filteredVault = sortedVaults.filter((vault) =>
-          chainVaultAddresses.includes(vault.vault)
-        );
-        setVaults(filteredVault);
+    try {
+      // --- Step 1: Fetch the list of vaults for the new chain ---
+      const chainName = GetChainName(Number(selectedChain));
+      const vaultsUrl = `https://poolexplorer.xyz/${selectedChain}-${ADDRESS[chainName].PRIZEPOOL}-poolers`;
+      const vaultsRes = await fetch(vaultsUrl);
+      const vaultsData = await vaultsRes.json();
 
-        if (sortedVaults.length && !selectedVault) {
-          setSelectedVault(sortedVaults[0].vault);
-        }
-        setPopup(false); // Hide popup after data has been processed
-      });
-  }, [selectedChain]);
+      const sorted = [...vaultsData].sort((a, b) => b.poolers - a.poolers);
+      const validVaults = ADDRESS[chainName].VAULTS.map(v => v.VAULT.toLowerCase());
+      const filteredVaults = sorted.filter(v => validVaults.includes(v.vault));
 
-  useEffect(() => {
-    if (selectedVault) {
-     
-      fetch(
-        `https://poolexplorer.xyz/vault-${selectedVault}-poolers`
-      )
-        .then((response) => response.json())
-        .then((data) => {
-          // console.log("poolers data", data);
-          const sortedPoolers = data.sort(
-            (a: any, b: any) => parseFloat(b.balance) - parseFloat(a.balance)
-          );
+      if (!isMounted) return;
 
-          setPoolers(sortedPoolers);
-        });
+      // If there are no vaults, we can stop here.
+      if (filteredVaults.length === 0) {
+        setPopup(false);
+        return;
+      }
+
+      // --- Step 2: Now that we have vaults, fetch poolers for the FIRST vault ---
+      const firstVaultAddress = filteredVaults[0].vault;
+      const poolersRes = await fetch(`https://poolexplorer.xyz/vault-${firstVaultAddress}-poolers`);
+      const poolersData = await poolersRes.json();
+
+      if (!isMounted) return;
+
+      // --- Step 3: Set all state at once and turn off the loader ---
+      // This avoids the intermediate "flicker" state.
+      setVaults(filteredVaults);
+      setSelectedVault(firstVaultAddress);
+      setPoolers(poolersData);
+      setPopup(false);
+
+    } catch (err) {
+      console.error("Failed to fetch chain data:", err);
+      if (isMounted) setPopup(false);
     }
-  }, [selectedChain, selectedVault]);
+  };
+
+  fetchDataForChain();
+
+  return () => { isMounted = false; };
+}, [selectedChain]); // This effect ONLY runs when the chain changes
+
+
+// NEW EFFECT 2: Handles ONLY when the user manually selects a different VAULT.
+useEffect(() => {
+  let isMounted = true;
+  // Do nothing if a vault isn't selected yet.
+  if (!selectedVault) return;
+
+  const fetchPoolers = async () => {
+    setPopup(true);
+    try {
+      const res = await fetch(`https://poolexplorer.xyz/vault-${selectedVault}-poolers`);
+      const data = await res.json();
+      if (isMounted) {
+        setPoolers(data);
+        setPopup(false);
+      }
+    } catch (err) {
+      console.error("Failed to fetch poolers:", err);
+      if (isMounted) setPopup(false);
+    }
+  };
+
+  // To prevent this from running automatically when the chain changes,
+  // we check if the selected vault is already loaded in our `vaults` state.
+  // We only fetch if the user picks a *different* one from the dropdown.
+  const isInitialVaultForChain = vaults.length > 0 && vaults[0].vault === selectedVault;
+  if (!isInitialVaultForChain) {
+      fetchPoolers();
+  }
+
+  return () => { isMounted = false; };
+}, [selectedVault]); // This effect ONLY runs when the vault selection changes
+
   const customStyles = {
     control: (provided: any) => ({
       ...provided,
@@ -152,17 +198,17 @@ const handleCloseModal = () => {
 
   const selectedVaultDetails = getVaultDetails(selectedVault);
 
-  const totalValueLocked = poolers.reduce((acc, item) => {
-    return selectedVaultDetails
-      ? acc +
-          parseFloat(
-            ethers.utils.formatUnits(
-              item.balance,
-              selectedVaultDetails.DECIMALS
-            )
-          )
-      : acc;
-  }, 0);
+  // const totalValueLocked = poolers.reduce((acc, item) => {
+  //   return selectedVaultDetails
+  //     ? acc +
+  //         parseFloat(
+  //           ethers.utils.formatUnits(
+  //             item.balance,
+  //             selectedVaultDetails.DECIMALS
+  //           )
+  //         )
+  //     : acc;
+  // }, 0);
 
   return (
     <Layout>
@@ -254,12 +300,12 @@ const handleCloseModal = () => {
                     <div className="stat-details">
                       Poolers&nbsp;&nbsp;
                       <span className="stat-value-poolers">
-                        {NumberWithCommas(poolers.length.toString())}
+                        {NumberWithCommas(poolers.uniqueCount.toString())}
                       </span>
                     </div>
                   </div>
                 </div>
-                {totalValueLocked > 0 && (
+                {parseInt(poolers.totalBalance) > 0 && (
                   <div
                     className="stats hidden-mobile"
                     style={{ color: "white" }}>
@@ -275,7 +321,8 @@ const handleCloseModal = () => {
                         &nbsp;
                         <span className="stat-value-poolers">
                           {NumberWithCommas(
-                            Math.round(totalValueLocked).toString()
+                            Math.round(parseFloat(ethers.utils.formatUnits(poolers.totalBalance, selectedVaultDetails.DECIMALS)))
+                            .toString()
                           )}
                         </span>
                       </div>
@@ -297,7 +344,7 @@ const handleCloseModal = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {poolers.map((player, index) => (
+                    {poolers.poolers.map((player, index) => (
                        <tr key={index} onClick={() => handleAddressClick(player.address)} style={{ cursor: "pointer" }}>
                         <td>
                           <span className="hidden-mobile">
