@@ -6,6 +6,7 @@ import PrizeValue from "./prizeValue";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCircleInfo,
+  faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 
 interface PrizeData {
@@ -30,7 +31,18 @@ const PrizeInPool: React.FC = () => {
   const [prizes, setPrizes] = useState<PrizeData>({});
   const [totalPrize, setTotalPrize] = useState<number>(0);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState(false);
   const overviewFromContext = useOverview();
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchPrizes = async () => {
@@ -87,35 +99,40 @@ const PrizeInPool: React.FC = () => {
     <>
       {totalPrizeInDollars > 0 && (
         <div style={{ fontSize: "22px", display: "inline-block" }}>
-          <span className="hidden-mobile">PRIZES&nbsp;&nbsp;</span>
-          <span className="hidden-desktop">SAVE TO WIN&nbsp;&nbsp;</span>
           <span
-            style={{
-              margin: "0",
-              fontSize: "27px",
-              display: "inline-block",
-              color: "white",
-              textShadow: "0 0 5px #a3a7ea",
-            }}
             onClick={toggleModal}
+            className="prize-box"
           >
-            <PrizeValueIcon size={22} />
-            <PrizeValue amount={BigInt(totalPrize * 1e18)} size={30} rounded={true}/>
+            <span className="hidden-mobile">
+              PRIZES&nbsp;&nbsp;
+            </span>
+            <span className="hidden-desktop" style={{ fontSize: "14px", marginBottom: '5px', color: '#afcde4' }}>
+              Save To Win
+            </span>
+            <span
+              style={{
+                margin: "0",
+                fontSize: "27px",
+                display: "inline-flex",
+                alignItems: "center",
+                color: "white",
+                textShadow: isMobile ? "none" : "0 0 5px #a3a7ea",
+              }}
+            >
+              <PrizeValueIcon size={22} />
+              <PrizeValue
+                amount={BigInt(totalPrize * 1e18)}
+                size={isMobile ? 24 : 30}
+                rounded={true}
+              />
+              <span className="hidden-mobile" style={{ marginLeft: '8px' }}>
+                <FontAwesomeIcon
+                  icon={faCircleInfo}
+                  style={{ color: "#ebeeef", height: "16px", verticalAlign: "middle" }}
+                />
+              </span>
+            </span>
           </span>
-          &nbsp;
-          <FontAwesomeIcon
-      icon={faCircleInfo}
-      style={{ color: "#ebeeef", height: "16px", cursor: "pointer", }}
-      onClick={toggleModal}
-    />
-          {/* <Image
-            src="/images/moreInfo.svg"
-            alt="i"
-            width={19}
-            height={19}
-            onClick={toggleModal}
-            style={{ cursor: "pointer" }}
-          /> */}
           
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         </div>
@@ -123,17 +140,22 @@ const PrizeInPool: React.FC = () => {
 
       {isModalOpen && (
         <div className="modal" onClick={closeModal}>
-          
           <div className="modal-content">
-            <div className="prize-header" style={{ display: "flex", fontSize:"32px", alignItems: "center" }}>
+            <div className="close-button-container">
+              <button className="close-button" onClick={toggleModal}>
+                <FontAwesomeIcon icon={faXmark} />
+              </button>
+            </div>
+            <div className="prize-header">
               <Image
                 src="/images/pttrophy.svg"
-                width={26}
-                height={40}
+                width={isMobile ? 22 : 26}
+                height={isMobile ? 34 : 40}
                 alt="trophy"
               />
-              &nbsp;&nbsp;&nbsp;Prizes&nbsp;&nbsp; <PrizeValueIcon size={32} />
-              <PrizeValue amount={BigInt(totalPrize * 1e18)} size={40} rounded={true}/>
+              &nbsp;&nbsp;&nbsp;Prizes&nbsp;&nbsp;
+              <PrizeValueIcon size={isMobile ? 26 : 32} />
+              <PrizeValue amount={BigInt(totalPrize * 1e18)} size={isMobile ? 30 : 40} rounded={true}/>
             </div>
             <div className="total-prize"></div>  
             <div className="grid-container">
@@ -162,22 +184,22 @@ const PrizeInPool: React.FC = () => {
                     </div>
                     
                     <div style={{ textAlign: "right" }}>
-                      <PrizeValueIcon size={24} />
-                      <PrizeValue amount={BigInt(Math.round(Number(prizeData.prizes.prizePoolPrizeBalance)*1e18))} size={28}  rounded={true}/>
+                      <PrizeValueIcon size={isMobile ? 18 : 24} chainname={chain} />
+                      <PrizeValue amount={BigInt(Math.round(Number(prizeData.prizes.prizePoolPrizeBalance)*1e18))} size={isMobile ? 20 : 28}  rounded={true}/>
                     </div>
                     <div style={{ textAlign: "right",color:"#e9aaf7" }}>
                       {tier0 && tier0.value > 0.01 && (
                         <>
-                          <PrizeValueIcon size={24} />
-                          <PrizeValue amount={BigInt(Math.round(tier0.value * 1e18))} size={28}  rounded={true}/>
+                          <PrizeValueIcon size={isMobile ? 18 : 24} chainname={chain} />
+                          <PrizeValue amount={BigInt(Math.round(tier0.value * 1e18))} size={isMobile ? 20 : 28}  rounded={true}/>
                         </>
                       )}
                     </div>
                     <div style={{ textAlign: "right" }} className="hidden-mobile">
                       {tier1 && tier1.value > 0.01 && (
                         <>
-                          <PrizeValueIcon size={24} />
-                          <PrizeValue amount={BigInt(Math.round(tier1.value * 1e18))} size={28}  rounded={true}/>
+                          <PrizeValueIcon size={isMobile ? 18 : 24} chainname={chain} />
+                          <PrizeValue amount={BigInt(Math.round(tier1.value * 1e18))} size={isMobile ? 20 : 28}  rounded={true}/>
                         </>
                       )}
                     </div>
@@ -189,7 +211,11 @@ const PrizeInPool: React.FC = () => {
         </div>
       )}
 
-      <style jsx>{`
+      <style jsx>{`        .prize-box {
+          display: inline-flex;
+          align-items: center;
+          cursor: pointer;
+        }
         .modal {
           display: flex;
           justify-content: center;
@@ -205,9 +231,12 @@ const PrizeInPool: React.FC = () => {
 .prize-header {
   margin-bottom: 20px;
   justify-content: center;
+  display: flex;
+  font-size: 32px;
+  align-items: center;
 }
         .modal-content {
-          
+          position: relative;
           background-color: #030526;
           padding: 30px;
           border: 1px solid #888;
@@ -228,9 +257,87 @@ const PrizeInPool: React.FC = () => {
           gap: 17px;
         }
         
+        .close-button {
+          display: none;
+        }
+
         @media (max-width: 768px) { 
+          .modal {
+            display: block;
+          }
+          .prize-box {
+            background-color: #315672;
+            border-radius: 10px;
+            padding: 0px 10px;
+            flex-direction: column;
+            justify-content: center;
+            display: flex;
+            height: 100%;
+          }
+          .prize-header {
+            flex-wrap: wrap;
+            font-size: 20px;
+          }
+          .prize-header img {
+            width: 20px;
+            height: 32px;
+          }
+          .prize-header .prize-value {
+            font-size: 28px !important;
+          }
+          .prize-header .prize-value-icon img {
+            width: 21px !important;
+            height: 21px !important;
+          }
+
           .grid-container {
             grid-template-columns: 0.6fr 1.8fr 1.5fr;
+          }
+          .grid-header div {
+            font-size: 13px;
+          }
+          .grid-row div:first-child {
+            font-size: 12px !important;
+          }
+          .grid-row .prize-value {
+            font-size: 22px !important;
+          }
+          .grid-row .prize-value-icon img {
+            width: 16px !important;
+            height: 16px !important;
+          }
+
+          .modal-content {
+            width: 100%;
+            height: 100%;
+            border-radius: 0;
+            border: none;
+            padding-top: 60px;
+            max-height: 100vh;
+            overflow-y: auto;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+          }
+          .modal-content::-webkit-scrollbar {
+            display: none;
+          }
+          .close-button-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+          }
+          .close-button {
+            display: flex;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            justify-content: flex-end;
+          }
+          .grid-row div:last-child {
+            text-align: right;
           }
         }
         .grid-header {
@@ -259,7 +366,6 @@ const PrizeInPool: React.FC = () => {
         .grid-row div:last-child {
           text-align: right;
         }
-
         
       `}</style>
     </>
@@ -267,3 +373,4 @@ const PrizeInPool: React.FC = () => {
 };
 
 export default PrizeInPool;
+
