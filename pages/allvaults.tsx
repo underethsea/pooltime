@@ -43,6 +43,8 @@ import {
   calculateTotalAndPerChainTVL,
   groupVaultsByChain,
 } from "../utils/vaultHelpers";
+import TvlModal from "../components/TvlModal";
+
 interface YieldTooltipProps {
   vaultAPR?: number; // Optional number
   apr?: number; // Optional number
@@ -182,6 +184,7 @@ function AllVaults() {
   const [showAllVaults, setShowAllVaults] = useState(false);
   const [isVaultsLoaded, setIsVaultsLoaded] = useState(0);
   const [showPrzPOOLVaults, setShowPrzPOOLVaults] = useState(false);
+  const [isTvlModalOpen, setIsTvlModalOpen] = useState(false);
 
   const overviewFromContext = useOverview();
 
@@ -932,6 +935,7 @@ function AllVaults() {
               style={{
                 textAlign: "left",
                 marginTop: "10px",
+                width: "100%",
                 // backgroundColor: "#e5f3f5",
                 color: "white",
                 borderRadius: "10px",
@@ -968,44 +972,19 @@ function AllVaults() {
                       size={22}
                       rounded={false}
                     />
-                  </div>
-                  &nbsp;
-                  <div className="tooltipContainer">
+                     <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsTvlModalOpen(true);
+                    }}
+                    style={{ cursor: "pointer", marginLeft: '8px' }}>
                     <FontAwesomeIcon
                       icon={faCircleInfo}
                       style={{ color: "#ebeeef", height: "16px" }}
                     />
-                    <span className="tooltipText">
-                      {/* <div style={{ textAlign: "left", marginBottom: "4px" }}>Total Value Locked</div> */}
-                      {Object.entries(tvl.tvlPerChain).map(([chainId, tvl]) => (
-                        <div
-                          key={chainId}
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            gap: "5px", // Optional gap between items
-                            padding: "5px 0 0 5px",
-                          }}>
-                          <span style={{ flex: 1, textAlign: "left" }}>
-                            {GetChainName(Number(chainId))}
-                          </span>
-                          <span
-                            style={{
-                              textAlign: "right",
-                              padding: "0 5px 0 0",
-                            }}>
-                            <PrizeValueIcon size={15} />
-                            <PrizeValue
-                              amount={BigInt(tvl)}
-                              size={15}
-                              rounded={true}
-                            />
-                          </span>
-                        </div>
-                      ))}
-                    </span>
+                  </span>
                   </div>
+                  &nbsp;
                 </>
               ) : (
                 <span style={{ width: "140px" }}></span>
@@ -1023,7 +1002,9 @@ function AllVaults() {
                 color: "white",
                 borderRadius: "10px",
                 padding: "0px 8px 5px 8px",
+                width: "100%",
               }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: '10px', width: 'calc(100% + 16px)', margin: '5px -8px 0' }}>
               {!isLoading && <PrizeInPool />}
 
               {tvl &&
@@ -1033,60 +1014,35 @@ function AllVaults() {
                 <>
                   <div
                     style={{
-                      fontSize: "22px",
-                      display: "inline-block",
-                      marginTop: "10px",
-                    }}>
-                    TVL&nbsp;&nbsp;
-                    <PrizeValueIcon size={22} />
-                    {/* mobile tvl */}
-                    <PrizeValue
-                      amount={BigInt(Math.round(Number(tvl.totalTVL)))}
-                      size={22}
-                      rounded={true}
-                    />
-                  </div>
-                  &nbsp;
-                  <div className="tooltipContainer">
-                    <FontAwesomeIcon
-                      icon={faCircleInfo}
-                      style={{ color: "#ebeeef", height: "16px" }}
-                    />
-                    <span className="tooltipText">
-                      <div style={{ textAlign: "left", marginBottom: "4px" }}>
-                        Total Value Locked
-                      </div>
-                      {Object.entries(tvl.tvlPerChain).map(([chainId, tvl]) => (
-                        <div
-                          key={chainId}
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            padding: "2px 0",
-                          }}>
-                          <span style={{ textAlign: "left", flex: 1 }}>
-                            {GetChainName(Number(chainId))}
-                          </span>
-                          <span
-                            style={{
-                              textAlign: "right",
-                              whiteSpace: "nowrap",
-                            }}>
-                            <PrizeValueIcon size={15} />
-                            <PrizeValue
-                              amount={BigInt(tvl)}
-                              size={15}
-                              rounded={true}
-                            />
-                          </span>
-                        </div>
-                      ))}
+                      backgroundColor: "#315672",
+                      borderRadius: "10px",
+                      padding: "10px",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setIsTvlModalOpen(true)}
+                  >
+                    <div style={{ fontSize: "14px", marginBottom: '5px', display: 'inline-flex', alignItems: 'center', color: "#afcde4" }}>
+                      Total Saved
+                    </div>
+                    <span>
+                      <PrizeValueIcon size={22} />
+                      {/* mobile tvl */}
+                      <PrizeValue
+                        amount={BigInt(Math.round(Number(tvl.totalTVL)))}
+                        size={24}
+                        rounded={true}
+                      />
                     </span>
                   </div>
                 </>
               ) : (
                 <span style={{ width: "140px" }}></span>
               )}
+              </div>
             </div>
             <div
               className="vault-search-container"
@@ -1094,8 +1050,10 @@ function AllVaults() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                // width: "450px",
-              }}>
+                width: "100%",
+                // gap: "1rem",
+              }}
+            >
               <div className="vaults-chain-toggle">
                 {chains.map((chain) => {
                   const icon = GetChainIcon(chain.chainId);
@@ -1123,6 +1081,7 @@ function AllVaults() {
                 className="vaultsearch"
                 onChange={handleSearch}
                 placeholder="Search..."
+                // style={{ flex: 1 }}
               />
             </div>
             {tvl && !isLoading && !showStats && (
@@ -1316,6 +1275,13 @@ function AllVaults() {
         <br></br>
         {isLoading && <LoadGrid />}
       </div>
+      {tvl && (
+        <TvlModal
+          isOpen={isTvlModalOpen}
+          onClose={() => setIsTvlModalOpen(false)}
+          tvl={tvl}
+        />
+      )}
     </center>
   );
 }
