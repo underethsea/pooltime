@@ -29,7 +29,7 @@ const PrizeValueIcon: React.FC<PrizeValueIconProps> = ({ size, chainname }) => {
   return currency === "ETH" ? (
     <span style={{ marginRight: "5px" }}>
       <Image
-        src={imageSrc}
+        src={defaultIcon}
         alt={prizeTokenSymbol?.toUpperCase() || "ETH"}
         width={Math.round(size * 0.75)}
         height={Math.round(size * 0.75)}

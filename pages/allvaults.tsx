@@ -878,118 +878,141 @@ function AllVaults() {
             {!isLoading && (
               <>
                 <div
-                  className="vault-search-container"
                   style={{
                     display: "flex",
-                    alignItems: "center",
+                    alignItems: "flex-end",
                     justifyContent: "space-between",
-                    // width: "450px",
+                    width: "100%",
                   }}>
-                  <input
-                    value={searchInput}
-                    className="vaultsearch"
-                    onChange={handleSearch}
-                    placeholder="Search..."
-                  />
-                  <div className="vaults-chain-toggle">
-                    {chains.map((chain) => {
-                      const icon = GetChainIcon(chain.chainId);
-                      return (
-                        <div
-                          key={chain.chainId}
-                          className={`vaults-chain-option ${
-                            chain.active ? "active" : ""
-                          }`}
-                          onClick={() => toggleChain(chain.chainId)}>
-                          {icon && (
-                            <Image
-                              src={icon}
-                              alt={chain.name}
-                              width={24}
-                              height={24}
-                            />
-                          )}
-                        </div>
-                      );
-                    })}
-                    &nbsp;
-                    {/* przPOOL toggle */}
-                    <div
-                      className={`vaults-chain-option ${
-                        showPrzPOOLVaults ? "active" : ""
-                      }`}
-                      onClick={togglePrzPOOLVaults}>
-                      <Image
-                        src="/images/pool.png"
-                        alt="przPOOL Vaults"
-                        width={24}
-                        height={24}
-                      />
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <input
+                      value={searchInput}
+                      className="vaultsearch"
+                      onChange={handleSearch}
+                      placeholder="Search..."
+                    />
+                    <div className="vaults-chain-toggle">
+                      {chains.map((chain) => {
+                        const icon = GetChainIcon(chain.chainId);
+                        return (
+                          <div
+                            key={chain.chainId}
+                            className={`vaults-chain-option ${
+                              chain.active ? "active" : ""
+                            }`}
+                            onClick={() => toggleChain(chain.chainId)}>
+                            {icon && (
+                              <Image
+                                src={icon}
+                                alt={chain.name}
+                                width={24}
+                                height={24}
+                              />
+                            )}
+                          </div>
+                        );
+                      })}
+                      &nbsp;
+                      {/* przPOOL toggle */}
+                      <div
+                        className={`vaults-chain-option ${
+                          showPrzPOOLVaults ? "active" : ""
+                        }`}
+                        onClick={togglePrzPOOLVaults}>
+                        <Image
+                          src="/images/pool.png"
+                          alt="przPOOL Vaults"
+                          width={24}
+                          height={24}
+                        />
+                      </div>
                     </div>
                   </div>
+
+                  {!showStats && (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "1rem",
+                        paddingBottom: "8px",
+                      }}>
+                      <PrizeInPool />
+                      {tvl && !showStats && (
+                        <div className="more">
+                          <span
+                            style={{ cursor: "pointer" }}
+                            onClick={() => {
+                              setShowStats(true);
+                            }}>
+                            <a className="custom-link">+nerd data</a>
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
+                {showStats && (
+                  <div
+                    className="tvl"
+                    style={{
+                      textAlign: "left",
+                      marginTop: "10px",
+                      color: "white",
+                      borderRadius: "10px",
+                      padding: "5px 8px 5px 8px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "2rem",
+                    }}>
+                    <PrizeInPool />
+                    {tvl && parseInt(tvl.totalTVL.toString()) > 0 ? (
+                      <>
+                        <div
+                          style={{
+                            fontSize: "22px",
+                            display: "inline-block",
+                          }}
+                          onClick={() => {
+                            setShowStats(false);
+                          }}>
+                          TVL&nbsp;&nbsp;
+                          <PrizeValueIcon size={22} />
+                          {/* desktop tvl */}
+                          <PrizeValue
+                            amount={BigInt(
+                              Math.round(Number(tvl.totalTVL))
+                            )}
+                            size={22}
+                            rounded={false}
+                          />
+                          <span
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsTvlModalOpen(true);
+                            }}
+                            style={{
+                              cursor: "pointer",
+                              marginLeft: "8px",
+                            }}>
+                            <FontAwesomeIcon
+                              icon={faCircleInfo}
+                              style={{
+                                color: "#ebeeef",
+                                height: "16px",
+                              }}
+                            />
+                          </span>
+                        </div>
+                        &nbsp;
+                      </>
+                    ) : (
+                      <span style={{ width: "140px" }}></span>
+                    )}
+                  </div>
+                )}
               </>
             )}
-            <div
-              className="tvl"
-              style={{
-                textAlign: "left",
-                marginTop: "10px",
-                width: "100%",
-                // backgroundColor: "#e5f3f5",
-                color: "white",
-                borderRadius: "10px",
-                padding: "5px 8px 5px 8px",
-              }}>
-              {!isLoading && <PrizeInPool />}
-              {tvl && !isLoading && !showStats && (
-                <div className="more">
-                  <span
-                    style={{ cursor: "pointer" }}
-                    onClick={() => {
-                      setShowStats(true);
-                    }}>
-                    <a className="custom-link">+nerd data</a>
-                  </span>
-                </div>
-              )}
-
-              {tvl &&
-              parseInt(tvl.totalTVL.toString()) > 0 &&
-              !isLoading &&
-              showStats ? (
-                <>
-                  <div
-                    style={{ fontSize: "22px", display: "inline-block" }}
-                    onClick={() => {
-                      setShowStats(false);
-                    }}>
-                    TVL&nbsp;&nbsp;
-                    <PrizeValueIcon size={22} />
-                    {/* desktop tvl */}
-                    <PrizeValue
-                      amount={BigInt(Math.round(Number(tvl.totalTVL)))}
-                      size={22}
-                      rounded={false}
-                    />
-                     <span
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsTvlModalOpen(true);
-                    }}
-                    style={{ cursor: "pointer", marginLeft: '8px' }}>
-                    <FontAwesomeIcon
-                      icon={faCircleInfo}
-                      style={{ color: "#ebeeef", height: "16px" }}
-                    />
-                  </span>
-                  </div>
-                  &nbsp;
-                </>
-              ) : (
-                <span style={{ width: "140px" }}></span>
-              )}
-            </div>
           </div>
 
           <div className="hidden-desktop-vault-header">
