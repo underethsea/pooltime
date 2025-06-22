@@ -103,7 +103,7 @@ const PrizeInPool: React.FC = () => {
             onClick={toggleModal}
             className="prize-box"
           >
-            <span className="hidden-mobile">
+            <span className="hidden-mobile" style={{ color: "white" }}>
               PRIZES&nbsp;&nbsp;
             </span>
             <span className="hidden-desktop" style={{ fontSize: "14px", marginBottom: '5px', color: '#afcde4' }}>
