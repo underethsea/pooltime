@@ -8,6 +8,7 @@ import {
   faCircleInfo,
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
+import { ADDRESS } from "../constants";
 
 interface PrizeData {
   [key: string]: {
@@ -175,23 +176,42 @@ const PrizeInPool: React.FC = () => {
                 return (
                   <div key={chain} className="grid-row">
                     <div style={{ textAlign: "left", fontSize: "14px" }}>
-                      <span className="hidden-mobile">
+                      {ADDRESS[chain]?.ICON && (
+                        <div
+                          style={{
+                            width: "24px",
+                            height: "24px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            padding: "0px",
+                          }}
+                        >
+                          <Image
+                            src={ADDRESS[chain].ICON}
+                            width={24}
+                            height={24}
+                            alt={chain}
+                          />
+                        </div>
+                      )}
+                      <span className="hidden-mobile" style={{ marginLeft: '10px' }}>
                         {chain}
                         </span>
-                        <span className="hidden-desktop">
+                        <span className="hidden-desktop" style={{ marginLeft: '10px' }}>
                           {chain==="OPTIMISM" ? "OP" : chain === "ARBITRUM" ? "ARB" : chain}
                         </span>
                     </div>
                     
                     <div style={{ textAlign: "right" }}>
                       <PrizeValueIcon size={isMobile ? 18 : 24} chainname={chain} />
-                      <PrizeValue amount={BigInt(Math.round(Number(prizeData.prizes.prizePoolPrizeBalance)*1e18))} size={isMobile ? 20 : 28}  rounded={true}/>
+                      <PrizeValue amount={BigInt(Math.round(Number(prizeData.prizes.prizePoolPrizeBalance)*1e18))} size={isMobile ? 18 : 28}  rounded={true}/>
                     </div>
                     <div style={{ textAlign: "right",color:"#e9aaf7" }}>
                       {tier0 && tier0.value > 0.01 && (
                         <>
                           <PrizeValueIcon size={isMobile ? 18 : 24} chainname={chain} />
-                          <PrizeValue amount={BigInt(Math.round(tier0.value * 1e18))} size={isMobile ? 20 : 28}  rounded={true}/>
+                          <PrizeValue amount={BigInt(Math.round(tier0.value * 1e18))} size={isMobile ? 18 : 28}  rounded={true}/>
                         </>
                       )}
                     </div>
@@ -199,7 +219,7 @@ const PrizeInPool: React.FC = () => {
                       {tier1 && tier1.value > 0.01 && (
                         <>
                           <PrizeValueIcon size={isMobile ? 18 : 24} chainname={chain} />
-                          <PrizeValue amount={BigInt(Math.round(tier1.value * 1e18))} size={isMobile ? 20 : 28}  rounded={true}/>
+                          <PrizeValue amount={BigInt(Math.round(tier1.value * 1e18))} size={isMobile ? 18 : 28}  rounded={true}/>
                         </>
                       )}
                     </div>
