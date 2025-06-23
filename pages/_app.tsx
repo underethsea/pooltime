@@ -4,6 +4,9 @@ import { OverviewProvider } from "../components/contextOverview";
 import "../styles/globals.css";
 import "../styles/table.css";
 import type { AppProps } from "next/app";
+import { config as fontawesomeConfig } from '@fortawesome/fontawesome-svg-core'
+import '@fortawesome/fontawesome-svg-core/styles.css'
+fontawesomeConfig.autoAddCss = false
 
 
 import {
