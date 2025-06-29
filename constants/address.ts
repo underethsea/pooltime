@@ -118,7 +118,8 @@ const ADDRESS: Addresses = {
         ASSETSYMBOL: "WLD",
         ICON: "https://assets.coingecko.com/coins/images/31069/standard/worldcoin.jpeg?1696529903",
         GECKO: "worldcoin-wld",
-        VAULTICON: "https://assets.coingecko.com/coins/images/31069/standard/worldcoin.jpeg?1696529903",
+        VAULTICON:
+          "https://assets.coingecko.com/coins/images/31069/standard/worldcoin.jpeg?1696529903",
       },
     ],
     BOOSTERS: [
@@ -225,6 +226,31 @@ const ADDRESS: Addresses = {
         ICON: "",
         GECKO: "wrapped-steth",
         VAULTICON: "https://app.cabana.fi/icons/przSTETH.svg",
+      },
+      {
+        VAULT: "0x4e42f783db2d0c5bdff40fdc66fcae8b1cda4a43",
+        LIQUIDATIONPAIR: "0xC8598b5fdEEe42A129D515b3f3a67E9D74481fFa",
+        SYMBOL: "przWETH",
+        NAME: "Prize WETH - Aave",
+        DECIMALS: 18,
+        ASSET: "0x4200000000000000000000000000000000000006",
+        ASSETSYMBOL: "WETH",
+        ICON: "https://www.iconarchive.com/download/i109534/cjdowner/cryptocurrency-flat/Ethereum-ETH.1024.png",
+        GECKO: "ethereum",
+        VAULTICON: "https://app.cabana.fi/icons/przWETH.svg",
+      },
+
+      {
+        VAULT: "0x78adc13c9ab327c79d10cab513b7c6bd3b346858",
+        LIQUIDATIONPAIR: "0xB092742AB775D6A2832A605547f95433607F83F2",
+        SYMBOL: "przsuperOETHb",
+        NAME: "Prize superOETHb",
+        DECIMALS: 18,
+        ASSET: "0xDBFeFD2e8460a6Ee4955A68582F85708BAEA60A3",
+        ASSETSYMBOL: "superOETHb",
+        ICON: "https://assets.coingecko.com/coins/images/39828/standard/Super_OETH.png?1724208268",
+        GECKO: "super-oeth",
+        VAULTICON: "",
       },
     ],
     BOOSTERS: [],
@@ -733,12 +759,13 @@ const ICONS: { [key: string]: string } = {
   based:
     "https://assets.coingecko.com/coins/images/39669/standard/BASED.jpg?1723603780",
   eurc: "https://assets.coingecko.com/coins/images/26045/standard/euro.png?1696525125",
-  world: "https://assets.coingecko.com/coins/images/31069/standard/worldcoin.jpeg?1696529903",
+  world:
+    "https://assets.coingecko.com/coins/images/31069/standard/worldcoin.jpeg?1696529903",
 };
 
 const WHITELIST_VAULTS = [
   "0x1f16d3ccf568e96019cedc8a2c79d2ca6257894e",
-  "0x03d3ce84279cb6f54f5e6074ff0f8319d830dafe", // usdc op 
+  "0x03d3ce84279cb6f54f5e6074ff0f8319d830dafe", // usdc op
   "0xa52e38a9147f5ea9e0c5547376c21c9e3f3e5e1f",
   "0x2998c1685e308661123f64b333767266035f5020",
   "0x3e8dbe51da479f7e8ac46307af99ad5b4b5b41dc",
