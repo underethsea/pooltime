@@ -103,7 +103,7 @@ const Leaderboard: React.FC = () => {
       </center>
       {selectedAddress && (
         <div style={styles.modalOverlay} onClick={handleCloseModal}>
-          <Wins addressProp={selectedAddress} />
+          <Wins addressProp={selectedAddress} onClose={handleCloseModal} />
         </div>
       )}
       <style jsx>{`

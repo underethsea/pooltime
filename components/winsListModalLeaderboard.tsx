@@ -108,8 +108,20 @@ const WinsListModal: React.FC<WinsModalProps> = ({
 }) => {
   const [vaults, setVaults] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const modalRef = useRef<HTMLDivElement>(null);
-const {overview} = useOverview()
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkIsMobile();
+    window.addEventListener("resize", checkIsMobile);
+    return () => {
+      window.removeEventListener("resize", checkIsMobile);
+    };
+  }, []);
+
+  const { overview } = useOverview();
   useEffect(() => {
     const fetchVaults = async () => {
       try {
@@ -126,12 +138,6 @@ const {overview} = useOverview()
     fetchVaults();
   }, []);
 
-  const closeModal = (e: React.MouseEvent) => {
-    if (modalRef.current === e.target) {
-      onClose();
-    }
-  };
-
   const sortedWins = wins.sort((a, b) => {
     const timeA = getMidDrawTime(a.network, a.draw).getTime();
     const timeB = getMidDrawTime(b.network, b.draw).getTime();
@@ -139,96 +145,100 @@ const {overview} = useOverview()
   });
 
   const limitedWins = sortedWins;
+  const modalContentStyle = isMobile
+    ? { ...styles.modalContent, ...styles.modalContentMobile }
+    : styles.modalContent;
 
   return showModal ? (
-    <div style={styles.modalOverlay} onClick={closeModal} ref={modalRef}>
-      <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        <div style={{ backgroundColor: "#030526" }}>
-          <center>
-            {!loading ? (
-              sortedWins.length > 0 ? (
-                <>
-                  <h2>
-                    <span
-                      style={{
-                        display: "inline-block",
-                        verticalAlign: "middle",
-                        lineHeight: "1",
-                      }}
+    <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
+      <button onClick={onClose} style={styles.closeButton}>
+        &times;
+      </button>
+      <div style={{ backgroundColor: "#030526" }}>
+        <center>
+          {!loading ? (
+            sortedWins.length > 0 ? (
+              <>
+                <h2 style={{ marginTop: "35px", marginBottom: "15px" }}>
+                  <span
+                    style={{
+                      display: "inline-block",
+                      verticalAlign: "middle",
+                      lineHeight: "1",
+                    }}
+                  >
+                    <Image
+                      src="/images/pttrophy.svg"
+                      width={26}
+                      height={40}
+                      style={{ verticalAlign: "middle" }}
+                      alt="trophy"
+                    />{" "}
+                  </span>
+                  &nbsp;&nbsp;&nbsp;{sortedWins.length} WIN
+                  {sortedWins.length > 1 ? "S" : ""}&nbsp;&nbsp;&nbsp;
+                  <div style={styles.prizeContainer}>
+                    <PrizeValueIcon size={26} />
+                    <PrizeValue
+                      amount={calculateTotalAmountWon(sortedWins,overview)}
+                      size={28}
+                    />
+                  </div>
+                </h2>
+    
+                <h5 style={{ marginTop: "5px", color: "#ffffff", wordWrap: "break-word", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                  {address &&
+                    `${address.slice(0, 6)}...${address.slice(
+                      address.length - 4
+                    )}`}
+                  {address && (
+                    <a
+                      href={`https://debank.com/profile/${address}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ display: "inline-flex" }}
                     >
                       <Image
-                        src="/images/pttrophy.svg"
-                        width={26}
-                        height={40}
-                        style={{ verticalAlign: "middle" }}
-                        alt="trophy"
-                      />{" "}
-                    </span>
-                    &nbsp;&nbsp;&nbsp;{sortedWins.length} WIN
-                    {sortedWins.length > 1 ? "S" : ""}&nbsp;&nbsp;&nbsp;
-                    <div style={styles.prizeContainer}>
-                      <PrizeValueIcon size={26} />
-                      <PrizeValue
-                        amount={calculateTotalAmountWon(sortedWins,overview)}
-                        size={28}
+                        src="/images/debank.png"
+                        width={16}
+                        height={16}
+                        alt="View on Debank"
                       />
-                    </div>
-                  </h2>
-  
-                  <h5 style={{ color: "#ffffff", wordWrap: "break-word", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-                    {address &&
-                      `${address.slice(0, 6)}...${address.slice(
-                        address.length - 4
-                      )}`}
-                    {address && (
-                      <a
-                        href={`https://debank.com/profile/${address}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ display: "inline-flex" }}
-                      >
-                        <Image
-                          src="/images/debank.png"
-                          width={16}
-                          height={16}
-                          alt="View on Debank"
-                        />
-                      </a>
-                    )}
-                  </h5>
-                  <div>
-                    {limitedWins.map((win: any, index: any) => (
-                      <div key={index} style={styles.row}>
-                        <div style={styles.cellLeftAlign}>
-                          <span className="hidden-mobile">
-                            <span style={{ fontSize: "14px" }}>
-                              {GetChainName(win.network)}{" "}
-                            </span>
+                    </a>
+                  )}
+                </h5>
+                <div>
+                  {limitedWins.map((win: any, index: any) => (
+                    <div key={index} style={styles.row}>
+                      <div style={styles.cellLeftAlign}>
+                        <span className="hidden-mobile">
+                          <span style={{ fontSize: "14px" }}>
+                            {GetChainName(win.network)}{" "}
                           </span>
-                          &nbsp;&nbsp;
-                          <IconDisplay
-                            name={getVaultName(win.vault, vaults)}
-                            size={18}
-                          />
-                        </div>
-                        <div style={styles.cellCenterAlign}>
-                          {timeAgo(getMidDrawTime(win.network, win.draw))}
-                        </div>
-                        <div style={styles.cellRightAlign}>
-                          <PrizeValueIcon size={19}  chainname={GetChainName(win.network)}/>
-                          <PrizeValue amount={BigInt(win.totalPayout)} size={19}  chainname={GetChainName(win.network)}/>
-                        </div>
+                        </span>
+                        &nbsp;&nbsp;
+                        <IconDisplay
+                          name={getVaultName(win.vault, vaults)}
+                          size={18}
+                        />
                       </div>
-                    ))}
-                    {/* {sortedWins.length > 12 && "and more..."} */}
-                  </div>
-                </>
-              ) : (<></>
-                // <h2 style={{ color: "#ffffff" }}>NO WINS</h2>
-              )
-            ) : null}
-          </center>
-        </div>
+                      <div style={styles.cellCenterAlign}>
+                        {timeAgo(getMidDrawTime(win.network, win.draw))}
+                      </div>
+                      <div style={styles.cellRightAlign}>
+                        <PrizeValueIcon size={19}  chainname={GetChainName(win.network)}/>
+                        <PrizeValue amount={BigInt(win.totalPayout)} size={19}  chainname={GetChainName(win.network)}/>
+                      </div>
+                    </div>
+                  ))}
+                  {/* {sortedWins.length > 12 && "and more..."} */}
+                </div>
+              </>
+            ) : (<></>
+              // <h2 style={{ color: "#ffffff" }}>NO WINS</h2>
+            )
+          ) : null}
+        </center>
       </div>
     </div>
   ) : null;  
@@ -266,18 +276,6 @@ const styles: any = {
   cellRightAlign: {
     textAlign: "right",
   },
-  modalOverlay: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    backgroundColor: "rgba(0,0,0,0.7)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 1000,
-  },
   modalContent: {
     color: "white",
     maxWidth: "500px",
@@ -294,5 +292,25 @@ const styles: any = {
     overflow: "auto",
     scrollbarWidth: "none", 
     msOverflowStyle: "none",
+  },
+  modalContentMobile: {
+    width: "100%",
+    height: "100%",
+    maxWidth: "100vw",
+    maxHeight: "100vh",
+    margin: 0,
+    borderRadius: 0,
+    border: "none",
+  },
+  closeButton: {
+    position: "absolute",
+    top: "15px",
+    right: "15px",
+    background: "transparent",
+    border: "none",
+    color: "white",
+    fontSize: "30px",
+    cursor: "pointer",
+    zIndex: 1001,
   },
 };
