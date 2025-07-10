@@ -31,6 +31,7 @@ const messageOptions = [
 
 interface WinProps {
   addressProp: string;
+  onClose: () => void;
 }
 
 interface AggregateWin {
@@ -50,7 +51,7 @@ interface SelectedWin {
   prizes: number;
 }
 
-const Wins: React.FC<WinProps> = ({ addressProp }) => {
+const Wins: React.FC<WinProps> = ({ addressProp, onClose }) => {
   const [randomMessage, setRandomMessage] = useState("");
 
   useEffect(() => {
@@ -64,8 +65,7 @@ const Wins: React.FC<WinProps> = ({ addressProp }) => {
   const [winStartIndex, setWinStartIndex] = useState(0);
   const [maxCards, setMaxCards] = useState(3);
   const [showModal, setShowModal] = useState(false);
-  const [showAllWinsModal, setShowAllWinsModal] = useState(true);
-
+  
   const [selectedWinValue, setSelectedWinValue] = useState<SelectedWin | null>(
     null
   );
@@ -258,8 +258,8 @@ console.log("leaderboard wins")
   let winsText = totalWins === 1 ? "WON " : `${totalWins} WINS `;
 console.log("true??",wins.length > 0 && parseInt(totalAmountWon))
   return (
-    <WinsListModal showModal={showAllWinsModal}
-    onClose={() => setShowAllWinsModal(false)}
+    <WinsListModal showModal={true}
+    onClose={onClose}
     wins={wins}
     address={addressProp}
     />)

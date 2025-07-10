@@ -235,9 +235,18 @@ useEffect(() => {
 
             <div
               className="clear-container padding-top-bottom-20 border-radius-20"
-              style={{ backgroundColor: "white" }}>
-              <div style={{ padding: "5px" }}>
-                <div style={{ display: "inline-block", paddingRight: "10px" }}>
+              style={{ backgroundColor: "white" }}
+            >
+              <div
+                style={{
+                  padding: "5px",
+                  display: "flex",
+                  justifyContent: "center",
+                  flexWrap: "wrap",
+                  gap: "1rem",
+                }}
+              >
+                <div className="selector-container">
                   <Select
                     styles={customStyles}
                     options={chains.map((chain) => ({
@@ -254,8 +263,8 @@ useEffect(() => {
                     }}
                   />
                 </div>
-                &nbsp;&nbsp;&nbsp;&nbsp;
-                <div style={{ display: "inline-block" }}>
+
+                <div className="selector-container">
                   <Select
                     styles={customStyles}
                     options={vaults.map((vault) => {
@@ -383,13 +392,15 @@ useEffect(() => {
               </div>
             </div>
             {selectedAddress && (
-    <div style={styles.modalOverlay} onClick={handleCloseModal}>
-        <Wins addressProp={selectedAddress} />
-    </div>
-)}
-
+              <div style={styles.modalOverlay} onClick={handleCloseModal}>
+                <Wins addressProp={selectedAddress} onClose={handleCloseModal} />
+              </div>
+            )}
 
             <style jsx>{`
+              .selector-container {
+                min-width: 280px;
+              }
               .amount {
                 white-space: nowrap;
               }

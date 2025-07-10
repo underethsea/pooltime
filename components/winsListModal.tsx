@@ -111,6 +111,18 @@ const WinsListModal: React.FC<WinsModalProps> = ({
   const [vaults, setVaults] = useState<any[]>([]);
   const modalRef = useRef<HTMLDivElement>(null);
   const { overview } = useOverview();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkIsMobile();
+    window.addEventListener("resize", checkIsMobile);
+    return () => {
+      window.removeEventListener("resize", checkIsMobile);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchVaults = async () => {
@@ -140,12 +152,21 @@ const WinsListModal: React.FC<WinsModalProps> = ({
 
   const limitedWins = sortedWins;
 
+  const modalContentStyle = isMobile
+    ? { ...styles.modalContent, ...styles.modalContentMobile }
+    : styles.modalContent;
+
   return showModal ? (
     <div style={styles.modalOverlay} onClick={closeModal} ref={modalRef}>
-      <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+      <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
+        {isMobile && (
+          <button onClick={onClose} style={styles.closeButton}>
+            &times;
+          </button>
+        )}
         <div style={{ backgroundColor: "#030526" }}>
           <center>
-            <h2>
+            <h2 style={{ marginTop: "35px", marginBottom: "15px" }}>
               <span
                 style={{
                   display: "inline-block",
@@ -173,7 +194,7 @@ const WinsListModal: React.FC<WinsModalProps> = ({
               </div>
             </h2>
 
-            <h5 style={{ color: "#ffffff", wordWrap: "break-word", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+            <h5 style={{ marginTop: "5px", color: "#ffffff", wordWrap: "break-word", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
               {address && `${address.slice(0, 6)}...${address.slice(address.length - 4)}`}
               {address && (
                 <a
@@ -282,5 +303,25 @@ const styles: any = {
     overflow: "auto",
     scrollbarWidth: "none", 
     msOverflowStyle: "none",
+  },
+  modalContentMobile: {
+    width: "100%",
+    height: "100%",
+    maxWidth: "100vw",
+    maxHeight: "100vh",
+    margin: 0,
+    borderRadius: 0,
+    border: "none",
+  },
+  closeButton: {
+    position: "absolute",
+    top: "15px",
+    right: "15px",
+    background: "transparent",
+    border: "none",
+    color: "white",
+    fontSize: "30px",
+    cursor: "pointer",
+    zIndex: 1001,
   },
 };

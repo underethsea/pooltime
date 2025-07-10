@@ -2415,6 +2415,7 @@ padding:15px;
   justify-content: center; /* Default for desktop */
   display: flex;
   align-items: center;
+  margin-right: 60px;
 }
 
 @media screen and (max-width: 500px) {

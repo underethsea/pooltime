@@ -471,6 +471,7 @@ const handleCloseModal = () => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                paddingTop: "20px",
               }}>
               <Image
                 src={`/images/net.png`}
@@ -484,193 +485,191 @@ const handleCloseModal = () => {
               </h1>
             </div>
 
-            <div
-              className="clear-container padding-top-bottom-20 border-radius-20"
-              style={{ backgroundColor: "white" }}>
-              <div style={{ padding: "5px 0px 5px 0px" }}>
-                <div
-                  style={{
-                    width: "200px",
-                    display: "inline-block",
-                    paddingRight: "10px",
-                  }}>
-                  <Select
-                    styles={customStyles}
-                    options={chainOptions}
-                    className="select-testnet-chain"
-                    onChange={onChangeChain}
-                    value={chain}
-                  />
-                </div>
-                &nbsp;&nbsp;&nbsp;&nbsp;
-                <div style={{ width: "95px", display: "inline-block" }}>
-                  <Select
-                    styles={customStyles}
-                    options={options}
-                    onChange={onChange}
-                    className="select-draw"
-                    value={draw}
-                  />
-                </div>
-              </div>
-            </div>
-            {transactions.length > 0 && (
-              <div className="stats-container">
-                <div className="vault-name">
-                </div>
-                {uniqueVaults > 0 && (
-                  <div className="stats hidden-mobile" style={{ color: "white" }}>
-                    <div className="stat">
-                      <div className="stat-details">
-                        Vaults&nbsp;&nbsp;
-                        <span className="stat-value-poolers">
-                          {NumberWithCommas(uniqueVaults.toString())}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {uniqueVaults > 0 && (
-                  <div className="stats " style={{ color: "white" }}>
-                    <div className="stat">
-                      <div className="stat-details">
-                        Unique Winners&nbsp;&nbsp;
-                        <span className="stat-value-poolers">
-                          {NumberWithCommas(unique.toString())}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                {totalPrizeValueCounter.gt(0) && (
-                  <div className="stats" style={{ color: "white" }}>
-                    <div className="stat">
-                      <div className="stat-details">
-                        Total&nbsp;&nbsp;
-                        {/* <PrizeIcon size={17} />
-                        &nbsp; */}{chain && <>
-                        <PrizeValueIcon size={25}  chainname={chain.label}/>
-                        <span className="stat-value-poolers">
-                          <PrizeValue amount={BigInt(totalPrizeValueCounter.toString())} size={25} chainname={chain.label}/>
-                          {/* {PrizeToke(BigInt(totalPrizeValueCounter.toString()))} */}
-                        </span></>}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-            {transactions.length > 0 ? (
-              <div className="win-container">
-                <div style={{ maxWidth: "1100px" }}>
-                  <table className="claims-table">
-                    <thead>
-                      <tr>
-                        <th className="hidden-mobile">Tier</th>
-                        <th>Address</th>
-                        <th className="hidden-mobile">Vault</th>
-                        <th style={{ textAlign: "right" }}>
-                          Amount&nbsp;&nbsp;&nbsp;&nbsp;
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                    {transactions.map((item, index) => (
-    <tr key={index} onClick={() => handleAddressClick(item.w)} style={{ cursor: "pointer" }}>
-        <td className="hidden-mobile">
-            {item.t.map((tier, index) => (
-                <FontAwesomeIcon
-                    key={index}
-                    icon={faAward}
-                    size="sm"
+            <div style={{ maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
+              <div
+                className="clear-container padding-top-bottom-20 border-radius-20"
+                style={{ backgroundColor: "white", marginTop: "20px" }}>
+                <div style={{ padding: "5px 10px 5px 0px", display: "flex", justifyContent: "center", gap: "20px" }}>
+                  <div
                     style={{
-                        color: TierColors[tier],
-                        height: "20px",
-                        marginRight: "8px",
-                    }}
-                />
-            ))}
-        </td>
-        <td>
-            <div className="addressText">
-                <span>
-                    <div className="inlineDiv">
-                        {item.n === "11155111" && (
-                            <Image
-                                src="/images/sepolia.png"
-                                className="emoji"
-                                alt="Sepolia"
-                                width={20}
-                                height={19}
-                            />
-                        )}
-                        {item.n === "420" && "OP"}
-                        {item.n === "10" && "OP"}
-                        <span className="hidden-desktop">
-                            {item.w.substring(0, 6)}{"..."}{item.w.substring(item.w.length - 4)}
-                        </span>
-                        <span className="hidden-mobile">
-                            {item.w === "0x327b2ea9668a552fe5dec8e3c6e47e540a0a58c6" || item.w === "0xdeef914a2ee2f2014ce401dcb4e13f6540d20ba7" || item.w === "0x1dcfb8b47c2f05ce86c21580c167485de1202e12" || item.w === "0xdd315e449bead6e65b30920a3050550292eac3d4" 
-                            || item.w === "0x65f3aea2594d82024b7ee98ddcf08f991ab1c626" || item.w === "0x2d3ad415198d7156e8c112a508b8306699f6e4cc" || item.w === "0x6be9c23aa3c2cfeff92d884e20d1ec9e134ab076" ? "Grand Prize Boost" : item.w}
-                        </span>
-                        {item.p === "0xb37b3b78022e6964fe80030c9161525880274010" && (
-                            <Image
-                                src="/images/ukraine.png"
-                                className="emoji"
-                                alt="Ukraine"
-                                width={20}
-                                height={19}
-                            />
-                        )}
+                      width: "200px",
+                      display: "inline-block",
+                    }}>
+                    <Select
+                      styles={customStyles}
+                      options={chainOptions}
+                      className="select-testnet-chain"
+                      onChange={onChangeChain}
+                      value={chain}
+                    />
+                  </div>
+                  <div style={{ width: "95px", display: "inline-block" }}>
+                    <Select
+                      styles={customStyles}
+                      options={options}
+                      onChange={onChange}
+                      className="select-draw"
+                      value={draw}
+                    />
+                  </div>
+                </div>
+              </div>
+              {transactions.length > 0 && (
+                <div className="stats-container">
+                  {uniqueVaults > 0 && (
+                    <div className="stats hidden-mobile" style={{ color: "white" }}>
+                      <div className="stat">
+                        <div className="stat-details">
+                          Vaults&nbsp;&nbsp;
+                          <span className="stat-value-poolers">
+                            {NumberWithCommas(uniqueVaults.toString())}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                </span>
-            </div>
-        </td>
-        <td className="hidden-mobile">
-            {chain &&
-                ADDRESS[chain.label].VAULTS.find(
-                    (findVault) =>
-                        findVault.VAULT.toLowerCase() === item.v.toLowerCase()
-                )?.NAME.replace(/PoolTogether|Prize Token/g, "").trim()}
-        </td>
-        <td className="amount" style={{ textAlign: "right" }}>
-          {chain && <>
-            <PrizeValueIcon size={20}  chainname={chain.label}/>
-            <PrizeValue amount={BigInt(item.p)} size={20} chainname={chain.label}/></>}
-            &nbsp;&nbsp;&nbsp;
-        </td>
-    </tr>
-))}
+                  )}
+                  {unique > 0 && (
+                    <div className="stats " style={{ color: "white" }}>
+                      <div className="stat">
+                        <div className="stat-details">
+                          Unique Winners&nbsp;&nbsp;
+                          <span className="stat-value-poolers">
+                            {NumberWithCommas(unique.toString())}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {totalPrizeValueCounter.gt(0) && (
+                    <div className="stats" style={{ color: "white" }}>
+                      <div className="stat">
+                        <div className="stat-details">
+                          Total&nbsp;&nbsp;
+                          {/* <PrizeIcon size={17} />
+                        &nbsp; */}{chain && <>
+                          <PrizeValueIcon size={25}  chainname={chain.label}/>
+                          <span className="stat-value-poolers">
+                            <PrizeValue amount={BigInt(totalPrizeValueCounter.toString())} size={25} chainname={chain.label}/>
+                            {/* {PrizeToke(BigInt(totalPrizeValueCounter.toString()))} */}
+                          </span></>}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              {transactions.length > 0 ? (
+                <div className="win-container">
+                  <div style={{ maxWidth: "1100px", margin: '0 auto' }}>
+                    <table className="claims-table">
+                      <thead>
+                        <tr>
+                          <th className="hidden-mobile">Tier</th>
+                          <th>Address</th>
+                          <th className="hidden-mobile">Vault</th>
+                          <th style={{ textAlign: "right" }}>
+                            Amount&nbsp;&nbsp;&nbsp;&nbsp;
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      {transactions.map((item, index) => (
+      <tr key={index} onClick={() => handleAddressClick(item.w)} style={{ cursor: "pointer" }}>
+          <td className="hidden-mobile">
+              {item.t.map((tier, index) => (
+                  <FontAwesomeIcon
+                      key={index}
+                      icon={faAward}
+                      size="sm"
+                      style={{
+                          color: TierColors[tier],
+                          height: "20px",
+                          marginRight: "8px",
+                      }}
+                  />
+              ))}
+          </td>
+          <td>
+              <div className="addressText">
+                  <span>
+                      <div className="inlineDiv">
+                          {item.n === "11155111" && (
+                              <Image
+                                  src="/images/sepolia.png"
+                                  className="emoji"
+                                  alt="Sepolia"
+                                  width={20}
+                                  height={19}
+                              />
+                          )}
+                          {item.n === "420" && "OP"}
+                          {item.n === "10" && "OP"}
+                          <span className="hidden-desktop">
+                              {item.w.substring(0, 6)}{"..."}{item.w.substring(item.w.length - 4)}
+                          </span>
+                          <span className="hidden-mobile">
+                              {item.w === "0x327b2ea9668a552fe5dec8e3c6e47e540a0a58c6" || item.w === "0xdeef914a2ee2f2014ce401dcb4e13f6540d20ba7" || item.w === "0x1dcfb8b47c2f05ce86c21580c167485de1202e12" || item.w === "0xdd315e449bead6e65b30920a3050550292eac3d4" 
+                              || item.w === "0x65f3aea2594d82024b7ee98ddcf08f991ab1c626" || item.w === "0x2d3ad415198d7156e8c112a508b8306699f6e4cc" || item.w === "0x6be9c23aa3c2cfeff92d884e20d1ec9e134ab076" ? "Grand Prize Boost" : item.w}
+                          </span>
+                          {item.p === "0xb37b3b78022e6964fe80030c9161525880274010" && (
+                              <Image
+                                  src="/images/ukraine.png"
+                                  className="emoji"
+                                  alt="Ukraine"
+                                  width={20}
+                                  height={19}
+                              />
+                          )}
+                      </div>
+                  </span>
+              </div>
+          </td>
+          <td className="hidden-mobile">
+              {chain &&
+                  ADDRESS[chain.label].VAULTS.find(
+                      (findVault) =>
+                          findVault.VAULT.toLowerCase() === item.v.toLowerCase()
+                  )?.NAME.replace(/PoolTogether|Prize Token/g, "").trim()}
+          </td>
+          <td className="amount" style={{ textAlign: "right" }}>
+            {chain && <>
+              <PrizeValueIcon size={20}  chainname={chain.label}/>
+              <PrizeValue amount={BigInt(item.p)} size={20} chainname={chain.label}/></>}
+              &nbsp;&nbsp;&nbsp;
+          </td>
+      </tr>
+  ))}
 
-                    </tbody>
-                  </table>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
-            ) : <div style={{
-              paddingTop: "80px",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}>
-              <div style={{
-                maxWidth: "800px",
+              ) : <div style={{
+                paddingTop: "80px",
                 display: "flex",
+                justifyContent: "center",
                 alignItems: "center",
-                justifyContent: "center"
               }}>
-                <div className="box-header" style={{
-                  padding: "16px 14px",
+                <div style={{
+                  maxWidth: "800px",
                   display: "flex",
-                  alignItems: "center"
+                  alignItems: "center",
+                  justifyContent: "center"
                 }}>
-                  <FontAwesomeIcon icon={faSadTear} width={30} height={30} />&nbsp;&nbsp; No prizes. See history page for prize overview.
+                  <div className="box-header" style={{
+                    padding: "16px 14px",
+                    display: "flex",
+                    alignItems: "center"
+                  }}>
+                    <FontAwesomeIcon icon={faSadTear} width={30} height={30} />&nbsp;&nbsp; No prizes. See history page for prize overview.
+                  </div>
                 </div>
               </div>
+              }
             </div>
-            }
             {selectedAddress && (
     <div style={styles.modalOverlay} onClick={handleCloseModal}>
-        <Wins addressProp={selectedAddress} />
+        <Wins addressProp={selectedAddress} onClose={handleCloseModal}/>
     </div>
 )}
 
@@ -691,13 +690,31 @@ const handleCloseModal = () => {
                 justify-content: center;
                 align-items: flex-end;
                 flex-wrap: no-wrap;
-                padding-top: 15px;
+                padding-top: 30px;
+                gap: 0px;
               }
               .amount {
                 white-space: nowrap;
               }
               .win-container {
-                margin-top: 20px;
+                margin-top: 10px;
+              }
+
+              @media (max-width: 768px) {
+                .stats-container {
+                  gap: 20px;
+                  padding: 0 0px;
+                  margin-top: 20px;
+                  margin-bottom: 0px;
+                }
+                .stats {
+                  flex: 1;
+                  min-width: 0;
+                  text-align: center;
+                }
+                .stat-details {
+                  justify-content: center;
+                }
               }
 
               .claims-table {
