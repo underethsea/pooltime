@@ -690,7 +690,10 @@ const handleCloseModal = () => {
                 justify-content: center;
                 align-items: flex-end;
                 flex-wrap: no-wrap;
-                padding-top: 30px;
+                padding-top: 5px;
+                padding-left: 30px;
+                margin-top: 30px;
+                padding-bottom: 0px;
                 gap: 0px;
               }
               .amount {
@@ -702,14 +705,13 @@ const handleCloseModal = () => {
 
               @media (max-width: 768px) {
                 .stats-container {
+                  display: flex;
+                  justify-content: center;
                   gap: 20px;
-                  padding: 0 0px;
                   margin-top: 20px;
                   margin-bottom: 0px;
                 }
                 .stats {
-                  flex: 1;
-                  min-width: 0;
                   text-align: center;
                 }
                 .stat-details {

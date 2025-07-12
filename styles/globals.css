@@ -2415,13 +2415,16 @@ padding:15px;
   justify-content: center; /* Default for desktop */
   display: flex;
   align-items: center;
-  margin-right: 60px;
+  margin-right: 30px;
+
 }
 
 @media screen and (max-width: 500px) {
   .tickets-container {
-    justify-content: flex-end; /* Only flex-end for mobile */
+    justify-content: flex-end;
+    margin-right: 0px; /* Only flex-end for mobile */
   }
+
 }
 
 @media (max-width: 500px) {

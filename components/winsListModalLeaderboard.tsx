@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { GetChainName } from "../utils/getChain";
+import { GetChainName, GetChainIcon } from "../utils/getChain";
 import Image from "next/image";
 import { ADDRESS } from "../constants";
 import PrizeValueIcon from "./prizeValueIcon";
@@ -220,6 +220,7 @@ const WinsListModal: React.FC<WinsModalProps> = ({
                         <IconDisplay
                           name={getVaultName(win.vault, vaults)}
                           size={18}
+                          fallbackSrc={GetChainIcon(win.network)}
                         />
                       </div>
                       <div style={styles.cellCenterAlign}>
