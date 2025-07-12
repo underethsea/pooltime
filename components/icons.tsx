@@ -5,9 +5,10 @@ interface IconProps {
   name: string;
   size?: number; // Optional size property
   alignment?: "bottom" | "middle"; // Optional alignment property
+  fallbackSrc?: string;
 }
 
-const IconDisplay: React.FC<IconProps> = ({ name, size, alignment = "bottom" }) => {
+const IconDisplay: React.FC<IconProps> = ({ name, size, alignment = "bottom", fallbackSrc }) => {
   const names = name.toLowerCase().split(/[ -/]+/);
   const uniqueNames: string[] = []; // Explicitly type the array
   const seenNames = new Set<string>();
@@ -31,6 +32,9 @@ const IconDisplay: React.FC<IconProps> = ({ name, size, alignment = "bottom" }) 
       .map((name) => ICONS[name]);
   }
 
+  if (iconUrls.length === 0 && fallbackSrc) {
+    iconUrls.push(fallbackSrc);
+  }
   // Define custom styles based on the size prop
   const customStyle = size ? { width: `${size}px`, height: `${size}px` } : {};
 
