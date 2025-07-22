@@ -2445,8 +2445,8 @@ padding:15px;
   align-items: center;
   justify-content: flex-end; /* THIS IS THE KEY TO RIGHT-ALIGN THE WHOLE GROUP */
   background: transparent; /* Keep this if you want no background */
-  padding: 4px; /* Adjust padding as needed for the overall group */
-  font-family: monospace;
+  /* padding: 4px;  */
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
   width: fit-content;    /* This keeps the container snug around the segments */
   max-width: 100%;
@@ -2456,9 +2456,9 @@ padding:15px;
   display: inline-block;
   min-width: 3ch;
   text-align: center; /* Revert to center, or remove !important if it was there */
-  font-family: monospace;
-  font-size: 18px;
-  font-weight: 500; 
+  font-variant-numeric: tabular-nums;
+  /* font-size: 18px;
+  font-weight: 420;  */
   /* padding: 4px 6px; */
   border-radius: 4px;
   /* background-color: rgba(255, 255, 255, 0.1); */
