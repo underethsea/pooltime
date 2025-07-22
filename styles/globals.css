@@ -2439,4 +2439,41 @@ padding:15px;
     bottom: 100%;
     border-color: transparent transparent #edeafb transparent;
   }
+}.draw-countdown-container {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-end; /* THIS IS THE KEY TO RIGHT-ALIGN THE WHOLE GROUP */
+  background: transparent; /* Keep this if you want no background */
+  padding: 4px; /* Adjust padding as needed for the overall group */
+  font-family: monospace;
+  white-space: nowrap;
+  width: fit-content;    /* This keeps the container snug around the segments */
+  max-width: 100%;
+}
+
+.count-segment {
+  display: inline-block;
+  min-width: 3ch;
+  text-align: center; /* Revert to center, or remove !important if it was there */
+  font-family: monospace;
+  font-size: 18px;
+  font-weight: 500; 
+  /* padding: 4px 6px; */
+  border-radius: 4px;
+  /* background-color: rgba(255, 255, 255, 0.1); */
+}
+
+.metric-value {
+  max-width: 240px; /* Adjust this as needed based on the space you want */
+  display: flex;
+  justify-content: flex-end; /* This ensures the draw-countdown-container itself is pushed right within metric-value */
+  align-items: right;
+}
+
+.draw-row {
+  display: flex;
+  justify-content: space-between; /* This correctly positions the .metric-value (containing the countdown) to the far right of "Next draw" */
+  align-items: center;
+  margin-bottom: 8px;
 }

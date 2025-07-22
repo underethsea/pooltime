@@ -13,7 +13,7 @@ interface PrizeTokenProps {
 
 const PrizeValue: React.FC<PrizeTokenProps> = ({ amount = BigInt(0), size = 16, rounded = false, chainname }) => {
   const { currency, overview } = useOverview();
-
+console.log("amount",amount,"rounded",rounded)
   const ethPrice = overview?.prices.geckos.ethereum || 1; // Default ETH price to 1 if not available
 
   // Fallback to default ETH and USD if chainname is not provided
