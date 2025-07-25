@@ -158,7 +158,7 @@ export const getVaultColumns = (showStats: boolean): Column<VaultData>[] => [
                       <IconDisplay name={assetSymbol} size={20} />
                       &nbsp;
                       {NumberWithCommas(
-                        formattedAssetBalance as string
+                        CropDecimals(formattedAssetBalance as string)
                       )}
                     </div>
                   </span>
