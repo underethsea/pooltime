@@ -30,7 +30,7 @@ export function NumberWithCommas(number: string) {
         } else if (absNum >= 100) {
             return addCommas(Math.floor(absNum)); // No decimals for 100 or more
         } else if (absNum >= 1) {
-            return Number(absNum.toFixed(1)).toString(); // One decimal for 1 to 99.9
+            return Number(absNum.toFixed(2)).toString(); // One decimal for 1 to 99.9
         } else if (absNum >= 0.1) {
             return Number(absNum.toFixed(1)).toString(); // One decimal for 0.1 to 0.99
         } else if (absNum >= 0.01) {

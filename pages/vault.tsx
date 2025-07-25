@@ -5,7 +5,7 @@ import { MyConnect } from "../components/connectButton";
 import { Multicall } from "../utils/multicall";
 import { useAccount, useSimulateContract } from "wagmi";
 import { NumberWithCommas, CropDecimals } from "../utils/tokenMaths";
-import {encodeFunctionData} from "viem"
+import { encodeFunctionData } from "viem";
 import {
   useWriteContract,
   useWaitForTransactionReceipt,
@@ -14,7 +14,7 @@ import {
   useSendTransaction,
   useSendCalls,
   createConfig,
-  useCallsStatus
+  useCallsStatus,
 } from "wagmi";
 // usewitchnetwork
 import { ToastContainer, toast } from "react-toastify";
@@ -51,7 +51,7 @@ import { GetChainIcon } from "../utils/getChain";
 import ChainTag from "../components/chainTag";
 import { optimism } from "viem/chains";
 import { call } from "viem/actions";
-
+import DrawCountdown from "../components/drawCountdown";
 // import Drip from "./drip";
 
 interface vaultApi {
@@ -132,7 +132,6 @@ const dripUpdate = () => {
   return 1;
 };
 
-
 function CopyToClipboardButton(text: any) {
   navigator.clipboard
     .writeText(text)
@@ -200,56 +199,52 @@ const Vault: React.FC<VaultProps> = ({
   const overviewFromContext = useOverview();
   const { data: capabilities } = useCapabilities({
     account: address, // account address
-});
-const {
-  data: id,
+  });
+  const {
+    data: id,
     isPending: isBatchWaiting,
-  isError: isSendingError,
-  isSuccess: isSendingSuccess,
-  sendCalls: _sendCalls
-} = useSendCalls();
+    isError: isSendingError,
+    isSuccess: isSendingSuccess,
+    sendCalls: _sendCalls,
+  } = useSendCalls();
 
-const { data: callStatusData, refetch: refetchCallStatus } = useCallsStatus({
-  id: id?.id || '',
-  query: {
-    enabled: !!id,
-    refetchInterval: (data) =>
-      data.state.data?.status === "success" ? false : 1000,
-  },
-});
-console.log("call status data")
-useEffect(() => {
-  if(callStatusData){
-  if (callStatusData.status === "success") {
-    toast("Deposit success!", {
-      position: toast.POSITION.BOTTOM_LEFT,
-    });
-    setBatchId(null); // Reset batch ID after success
-    setRefreshData((refresh) => refresh + 1);
+  const { data: callStatusData, refetch: refetchCallStatus } = useCallsStatus({
+    id: id?.id || "",
+    query: {
+      enabled: !!id,
+      refetchInterval: (data) =>
+        data.state.data?.status === "success" ? false : 1000,
+    },
+  });
+  console.log("call status data");
+  useEffect(() => {
+    if (callStatusData) {
+      if (callStatusData.status === "success") {
+        toast("Deposit success!", {
+          position: toast.POSITION.BOTTOM_LEFT,
+        });
+        setBatchId(null); // Reset batch ID after success
+        setRefreshData((refresh) => refresh + 1);
+      } else if (callStatusData.status === "failure") {
+        toast("Deposit failed. Check console for details.", {
+          position: toast.POSITION.BOTTOM_LEFT,
+        });
+        console.error("Deposit error:", callStatusData);
+        setBatchId(null); // Reset batch ID after failure
+      }
+    }
+  }, [callStatusData]);
 
-  } else if (callStatusData.status === "failure") {
-    toast("Deposit failed. Check console for details.", {
-      position: toast.POSITION.BOTTOM_LEFT,
-    });
-    console.error("Deposit error:", callStatusData);
-    setBatchId(null); // Reset batch ID after failure
-  }}
-}, [callStatusData]);
+  //  console.log("capable",capabilities)
 
+  const canBatchTransactions = (chainId: number) => {
+    return (
+      capabilities?.[chainId]?.atomic?.status === "ready" ||
+      capabilities?.[chainId]?.atomic?.status === "supported"
+    );
+  };
 
-console.log(capabilities);  console.log("capable",capabilities)
-if(vaultData){console.log("allow",  ethers.utils.formatUnits(
-  vaultData.userAssetAllowance,
-  vaultData.decimals
-))}
-const canBatchTransactions = (chainId: number) => {
-  return (
-    capabilities?.[chainId]?.atomic?.status === 'ready' ||
-    capabilities?.[chainId]?.atomic?.status === 'supported'
-  );
-};
-
-console.log("can batch",canBatchTransactions(chainId as number))
+  console.log("can batch", canBatchTransactions(chainId as number));
   const handleCloseModal = () => {
     setIsDepositSuccessModalOpen(false);
   };
@@ -262,22 +257,25 @@ console.log("can batch",canBatchTransactions(chainId as number))
         console.log("Invalid batch deposit request");
         return;
       }
-  
-      const amountToApprove = ethers.utils.parseUnits(buyAmount, vaultData.decimals);
-  
+
+      const amountToApprove = ethers.utils.parseUnits(
+        buyAmount,
+        vaultData.decimals
+      );
+
       // Encode function data
       const approveData = encodeFunctionData({
         abi: ABI.ERC20,
-        functionName: 'approve',
+        functionName: "approve",
         args: [vaultData.address, amountToApprove],
       });
-  
+
       const depositData = encodeFunctionData({
         abi: ABI.VAULT,
-        functionName: 'deposit',
+        functionName: "deposit",
         args: [amountToApprove, address],
       });
-  
+
       // Prepare the batch calls
       const calls = [
         {
@@ -289,17 +287,16 @@ console.log("can batch",canBatchTransactions(chainId as number))
           data: depositData,
         },
       ];
-  
+
       // Trigger the batch call
       _sendCalls({
         account: address as `0x${string}`,
         chainId: chainId,
         calls: calls,
       });
-  
+
       // Log the status immediately after triggering
       console.log("Batch call triggered");
-  
     } catch (err) {
       console.error("Error in batch deposit:", err);
       toast("Error in batch deposit: See console for details", {
@@ -307,7 +304,7 @@ console.log("can batch",canBatchTransactions(chainId as number))
       });
     }
   };
-  
+
   // Use useEffect to monitor the status and data after the call is made
   useEffect(() => {
     if (isSendingSuccess) {
@@ -316,16 +313,14 @@ console.log("can batch",canBatchTransactions(chainId as number))
         position: toast.POSITION.BOTTOM_LEFT,
       });
     }
-  
+
     if (isSendingError) {
       console.error("Batch call failed");
       toast("Batch deposit failed: Check console for details", {
         position: toast.POSITION.BOTTOM_LEFT,
       });
     }
-  
   }, [isSendingSuccess, isSendingError, id]);
-
 
   const handleShowToast = (action: any) => {
     toast.dismiss();
@@ -1199,7 +1194,6 @@ console.log("can batch",canBatchTransactions(chainId as number))
                   {vaultData ? (
                     <>
                       {/* DEPOSIT AND WITHDRAW */}
-
                       {vaultData.userVaultBalance &&
                         vaultData.userVaultBalance.gt(0) &&
                         vaultData.status !== 0 && (
@@ -1255,7 +1249,6 @@ console.log("can batch",canBatchTransactions(chainId as number))
                             </div>
                           </>
                         )}
-
                       <div className="vault-input-container">
                         {vaultData &&
                           vaultData.userVaultBalance.gt(0) &&
@@ -1304,13 +1297,12 @@ console.log("can batch",canBatchTransactions(chainId as number))
                                     <div className="spinner-small"></div>
                                     PROCESSING
                                   </button>
-                                ) : 
-                                redeemWaitIsFetching ? (
+                                ) : redeemWaitIsFetching ? (
                                   <button className="vault-button">
                                     <div className="spinner-small"></div>
                                     PROCESSING
                                   </button>
-                                ): parseFloat(
+                                ) : parseFloat(
                                     ethers.utils.formatUnits(
                                       vaultData.userVaultBalance || 0,
                                       vaultData.decimals || 0
@@ -1589,7 +1581,6 @@ console.log("can batch",canBatchTransactions(chainId as number))
                             </>
                           )}
                       </div>
-
                       {vaultData.userAssetBalance &&
                         vaultData.userAssetBalance.gt(0) &&
                         vaultData.status !== 0 &&
@@ -1647,7 +1638,6 @@ console.log("can batch",canBatchTransactions(chainId as number))
                             </span>
                           </div>
                         )}
-
                       <div className="vault-input-container">
                         {vaultData &&
                           vaultData.userAssetBalance.gt(0) &&
@@ -1675,7 +1665,7 @@ console.log("can batch",canBatchTransactions(chainId as number))
                                   }>
                                   SWITCH NETWORKS
                                 </button>
-                              ) : buyIsLoading  || isBatchWaiting ? (
+                              ) : buyIsLoading || isBatchWaiting ? (
                                 <button className="vault-button">
                                   <div className="spinner-small"></div>
                                   SEE WALLET
@@ -1772,7 +1762,9 @@ console.log("can batch",canBatchTransactions(chainId as number))
                                     }
                                   }}
                                   className="vault-button">
-                                  {canBatchTransactions(chainId) ? "DEPOSIT" : "APPROVE"}
+                                  {canBatchTransactions(chainId)
+                                    ? "DEPOSIT"
+                                    : "APPROVE"}
                                 </button>
                               ) : (
                                 <>
@@ -1788,11 +1780,9 @@ console.log("can batch",canBatchTransactions(chainId as number))
                                   </button>
                                 </>
                               )}
-
                             </div>
                           )}
                       </div>
-
                       {vaultData &&
                         vaultData.userAssetBalance.eq(0) &&
                         vaultData.userVaultBalance.eq(0) &&
@@ -1826,13 +1816,26 @@ console.log("can batch",canBatchTransactions(chainId as number))
                             <MyConnect connectText={"CONNECT TO WIN"} />
                             <br></br>
                           </>
-                        ))}
-
+                        ))}{" "}
+                     {overviewFromContext && (
+    <div className="draw-row">
+        <span className="vault-label">Next draw</span>
+        <span className="vault-data metric-value">
+            <DrawCountdown
+                pendingPrize={
+                    overviewFromContext?.overview
+                        ?.pendingPrize as any
+                }
+                chainName={GetChainName(activeVaultChain)}
+            />
+        </span>{" "}
+    </div> 
+)}
                       {vaultData.userDelegatedBalance &&
                         vaultData.userDelegatedBalance.gt(
                           vaultData.userVaultBalance
                         ) && (
-                          <div className="data-row">
+                          <div className="draw-row">
                             <span className="vault-label">
                               Delegated To You
                             </span>
@@ -1869,7 +1872,6 @@ console.log("can batch",canBatchTransactions(chainId as number))
                             </span>
                           </div>
                         )}
-
                       {address &&
                         activeVaultAddress &&
                         overviewFromContext &&
@@ -1886,7 +1888,6 @@ console.log("can batch",canBatchTransactions(chainId as number))
                             </span>
                           </div>
                         )}
-
                       {activePromos &&
                         vaultData &&
                         vaultData.vp &&
@@ -1995,7 +1996,6 @@ console.log("can batch",canBatchTransactions(chainId as number))
                               })}
                           </>
                         )}
-
                       <div className="data-row">
                         <span className="vault-label">
                           Total Deposits{" "}
@@ -2189,9 +2189,7 @@ console.log("can batch",canBatchTransactions(chainId as number))
                           )}
                         </>
                       )}
-
                       {/* TWAB REWARDS  */}
-
                       {/* {console.log("promos?", activePromos)} */}
                       {/* // rewards per second * seconds in year / total assets * assets price */}
                       <br></br>
@@ -2418,7 +2416,6 @@ console.log("can batch",canBatchTransactions(chainId as number))
                                     <span className="vault-label">Asset Symbol</span>
                                     <span className="vault-data"></span>
                                 </div> */}
-
                       {/* <div className="data-row">
                                     <span className="vault-label">Balance</span>
                                     <span className="vault-data">{vaultData.balance}</span>
