@@ -121,6 +121,8 @@ const WinsListModal: React.FC<WinsModalProps> = ({
     };
   }, []);
 
+
+
   const { overview } = useOverview();
   useEffect(() => {
     const fetchVaults = async () => {
@@ -150,10 +152,11 @@ const WinsListModal: React.FC<WinsModalProps> = ({
     : styles.modalContent;
 
   return showModal ? (
-    <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
-      <button onClick={onClose} style={styles.closeButton}>
-        &times;
-      </button>
+    <div style={styles.modalOverlay} onClick={onClose}>
+      <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} style={styles.closeButton}>
+          &times;
+        </button>
       <div style={{ backgroundColor: "#030526" }}>
         <center>
           {!loading ? (
@@ -241,7 +244,8 @@ const WinsListModal: React.FC<WinsModalProps> = ({
           ) : null}
         </center>
       </div>
-    </div>
+        </div>
+      </div>
   ) : null;  
 };
 
@@ -284,12 +288,12 @@ const styles: any = {
     width: "75%",
     backgroundColor: "#030526",
     padding: "20px 20px 20px 20px",
-    margin: "10px 10px 10px 10px",
+    margin: 0,
     borderRadius: "25px",
     boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2)",
     position: "relative",
     textAlign: "center",
-    maxHeight: "85%",
+    maxHeight: "85vh",
     overflow: "auto",
     scrollbarWidth: "none", 
     msOverflowStyle: "none",
@@ -313,5 +317,17 @@ const styles: any = {
     fontSize: "30px",
     cursor: "pointer",
     zIndex: 1001,
+  },
+  modalOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0,0,0,0.7)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1000,
   },
 };
