@@ -2322,7 +2322,7 @@ const Vault: React.FC<VaultProps> = ({
 
                           <div className="address-row">
                             <span className="address-label">
-                              Liquidation Pair         <Link href={"/liquidate?chain="+chainId+"&address="+vaultData.liquidationPair}>^</Link>
+                              Liquidate Pair         <Link href={"/liquidate?chain="+chainId+"&address="+vaultData.liquidationPair}>^</Link>
 
                             </span>
                             <span className="address-data small-font">
