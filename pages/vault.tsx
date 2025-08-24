@@ -2321,10 +2321,23 @@ const Vault: React.FC<VaultProps> = ({
                           {/* <hr className="condensed-hr"/> */}
 
                           <div className="address-row">
-                            <span className="address-label">
-                              Liquidate Pair         <Link href={"/liquidate?chain="+vaultChainId+"&address="+vaultData.liquidationPair}>^</Link>
+                          <span className="address-label">
+  Liquidate Pair{" "}
+  {Number.isFinite(activeVaultChain) && vaultData?.liquidationPair && (
+    <Link
+      href={{
+        pathname: "/liquidate",
+        query: {
+          chain: activeVaultChain,
+          address: vaultData.liquidationPair,
+        },
+      }}
+    >
+      ^
+    </Link>
+  )}
+</span>
 
-                            </span>
                             <span className="address-data small-font">
                               <span className="hidden-mobile">
                                 {vaultData.liquidationPair}{" "}
