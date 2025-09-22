@@ -52,6 +52,7 @@ import ChainTag from "../components/chainTag";
 import { optimism } from "viem/chains";
 import { call } from "viem/actions";
 import DrawCountdown from "../components/drawCountdown";
+import VaultChanceInfo from "../components/vaultChanceInfo";
 // import Drip from "./drip";
 
 interface vaultApi {
@@ -116,16 +117,17 @@ interface VaultData {
   vp?: number;
 }
 
+interface Tier {
+  odds: number;
+  duration: number;
+  vaultPortion: number;
+}
+
 interface Chance {
   winsPerDraw7d: number;
   winsPerDraw30d: number;
-  grandPrize: number;
-  grandPrizeDuration: number;
-  grandPrizeVaultPortion: number;
   sevenDrawVaultPortion: number;
-  firstTier: number;
-  firstTierDuration: number;
-  firstTierVaultPortion: number;
+  tiers: Tier[];
 }
 
 const dripUpdate = () => {
@@ -136,7 +138,6 @@ function CopyToClipboardButton(text: any) {
   navigator.clipboard
     .writeText(text)
     .then(() => {
-      console.log("Text successfully copied to clipboard");
     })
     .catch((err) => {
       console.error("Could not copy text: ", err);
@@ -170,6 +171,7 @@ const Vault: React.FC<VaultProps> = ({
   const [redeemAmount, setRedeemAmount] = useState<string>("");
   const [seeAddresses, setSeeAddresses] = useState<boolean>(false);
   const [seeChance, setSeeChance] = useState<boolean>(false);
+  const [isChanceModalOpen, setIsChanceModalOpen] = useState<boolean>(false);
 
   // const [urlChain, setUrlChain] = useState<string>("");
   // const chainId = useChainId();
@@ -216,7 +218,6 @@ const Vault: React.FC<VaultProps> = ({
         data.state.data?.status === "success" ? false : 1000,
     },
   });
-  console.log("call status data");
   useEffect(() => {
     if (callStatusData) {
       if (callStatusData.status === "success") {
@@ -244,7 +245,6 @@ const Vault: React.FC<VaultProps> = ({
     );
   };
 
-  console.log("can batch", canBatchTransactions(chainId as number));
   const handleCloseModal = () => {
     setIsDepositSuccessModalOpen(false);
   };
@@ -254,7 +254,6 @@ const Vault: React.FC<VaultProps> = ({
         toast("Invalid batch deposit request", {
           position: toast.POSITION.BOTTOM_LEFT,
         });
-        console.log("Invalid batch deposit request");
         return;
       }
 
@@ -296,7 +295,6 @@ const Vault: React.FC<VaultProps> = ({
       });
 
       // Log the status immediately after triggering
-      console.log("Batch call triggered");
     } catch (err) {
       console.error("Error in batch deposit:", err);
       toast("Error in batch deposit: See console for details", {
@@ -308,7 +306,6 @@ const Vault: React.FC<VaultProps> = ({
   // Use useEffect to monitor the status and data after the call is made
   useEffect(() => {
     if (isSendingSuccess) {
-      console.log("Batch call success:", id);
       toast("Deposit processing...", {
         position: toast.POSITION.BOTTOM_LEFT,
       });
@@ -378,21 +375,6 @@ const Vault: React.FC<VaultProps> = ({
       },
     },
   });
-  console.log("Simulate args:", {
-    chainId,
-    address: vaultData?.address,
-    functionName: "withdraw",
-    args: [
-      redeemAmount &&
-        parseFloat(redeemAmount) > 0 &&
-        ethers.utils.parseUnits(redeemAmount, vaultData?.decimals).toString(),
-      address,
-      address,
-      redeemAmount &&
-        parseFloat(redeemAmount) > 0 &&
-        ethers.utils.parseUnits(redeemAmount, vaultData?.decimals).toString(),
-    ],
-  });
   const { data: redeemSimulate, error: redeemError } = useSimulateContract({
     chainId: chainId,
     address: vaultData?.address as any,
@@ -428,7 +410,6 @@ const Vault: React.FC<VaultProps> = ({
       },
     },
   });
-  console.log("redeem error", redeemError);
   const {
     // isLoading: buyWaitIsLoading,
     isSuccess: buyWaitIsSuccess,
@@ -497,12 +478,10 @@ const Vault: React.FC<VaultProps> = ({
   // else {
   const handleRedeem = async () => {
     try {
-      console.log("Handling redeem...");
       if (!chainId || !address) {
         toast("Error: Wallet not connected or wrong chain.", {
           position: toast.POSITION.BOTTOM_LEFT,
         });
-        console.log("Error: Wallet not connected or wrong chain.");
         return;
       }
 
@@ -515,7 +494,6 @@ const Vault: React.FC<VaultProps> = ({
         // Ensure chainId matches activeVaultChain
         if (chainId === activeVaultChain) {
           if (!writeRedeem) {
-            console.log("writeRedeem is not defined.");
             toast("Redeem error: Contract function not ready.", {
               position: toast.POSITION.BOTTOM_LEFT,
             });
@@ -539,13 +517,11 @@ const Vault: React.FC<VaultProps> = ({
           toast("Error: Please switch to the correct chain.", {
             position: toast.POSITION.BOTTOM_LEFT,
           });
-          console.log("Invalid redeem: Wrong chain.");
         }
       } else {
         toast("Error: Invalid redeem amount.", {
           position: toast.POSITION.BOTTOM_LEFT,
         });
-        console.log("Invalid redeem amount.");
       }
     } catch (err) {
       console.error("Error during redeem:", err);
@@ -561,13 +537,10 @@ const Vault: React.FC<VaultProps> = ({
         toast("error, see console", {
           position: toast.POSITION.BOTTOM_LEFT,
         });
-        console.log("error deposit , undefined chain or address ");
         return;
       }
       if (parseFloat(buyAmount) > 0) {
-        console.log("active vault chain", activeVaultChain);
         if (chainId === activeVaultChain) {
-          console.log("Chain ids match");
           if (writeBuy) {
             // use to block vaults
             if (
@@ -578,15 +551,6 @@ const Vault: React.FC<VaultProps> = ({
                 position: toast.POSITION.BOTTOM_LEFT,
               });
             } else {
-              console.log(
-                "Trying write",
-                buyAmount &&
-                  parseFloat(buyAmount) > 0 &&
-                  ethers.utils
-                    .parseUnits(buyAmount, vaultData?.decimals)
-                    .toString(),
-                address
-              );
               writeBuy({
                 chainId: chainId,
                 address: vaultData?.address as any,
@@ -610,7 +574,6 @@ const Vault: React.FC<VaultProps> = ({
               });
             }
           } else {
-            console.log("writeBuy is not defined");
             toast("error, see console", {
               position: toast.POSITION.BOTTOM_LEFT,
             });
@@ -619,13 +582,10 @@ const Vault: React.FC<VaultProps> = ({
           toast("wrong chain", {
             position: toast.POSITION.BOTTOM_LEFT,
           });
-          console.log("invalid deposit, wrong chain");
         }
       } else {
-        console.log("invalid deposit amount");
       }
     } catch (err) {
-      console.log("error on deposit", err);
       toast("error on deposit, see console", {
         position: toast.POSITION.BOTTOM_LEFT,
       });
@@ -639,7 +599,6 @@ const Vault: React.FC<VaultProps> = ({
 
       // Automatically trigger the "buy" transaction if the approval succeeds
       if (parseFloat(buyAmount) > 0 && vaultData) {
-        console.log("Approval successful. Initiating buy...");
         handleBuy(); // Trigger the buy function
       }
 
@@ -905,9 +864,6 @@ const Vault: React.FC<VaultProps> = ({
       if (tokenPrice) {
         setPrizeTokenPrice(tokenPrice);
       } else {
-        console.log(
-          `No price found for ${prizeTokenSymbol}, defaulting to ETH price.`
-        );
         setPrizeTokenPrice(defaultPrice || 0);
       }
     } else {
@@ -969,18 +925,46 @@ const Vault: React.FC<VaultProps> = ({
           promises.push(combinedPromoPromise);
         }
       } else {
-        console.log("context is missing");
       }
 
-      if (activeVaultAddress && address) {
-        const chancePromise = GetChance(
-          activeVaultChain,
-          activeVaultAddress,
-          address
-        ).then((chance) => {
-          setChance(chance);
-        });
-        promises.push(chancePromise);
+      if (activeVaultAddress) {
+        if (
+          overviewFromContext &&
+          overviewFromContext.overview &&
+          overviewFromContext.overview.pendingPrize
+        ) {
+          const chainName = GetChainName(activeVaultChain);
+          const tierData =
+            overviewFromContext.overview.pendingPrize[chainName]?.prizes
+              ?.tierData;
+
+          if (tierData) {
+            const numberOfTiers = tierData.length - 2;
+            // Use address if available, otherwise use vault address as fallback
+            const poolerAddress = address || activeVaultAddress;
+            const chancePromise = GetChance(
+              activeVaultChain,
+              activeVaultAddress,
+              poolerAddress,
+              numberOfTiers
+            ).then((chance) => {
+              setChance(chance);
+            });
+            promises.push(chancePromise);
+          }
+        } else {
+          // Fallback for when overview context is not ready, assuming 2 tiers.
+          const poolerAddress = address || activeVaultAddress;
+          const chancePromise = GetChance(
+            activeVaultChain,
+            activeVaultAddress,
+            poolerAddress,
+            2
+          ).then((chance) => {
+            setChance(chance);
+          });
+          promises.push(chancePromise);
+        }
       }
 
       await Promise.all(promises);
@@ -1000,8 +984,15 @@ const Vault: React.FC<VaultProps> = ({
       const winsPerDraw7d = chance.winsPerDraw7d;
       const winsPerDraw30d = chance.winsPerDraw30d;
 
-      const userVaultBalance = Number(vaultData.userVaultBalance);
-      const totalAssets = Number(vaultData.tvl);
+      const userVaultBalance = Number(
+        ethers.utils.formatUnits(
+          vaultData.userVaultBalance,
+          vaultData.decimals
+        )
+      );
+      const totalAssets = Number(
+        ethers.utils.formatUnits(vaultData.tvl, vaultData.decimals)
+      );
 
       // Calculate the average number of prizes per draw for this vault portion
       const averagePrizesPerDraw =
@@ -1031,6 +1022,8 @@ const Vault: React.FC<VaultProps> = ({
   }
 
   const userWinChance = averageDaysToWin();
+  const showChanceInfo = !!(vaultData && overviewFromContext?.overview?.pendingPrize);
+  
   return (
     <Layout>
       <center>
@@ -1067,7 +1060,7 @@ const Vault: React.FC<VaultProps> = ({
             Back to all vaults
           </div>
         </Link>
-        <div className="vault-view-bubble">
+        <div className={`vault-view-bubble ${showChanceInfo ? "has-chance" : ""}`}>
           <span
             className="hidden-desktop"
             style={{
@@ -1092,732 +1085,469 @@ const Vault: React.FC<VaultProps> = ({
           &times;
         </button>      */}
           {/* {vaultData && <h3>{vaultData.name}</h3>} */}
-          <div style={{ paddingBottom: "18px" }}>
-            {vaultData && (
-              <>
-                <div>
-                  <span
-                    className="vault-header"
-                    style={{
-                      // marginLeft: "45px",
-                      // fontSize: "26px",
-                      color: "rgb(225, 245, 249)",
-                      display: "flex",
-                      alignItems: "center",
-                    }}>
-                    <IconDisplay name={vaultData.name} size={24} />
-                    {/* 
-            {getVaultIcon(
-              activeVaultAddress,
-              GetChainName(activeVaultChain)
-            ) ? (
-              <>
-                <Image
-                  src={
-                    getVaultIcon(
-                      activeVaultAddress,
-                      GetChainName(activeVaultChain)
-                    ) as string
-                  }
-                  alt="icon"
-                  width={26}
-                  height={26}
-                  layout="fixed"
-                  style={{ verticalAlign: "middle" }} // Apply vertical alignment
-                />
-                &nbsp;&nbsp;
-              </>
-            ) : null} */}
-                    <span className="vault-header-name">{vaultData.name}</span>
-                    <div className="chain-bubble hidden-mobile">
-                      {GetChainName(activeVaultChain)}&nbsp;
-                    </div>{" "}
-                    {/* {vaultData && chainId === 84532 && <Drip chainProp={"BASESEPOLIA"} addressProp={vaultData.asset} updateNow={dripUpdate}></Drip> } */}
-                  </span>{" "}
-                </div>
-              </>
-            )}
-          </div>
 
-          <div className="vault-container">
-            <div className="vault-content">
-              {vaultData && vaultData.status === 0 && (
-                <div>
-                  <FontAwesomeIcon
-                    icon={faExclamationCircle}
-                    size="sm"
-                    style={{
-                      color: "#f24444",
-                      height: "18px",
-                      marginRight: "8px",
-                      marginLeft: "5px",
-                    }}
-                  />
-                  Deposits and withdraws are deprecated
-                </div>
-              )}
-              {vaultData && vaultData.status === 1 && (
-                <div>
-                  <FontAwesomeIcon
-                    icon={faExclamationCircle}
-                    size="sm"
-                    style={{
-                      color: "#f87806",
-                      height: "18px",
-                      marginRight: "8px",
-                      marginLeft: "5px",
-                    }}
-                  />
-                  This vault is withdraw only
-                </div>
-              )}
-              {vaultData && vaultData.status === 2 && (
-                <div>
-                  <FontAwesomeIcon
-                    icon={faExclamationCircle}
-                    size="sm"
-                    style={{
-                      color: "#f87806",
-                      height: "18px",
-                      marginRight: "8px",
-                      marginLeft: "5px",
-                    }}
-                  />
-                  This vault is special access only
-                </div>
-              )}
+          {/* Desktop two-div layout */}
+          <div className="vault-desktop-layout">
+            {/* Main vault content div */}
+            <div className="vault-main-content">
+              <div style={{ paddingBottom: "18px" }}>
+                {vaultData && (
+                  <>
+                    <div>
+                      <span
+                        className="vault-header"
+                        style={{
+                          // marginLeft: "45px",
+                          // fontSize: "26px",
+                          color: "rgb(225, 245, 249)",
+                          display: "flex",
+                          alignItems: "center",
+                        }}>
+                        <IconDisplay name={vaultData.name} size={24} />
+                        <span className="vault-header-name">
+                          {vaultData.name}
+                        </span>
+                        <div className="chain-bubble hidden-mobile">
+                          {GetChainName(activeVaultChain)}&nbsp;
+                        </div>{" "}
+                      </span>{" "}
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="vault-container">
+                <div className="vault-content">
+                  {vaultData && vaultData.status === 0 && (
+                    <div>
+                      <FontAwesomeIcon
+                        icon={faExclamationCircle}
+                        size="sm"
+                        style={{
+                          color: "#f24444",
+                          height: "18px",
+                          marginRight: "8px",
+                          marginLeft: "5px",
+                        }}
+                      />
+                      Deposits and withdraws are deprecated
+                    </div>
+                  )}
+                  {vaultData && vaultData.status === 1 && (
+                    <div>
+                      <FontAwesomeIcon
+                        icon={faExclamationCircle}
+                        size="sm"
+                        style={{
+                          color: "#f87806",
+                          height: "18px",
+                          marginRight: "8px",
+                          marginLeft: "5px",
+                        }}
+                      />
+                      This vault is withdraw only
+                    </div>
+                  )}
+                  {vaultData && vaultData.status === 2 && (
+                    <div>
+                      <FontAwesomeIcon
+                        icon={faExclamationCircle}
+                        size="sm"
+                        style={{
+                          color: "#f87806",
+                          height: "18px",
+                          marginRight: "8px",
+                          marginLeft: "5px",
+                        }}
+                      />
+                      This vault is special access only
+                    </div>
+                  )}
 
-              {isInvalidVault ? (
-                <div className="error-message">Invalid Vault Address</div>
-              ) : (
-                <>
-                  {vaultData ? (
+                  {isInvalidVault ? (
+                    <div className="error-message">Invalid Vault Address</div>
+                  ) : (
                     <>
-                      {/* DEPOSIT AND WITHDRAW */}
-                      {vaultData.userVaultBalance &&
-                        vaultData.userVaultBalance.gt(0) &&
-                        vaultData.status !== 0 && (
-                          <>
-                            <br></br>
-                            <div className="balance-data-row">
-                              <span className="vault-label vault-balance">
-                                <FontAwesomeIcon
-                                  icon={faTicket}
-                                  size="sm"
-                                  style={{
-                                    cursor: "pointer",
-                                    color: "#21325c",
-                                    height: "18px",
-                                    marginRight: "10px",
-                                    marginLeft: "5px",
-                                  }}
-                                  onClick={() =>
-                                    CopyToClipboardButton(activeVaultAddress)
-                                  }
-                                />
-                                <span style={{ fontSize: "19px" }}>
-                                  Your Tickets
+                      {vaultData ? (
+                        <>
+                          {/* DEPOSIT AND WITHDRAW */}
+                          {vaultData.userVaultBalance &&
+                            vaultData.userVaultBalance.gt(0) &&
+                            vaultData.status !== 0 && (
+                              <>
+                                <br></br>
+                                <div className="balance-data-row">
+                                  <span className="vault-label vault-balance">
+                                    <FontAwesomeIcon
+                                      icon={faTicket}
+                                      size="sm"
+                                      style={{
+                                        cursor: "pointer",
+                                        color: "#21325c",
+                                        height: "18px",
+                                        marginRight: "10px",
+                                        marginLeft: "5px",
+                                      }}
+                                      onClick={() =>
+                                        CopyToClipboardButton(activeVaultAddress)
+                                      }
+                                    />
+                                    <span style={{ fontSize: "19px" }}>
+                                      Your Tickets
+                                    </span>
+                                  </span>
+                                  <span className="vault-balance">
+                                    <IconDisplay
+                                      name={vaultData.assetSymbol}
+                                      size={20}
+                                    />{" "}
+                                    &nbsp;
+                                    {NumberWithCommas(
+                                      CropDecimals(
+                                        ethers.utils.formatUnits(
+                                          vaultData.userVaultBalance,
+                                          vaultData.decimals
+                                        )
+                                      )
+                                    )}{" "}
+                                    <button
+                                      className="max-small"
+                                      onClick={() =>
+                                        setRedeemAmount(
+                                          ethers.utils.formatUnits(
+                                            vaultData.userVaultBalance,
+                                            vaultData.decimals
+                                          )
+                                        )
+                                      }>
+                                      max
+                                    </button>
+                                  </span>
+                                </div>
+                              </>
+                            )}
+                          <div className="vault-input-container">
+                            {vaultData &&
+                              vaultData.userVaultBalance.gt(0) &&
+                              vaultData.status !== 0 && (
+                                <div className="input-button-group">
+                                  <input
+                                    type="text"
+                                    placeholder="Amount"
+                                    className="vault-input-field"
+                                    onChange={handleRedeemAmountChange}
+                                    value={redeemAmount}
+                                  />
+                                  {/* <button className="vault-button">REDEEM TICKETS</button> */}
+
+                                  <>
+                                    {vaultData.userVaultBalance && !chainId ? (
+                                      <button className="button no-cursor">
+                                        CONNECT WALLET
+                                      </button>
+                                    ) : chainId !== activeVaultChain ? (
+                                      <button
+                                        className="vault-button pointer"
+                                        disabled={!switchChain}
+                                        onClick={() =>
+                                          switchChain({ chainId: activeVaultChain })
+                                        }>
+                                        SWITCH NETWORKS
+                                      </button>
+                                    ) : redeemIsLoading ? (
+                                      <button className="vault-button">
+                                        <div className="spinner-small"></div>
+                                        SEE WALLET
+                                      </button>
+                                    ) : parseFloat(redeemAmount) >
+                                      parseFloat(
+                                        ethers.utils.formatUnits(
+                                          vaultData.userVaultBalance || 0,
+                                          vaultData?.decimals || 0
+                                        )
+                                      ) ? (
+                                      <button className="vault-button">
+                                        INSUFFICIENT BALANCE
+                                      </button>
+                                    ) : redeemWaitIsFetching ? (
+                                      <button className="vault-button">
+                                        <div className="spinner-small"></div>
+                                        PROCESSING
+                                      </button>
+                                    ) : redeemWaitIsFetching ? (
+                                      <button className="vault-button">
+                                        <div className="spinner-small"></div>
+                                        PROCESSING
+                                      </button>
+                                    ) : parseFloat(
+                                        ethers.utils.formatUnits(
+                                          vaultData.userVaultBalance || 0,
+                                          vaultData.decimals || 0
+                                        )
+                                      ) >= parseFloat(redeemAmount) ? (
+                                      <button
+                                        onClick={handleRedeem}
+                                        className="vault-button">
+                                        REDEEM
+                                      </button>
+                                    ) : (
+                                      <button
+                                        onClick={handleRedeem}
+                                        className="vault-button no-cursor">
+                                        REDEEM
+                                      </button>
+                                    )}
+                                  </>
+                                </div>
+                              )}
+                            {/* Mobile chance info trigger */}
+                            {showChanceInfo && (
+                              <div className="mobile-chance-trigger">
+                                <button 
+                                  className="chance-details-button"
+                                  onClick={() => setIsChanceModalOpen(true)}
+                                >
+                                  See Prizes
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                          {vaultData.userAssetBalance &&
+                            vaultData.userAssetBalance.gt(0) &&
+                            vaultData.status !== 0 &&
+                            vaultData.status !== 1 && (
+                              <div className="balance-data-row">
+                                <span className="vault-label vault-balance">
+                                  <FontAwesomeIcon
+                                    icon={faWallet}
+                                    size="sm"
+                                    style={{
+                                      cursor: "pointer",
+                                      color: "#21325c",
+                                      height: "18px",
+                                      marginRight: "10px",
+                                      marginLeft: "5px",
+                                    }}
+                                    onClick={() =>
+                                      CopyToClipboardButton(activeVaultAddress)
+                                    }
+                                  />
+                                  <span style={{ fontSize: "19px" }}>
+                                    Your{" "}
+                                    <span className="hidden-mobile">Deposit</span>{" "}
+                                    Tokens
+                                  </span>
                                 </span>
-                              </span>
-                              <span className="vault-balance">
-                                <IconDisplay
-                                  name={vaultData.assetSymbol}
-                                  size={20}
-                                />{" "}
-                                &nbsp;
-                                {NumberWithCommas(
-                                  CropDecimals(
-                                    ethers.utils.formatUnits(
-                                      vaultData.userVaultBalance,
-                                      vaultData.decimals
-                                    )
-                                  )
-                                )}{" "}
-                                <button
-                                  className="max-small"
-                                  onClick={() =>
-                                    setRedeemAmount(
+
+                                <span className="vault-balance">
+                                  <IconDisplay
+                                    name={vaultData.assetSymbol}
+                                    size={20}
+                                  />
+                                  &nbsp;
+                                  {NumberWithCommas(
+                                    CropDecimals(
                                       ethers.utils.formatUnits(
-                                        vaultData.userVaultBalance,
+                                        vaultData.userAssetBalance,
                                         vaultData.decimals
                                       )
                                     )
-                                  }>
-                                  max
-                                </button>
-                              </span>
-                            </div>
-                          </>
-                        )}
-                      <div className="vault-input-container">
-                        {vaultData &&
-                          vaultData.userVaultBalance.gt(0) &&
-                          vaultData.status !== 0 && (
-                            <div className="input-button-group">
-                              <input
-                                type="text"
-                                placeholder="Amount"
-                                className="vault-input-field"
-                                onChange={handleRedeemAmountChange}
-                                value={redeemAmount}
-                              />
-                              {/* <button className="vault-button">REDEEM TICKETS</button> */}
-
-                              <>
-                                {vaultData.userVaultBalance && !chainId ? (
-                                  <button className="button no-cursor">
-                                    CONNECT WALLET
-                                  </button>
-                                ) : chainId !== activeVaultChain ? (
+                                  )}{" "}
+                                  {/* {vaultData.assetSymbol} */}{" "}
                                   <button
-                                    className="vault-button pointer"
-                                    disabled={!switchChain}
+                                    className="max-small"
                                     onClick={() =>
-                                      switchChain({ chainId: activeVaultChain })
+                                      setBuyAmount(
+                                        ethers.utils.formatUnits(
+                                          vaultData.userAssetBalance,
+                                          vaultData.decimals
+                                        )
+                                      )
                                     }>
-                                    SWITCH NETWORKS
+                                    max
                                   </button>
-                                ) : redeemIsLoading ? (
-                                  <button className="vault-button">
-                                    <div className="spinner-small"></div>
-                                    SEE WALLET
-                                  </button>
-                                ) : parseFloat(redeemAmount) >
-                                  parseFloat(
-                                    ethers.utils.formatUnits(
-                                      vaultData.userVaultBalance || 0,
-                                      vaultData?.decimals || 0
-                                    )
-                                  ) ? (
-                                  <button className="vault-button">
-                                    INSUFFICIENT BALANCE
-                                  </button>
-                                ) : redeemWaitIsFetching ? (
-                                  <button className="vault-button">
-                                    <div className="spinner-small"></div>
-                                    PROCESSING
-                                  </button>
-                                ) : redeemWaitIsFetching ? (
-                                  <button className="vault-button">
-                                    <div className="spinner-small"></div>
-                                    PROCESSING
-                                  </button>
-                                ) : parseFloat(
-                                    ethers.utils.formatUnits(
-                                      vaultData.userVaultBalance || 0,
-                                      vaultData.decimals || 0
-                                    )
-                                  ) >= parseFloat(redeemAmount) ? (
-                                  <button
-                                    onClick={handleRedeem}
-                                    className="vault-button">
-                                    REDEEM
-                                  </button>
-                                ) : (
-                                  <button
-                                    onClick={handleRedeem}
-                                    className="vault-button no-cursor">
-                                    REDEEM
-                                  </button>
-                                )}
-                              </>
-                            </div>
-                          )}
-                        {userWinChance && userWinChance !== null && (
-                          <>
-                            On average you will win{" "}
-                            {userWinChance === 1 ? (
-                              <>every day</>
-                            ) : (
-                              <>every {userWinChance.toFixed(0)} days</>
+                                </span>
+                              </div>
                             )}
-                            &nbsp;
-                            {chance &&
-                              (chance.winsPerDraw7d ||
-                                chance.winsPerDraw30d ||
-                                chance.sevenDrawVaultPortion) && (
-                                <div className="tooltipContainer">
-                                  <Image
-                                    src="/images/moreInfo.svg"
-                                    alt="i"
-                                    width={16}
-                                    height={16}
+                          <div className="vault-input-container">
+                            {vaultData &&
+                              vaultData.userAssetBalance.gt(0) &&
+                              vaultData.status !== 0 &&
+                              vaultData.status !== 1 && (
+                                <div className="input-button-group">
+                                  <input
+                                    type="text"
+                                    placeholder="Amount"
+                                    className="vault-input-field"
+                                    value={buyAmount}
+                                    onChange={handleBuyAmountChange}
                                   />
-                                  <span className="tooltipText">
-                                    {chance.winsPerDraw30d &&
-                                    chance.winsPerDraw30d > 0
-                                      ? chance.winsPerDraw30d.toFixed(0)
-                                      : chance.winsPerDraw7d.toFixed(0)}{" "}
-                                    prizes per draw
-                                    <br />
-                                    {(
-                                      chance?.sevenDrawVaultPortion * 100
-                                    ).toFixed(1)}
-                                    % vault portion
-                                    <br />
-                                    {(
-                                      100 *
-                                      (Number(vaultData.userVaultBalance) /
-                                        Number(vaultData.totalAssets))
-                                    ).toFixed(1)}
-                                    % your portion
-                                  </span>
-                                </div>
-                              )}{" "}
-                            <br></br>
-                            <br></br>
-                          </>
-                        )}
-
-                        {chance &&
-                          chance.grandPrize > 0 &&
-                          chance.grandPrize !== Infinity &&
-                          vaultData &&
-                          vaultData.userVaultBalance.gt(0) && (
-                            <>
-                              <div
-                                style={{
-                                  textAlign: "center",
-                                  marginBottom: "10px",
-                                }}
-                                className="chance-progress">
-                                <div className="chance-header">
-                                  {overviewFromContext &&
-                                    overviewFromContext.overview && (
-                                      <>
-                                        {" "}
-                                        Your Chance{" "}
-                                        <PrizeValueIcon
-                                          size={15}
-                                          chainname={GetChainName(
-                                            activeVaultChain
-                                          )}
-                                        />
-                                        <PrizeValue
-                                          amount={BigInt(
-                                            (
-                                              1e18 *
-                                              overviewFromContext.overview
-                                                .pendingPrize[
-                                                GetChainName(activeVaultChain)
-                                              ].prizes.tierData[0].value
-                                            ).toFixed(0)
-                                          )}
-                                          size={15}
-                                          chainname={GetChainName(
-                                            activeVaultChain
-                                          )}
-                                        />
-                                      </>
-                                    )}{" "}
-                                  Jackpot (
-                                  {chance.grandPrizeDuration.toString()}d)
-                                </div>
-
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    marginBottom: "5px",
-                                  }}>
-                                  <div
-                                    style={{
-                                      flex: 1,
-                                      height: "20px",
-                                      background: "#1F4C70",
-                                      borderRadius: "10px",
-                                      position: "relative",
-                                    }}>
-                                    <div
-                                      style={{
-                                        position: "absolute",
-                                        top: 0,
-                                        left: 0,
-                                        height: "100%",
-                                        width: `${Math.min(
-                                          (1 /
-                                            ((Number(
-                                              vaultData.userVaultBalance
-                                            ) /
-                                              Number(vaultData.totalAssets)) *
-                                              chance.grandPrizeVaultPortion) /
-                                            chance.grandPrize) *
-                                            100,
-                                          100
-                                        )}%`,
-                                        background: "#b09ec5",
-                                        borderRadius: "10px",
-                                      }}
-                                    />
-                                  </div>
-                                </div>
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                  }}>
-                                  <span className="chances">
-                                    Current 1 in{" "}
-                                    {CropDecimals(chance.grandPrize, true)}
-                                  </span>
-                                  <span className="chances">
-                                    Projected 1 in{" "}
-                                    {CropDecimals(
-                                      1 /
-                                        ((Number(vaultData.userVaultBalance) /
-                                          Number(vaultData.totalAssets)) *
-                                          chance.grandPrizeVaultPortion),
-                                      true
-                                    )}
-                                  </span>
-                                </div>
-                              </div>
-                            </>
-                          )}
-                        {chance &&
-                          chance.grandPrize > 0 &&
-                          chance.grandPrize !== Infinity &&
-                          vaultData &&
-                          vaultData.userVaultBalance.gt(0) && (
-                            <>
-                              <div
-                                style={{
-                                  textAlign: "center",
-                                  marginBottom: "10px",
-                                }}
-                                className="chance-progress">
-                                <div className="chance-header">
-                                  {overviewFromContext &&
-                                    overviewFromContext.overview && (
-                                      <>
-                                        {" "}
-                                        Your Chance{" "}
-                                        <PrizeValueIcon
-                                          size={15}
-                                          chainname={GetChainName(
-                                            activeVaultChain
-                                          )}
-                                        />
-                                        <PrizeValue
-                                          amount={BigInt(
-                                            (
-                                              1e18 *
-                                              overviewFromContext.overview
-                                                .pendingPrize[
-                                                GetChainName(activeVaultChain)
-                                              ].prizes.tierData[1].value
-                                            ).toFixed(0)
-                                          )}
-                                          size={15}
-                                          chainname={GetChainName(
-                                            activeVaultChain
-                                          )}
-                                        />
-                                      </>
-                                    )}{" "}
-                                  Prize ({chance.firstTierDuration.toString()}d)
-                                </div>
-
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    marginBottom: "5px",
-                                  }}>
-                                  <div
-                                    style={{
-                                      flex: 1,
-                                      height: "20px",
-                                      background: "#1F4C70",
-                                      borderRadius: "10px",
-                                      position: "relative",
-                                    }}>
-                                    <div
-                                      style={{
-                                        position: "absolute",
-                                        top: 0,
-                                        left: 0,
-                                        height: "100%",
-                                        width: `${Math.min(
-                                          (1 /
-                                            ((Number(
-                                              vaultData.userVaultBalance
-                                            ) /
-                                              Number(vaultData.totalAssets)) *
-                                              chance.firstTierVaultPortion) /
-                                            4 /
-                                            chance.firstTier) *
-                                            100,
-                                          100
-                                        )}%`,
-                                        background: "#b09ec5",
-                                        borderRadius: "10px",
-                                      }}
-                                    />
-                                  </div>
-                                </div>
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                  }}>
-                                  <span className="chances">
-                                    Current 1 in{" "}
-                                    {CropDecimals(chance.firstTier, true)}
-                                  </span>
-                                  <span className="chances">
-                                    Projected 1 in{" "}
-                                    {CropDecimals(
-                                      1 /
-                                        ((Number(vaultData.userVaultBalance) /
-                                          Number(vaultData.totalAssets)) *
-                                          chance.firstTierVaultPortion) /
-                                        4,
-                                      true
-                                    )}
-                                  </span>
-                                </div>
-                              </div>
-                            </>
-                          )}
-                      </div>
-                      {vaultData.userAssetBalance &&
-                        vaultData.userAssetBalance.gt(0) &&
-                        vaultData.status !== 0 &&
-                        vaultData.status !== 1 && (
-                          <div className="balance-data-row">
-                            <span className="vault-label vault-balance">
-                              <FontAwesomeIcon
-                                icon={faWallet}
-                                size="sm"
-                                style={{
-                                  cursor: "pointer",
-                                  color: "#21325c",
-                                  height: "18px",
-                                  marginRight: "10px",
-                                  marginLeft: "5px",
-                                }}
-                                onClick={() =>
-                                  CopyToClipboardButton(activeVaultAddress)
-                                }
-                              />
-                              <span style={{ fontSize: "19px" }}>
-                                Your{" "}
-                                <span className="hidden-mobile">Deposit</span>{" "}
-                                Tokens
-                              </span>
-                            </span>
-
-                            <span className="vault-balance">
-                              <IconDisplay
-                                name={vaultData.assetSymbol}
-                                size={20}
-                              />
-                              &nbsp;
-                              {NumberWithCommas(
-                                CropDecimals(
-                                  ethers.utils.formatUnits(
-                                    vaultData.userAssetBalance,
-                                    vaultData.decimals
-                                  )
-                                )
-                              )}{" "}
-                              {/* {vaultData.assetSymbol} */}{" "}
-                              <button
-                                className="max-small"
-                                onClick={() =>
-                                  setBuyAmount(
-                                    ethers.utils.formatUnits(
-                                      vaultData.userAssetBalance,
-                                      vaultData.decimals
-                                    )
-                                  )
-                                }>
-                                max
-                              </button>
-                            </span>
-                          </div>
-                        )}
-                      <div className="vault-input-container">
-                        {vaultData &&
-                          vaultData.userAssetBalance.gt(0) &&
-                          vaultData.status !== 0 &&
-                          vaultData.status !== 1 && (
-                            <div className="input-button-group">
-                              <input
-                                type="text"
-                                placeholder="Amount"
-                                className="vault-input-field"
-                                value={buyAmount}
-                                onChange={handleBuyAmountChange}
-                              />
-                              {/* <button className="vault-button">BUY TICKETS</button> */}
-                              {!chainId ? (
-                                <button className="vault-button no-cursor">
-                                  CONNECT WALLET
-                                </button>
-                              ) : chainId !== activeVaultChain ? (
-                                <button
-                                  className="vault-button pointer"
-                                  disabled={!switchChain}
-                                  onClick={() =>
-                                    switchChain({ chainId: activeVaultChain })
-                                  }>
-                                  SWITCH NETWORKS
-                                </button>
-                              ) : buyIsLoading || isBatchWaiting ? (
-                                <button className="vault-button">
-                                  <div className="spinner-small"></div>
-                                  SEE WALLET
-                                </button>
-                              ) : approveIsLoading ? (
-                                <button className="vault-button">
-                                  <div className="spinner-small"></div>
-                                  SEE WALLET
-                                </button>
-                              ) : buyWaitIsFetching || approveWaitIsFetching ? (
-                                <button className="vault-button">
-                                  <div className="spinner-small"></div>
-                                  PROCESSING
-                                </button>
-                              ) : vaultData.userAssetBalance === undefined ? (
-                                ""
-                              ) : parseFloat(buyAmount) >
-                                parseFloat(
-                                  ethers.utils.formatUnits(
-                                    vaultData.userAssetBalance,
-                                    vaultData.decimals || 0
-                                  )
-                                ) ? (
-                                <button className="vault-button hover-button no-cursor">
-                                  INSUFFICIENT BALANCE
-                                </button>
-                              ) : vaultData.userAssetAllowance &&
-                                vaultData.decimals !== undefined &&
-                                parseFloat(
-                                  ethers.utils.formatUnits(
-                                    vaultData.userAssetAllowance,
-                                    vaultData.decimals
-                                  )
-                                ) >= parseFloat(buyAmount) ? (
-                                <>
-                                  <button
-                                    onClick={handleBuy}
-                                    className="vault-button hidden-mobile">
-                                    DEPOSIT FOR TICKETS
-                                  </button>
-                                  <button
-                                    onClick={handleBuy}
-                                    className="vault-button hidden-desktop">
-                                    DEPOSIT
-                                  </button>
-                                </>
-                              ) : parseFloat(buyAmount) > 0 ? (
-                                <button
-                                  onClick={() => {
-                                    if (chainId === activeVaultChain) {
-                                      if (
-                                        vaultData?.address.toLowerCase() ===
-                                          "0x77935f2c72b5eb814753a05921ae495aa283906b" ||
-                                        vaultData?.address.toLowerCase() ===
-                                          "0xce8293f586091d48a0ce761bbf85d5bcaa1b8d2b"
-                                      ) {
-                                        toast(
-                                          "aave utilization is too high for new deposits",
-                                          {
-                                            position:
-                                              toast.POSITION.BOTTOM_LEFT,
+                                  {/* <button className="vault-button">BUY TICKETS</button> */}
+                                  {!chainId ? (
+                                    <button className="vault-button no-cursor">
+                                      CONNECT WALLET
+                                    </button>
+                                  ) : chainId !== activeVaultChain ? (
+                                    <button
+                                      className="vault-button pointer"
+                                      disabled={!switchChain}
+                                      onClick={() =>
+                                        switchChain({ chainId: activeVaultChain })
+                                      }>
+                                      SWITCH NETWORKS
+                                    </button>
+                                  ) : buyIsLoading || isBatchWaiting ? (
+                                    <button className="vault-button">
+                                      <div className="spinner-small"></div>
+                                      SEE WALLET
+                                    </button>
+                                  ) : approveIsLoading ? (
+                                    <button className="vault-button">
+                                      <div className="spinner-small"></div>
+                                      SEE WALLET
+                                    </button>
+                                  ) : buyWaitIsFetching || approveWaitIsFetching ? (
+                                    <button className="vault-button">
+                                      <div className="spinner-small"></div>
+                                      PROCESSING
+                                    </button>
+                                  ) : vaultData.userAssetBalance === undefined ? (
+                                    ""
+                                  ) : parseFloat(buyAmount) >
+                                    parseFloat(
+                                      ethers.utils.formatUnits(
+                                        vaultData.userAssetBalance,
+                                        vaultData.decimals || 0
+                                      )
+                                    ) ? (
+                                    <button className="vault-button hover-button no-cursor">
+                                      INSUFFICIENT BALANCE
+                                    </button>
+                                  ) : vaultData.userAssetAllowance &&
+                                    vaultData.decimals !== undefined &&
+                                    parseFloat(
+                                      ethers.utils.formatUnits(
+                                        vaultData.userAssetAllowance,
+                                        vaultData.decimals
+                                      )
+                                    ) >= parseFloat(buyAmount) ? (
+                                    <>
+                                      <button
+                                        onClick={handleBuy}
+                                        className="vault-button hidden-mobile">
+                                        DEPOSIT FOR TICKETS
+                                      </button>
+                                      <button
+                                        onClick={handleBuy}
+                                        className="vault-button hidden-desktop">
+                                        DEPOSIT
+                                      </button>
+                                    </>
+                                  ) : parseFloat(buyAmount) > 0 ? (
+                                    <button
+                                      onClick={() => {
+                                        if (chainId === activeVaultChain) {
+                                          if (
+                                            vaultData?.address.toLowerCase() ===
+                                              "0x77935f2c72b5eb814753a05921ae495aa283906b" ||
+                                            vaultData?.address.toLowerCase() ===
+                                              "0xce8293f586091d48a0ce761bbf85d5bcaa1b8d2b"
+                                          ) {
+                                            toast(
+                                              "aave utilization is too high for new deposits",
+                                              {
+                                                position:
+                                                  toast.POSITION.BOTTOM_LEFT,
+                                              }
+                                            );
+                                          } else if (
+                                            canBatchTransactions(chainId) &&
+                                            parseFloat(buyAmount) > 0
+                                          ) {
+                                            handleBatchDeposit();
+                                          } else {
+                                            toast.dismiss();
+                                            const args: [string, string] = [
+                                              vaultData.address,
+                                              ethers.utils
+                                                .parseUnits(
+                                                  buyAmount,
+                                                  vaultData.decimals
+                                                )
+                                                .toString(),
+                                            ];
+                                            writeApprove({
+                                              address: `0x${vaultData?.asset.substring(
+                                                2
+                                              )}`,
+                                              abi: ABI.ERC20,
+                                              functionName: "approve",
+                                              args: args,
+                                            });
                                           }
-                                        );
-                                      } else if (
-                                        canBatchTransactions(chainId) &&
-                                        parseFloat(buyAmount) > 0
-                                      ) {
-                                        handleBatchDeposit();
-                                      } else {
-                                        toast.dismiss();
-                                        const args: [string, string] = [
-                                          vaultData.address,
-                                          ethers.utils
-                                            .parseUnits(
-                                              buyAmount,
-                                              vaultData.decimals
-                                            )
-                                            .toString(),
-                                        ];
-                                        writeApprove({
-                                          address: `0x${vaultData?.asset.substring(
-                                            2
-                                          )}`,
-                                          abi: ABI.ERC20,
-                                          functionName: "approve",
-                                          args: args,
-                                        });
-                                      }
-                                    } else {
-                                      toast(
-                                        "please switch to " +
-                                          GetChainName(activeVaultChain)
-                                      );
-                                    }
-                                  }}
-                                  className="vault-button">
-                                  {canBatchTransactions(chainId)
-                                    ? "DEPOSIT"
-                                    : "APPROVE"}
-                                </button>
-                              ) : (
-                                <>
-                                  <button
-                                    onClick={handleBuy}
-                                    className="vault-button hidden-mobile">
-                                    DEPOSIT FOR TICKETS
-                                  </button>
-                                  <button
-                                    onClick={handleBuy}
-                                    className="vault-button hidden-desktop">
-                                    DEPOSIT
-                                  </button>
-                                </>
+                                        } else {
+                                          toast(
+                                            "please switch to " +
+                                              GetChainName(activeVaultChain)
+                                          );
+                                        }
+                                      }}
+                                      className="vault-button">
+                                      {canBatchTransactions(chainId)
+                                        ? "DEPOSIT"
+                                        : "APPROVE"}
+                                    </button>
+                                  ) : (
+                                    <>
+                                      <button
+                                        onClick={handleBuy}
+                                        className="vault-button hidden-mobile">
+                                        DEPOSIT FOR TICKETS
+                                      </button>
+                                      <button
+                                        onClick={handleBuy}
+                                        className="vault-button hidden-desktop">
+                                        DEPOSIT
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
                               )}
-                            </div>
-                          )}
-                      </div>
-                      {vaultData &&
-                        vaultData.userAssetBalance.eq(0) &&
-                        vaultData.userVaultBalance.eq(0) &&
-                        (address ? (
-                          <>
-                            <div style={{ textAlign: "center" }}>
-                              <span
-                                style={{
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                }}>
-                                <FontAwesomeIcon
-                                  icon={faExclamationCircle}
-                                  size="sm"
-                                  style={{
-                                    color: "#21325c",
-                                    height: "18px",
-                                    marginRight: "8px",
-                                    marginLeft: "5px",
-                                  }}
-                                />
-                                To play in this pool you need{" "}
-                                {vaultData.assetSymbol} tokens
-                              </span>
-                            </div>
-                            <br></br>
-                          </>
-                        ) : (
-                          <>
-                            {/* <button onClick={openConnectModal} type="button" className="hover-button"> */}
-                            <MyConnect connectText={"CONNECT TO WIN"} />
-                            <br></br>
-                          </>
-                        ))}{" "}
-                     {overviewFromContext && (
+                          </div>
+                          {vaultData &&
+                            vaultData.userAssetBalance.eq(0) &&
+                            vaultData.userVaultBalance.eq(0) &&
+                            (address ? (
+                              <>
+                                <div style={{ textAlign: "center" }}>
+                                  <span
+                                    style={{
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                    }}>
+                                    <FontAwesomeIcon
+                                      icon={faExclamationCircle}
+                                      size="sm"
+                                      style={{
+                                        color: "#21325c",
+                                        height: "18px",
+                                        marginRight: "8px",
+                                        marginLeft: "5px",
+                                      }}
+                                    />
+                                    To play in this pool you need{" "}
+                                    {vaultData.assetSymbol} tokens
+                                  </span>
+                                </div>
+                                <br></br>
+                              </>
+                            ) : (
+                              <>
+                                {/* <button onClick={openConnectModal} type="button" className="hover-button"> */}
+                                <MyConnect connectText={"CONNECT TO WIN"} />
+                                <br></br>
+                              </>
+                            ))}{" "}
+                         {overviewFromContext && (
     <div className="draw-row">
         <span className="vault-label">Next draw</span>
         <span className="vault-data metric-value">
@@ -1831,21 +1561,21 @@ const Vault: React.FC<VaultProps> = ({
         </span>{" "}
     </div> 
 )}
-                      {vaultData.userDelegatedBalance &&
-                        vaultData.userDelegatedBalance.gt(
-                          vaultData.userVaultBalance
-                        ) && (
-                          <div className="draw-row">
-                            <span className="vault-label">
-                              Delegated To You
-                            </span>
-                            <span className="vault-data">
-                              <IconDisplay
-                                name={vaultData.name}
-                                size={20}
-                                alignment={"middle"}
-                              />
-                              {/* <Image
+                          {vaultData.userDelegatedBalance &&
+                            vaultData.userDelegatedBalance.gt(
+                              vaultData.userVaultBalance
+                            ) && (
+                              <div className="draw-row">
+                                <span className="vault-label">
+                                  Delegated To You
+                                </span>
+                                <span className="vault-data">
+                                  <IconDisplay
+                                    name={vaultData.name}
+                                    size={20}
+                                    alignment={"middle"}
+                                  />
+                                  {/* <Image
                             src={
                               getVaultIcon(
                                 activeVaultAddress,
@@ -1858,470 +1588,470 @@ const Vault: React.FC<VaultProps> = ({
                             layout="fixed"
                             style={{ verticalAlign: "middle" }} // Apply vertical alignment
                           /> */}
-                              &nbsp;
-                              {NumberWithCommas(
-                                CropDecimals(
-                                  ethers.utils.formatUnits(
-                                    vaultData.userDelegatedBalance.sub(
-                                      vaultData.userVaultBalance
-                                    ),
-                                    vaultData.decimals
-                                  )
-                                )
-                              )}
-                            </span>
-                          </div>
-                        )}
-                      {address &&
-                        activeVaultAddress &&
-                        overviewFromContext &&
-                        overviewFromContext.overview && (
-                          <div className="data-row">
-                            <span className="vault-two">
-                              <VaultRewards
-                                chainName={GetChainName(activeVaultChain)}
-                                chainId={activeVaultChain}
-                                address={address}
-                                vaults={[activeVaultAddress]}
-                                prices={overviewFromContext.overview.prices}
-                              />
-                            </span>
-                          </div>
-                        )}
-                      {activePromos &&
-                        vaultData &&
-                        vaultData.vp &&
-                        (activePromos as { [key: string]: any[] })[
-                          activeVaultAddress.toLowerCase()
-                        ] &&
-                        (activePromos as { [key: string]: any[] })[
-                          activeVaultAddress.toLowerCase()
-                        ].length > 0 &&
-                        vaultData && (
-                          <>
-                            {(activePromos as { [key: string]: any[] })[
-                              activeVaultAddress.toLowerCase()
-                            ]
-                              // .filter((activePromo) => activePromo.whitelist) // Filter to only include whitelisted promotions
-                              .map((activePromo, index) => {
-                                // console.log("active promo tokens",activePromo.tokensPerSecond,"decimals,",activePromo.decimals)
-                                const tokensPerSecond =
-                                  Math.round(activePromo.tokensPerSecond) /
-                                  Math.pow(10, activePromo.tokenDecimals);
-                                // console.log("tokens epr second",tokensPerSecond)
-                                const annualTokens =
-                                  tokensPerSecond * 60 * 60 * 24 * 365;
-                                const totalAssetsInVault = Number(
-                                  ethers.utils.formatUnits(
-                                    vaultData.totalAssets,
-                                    vaultData.decimals
-                                  )
-                                );
-                                const promoTokenPrice = activePromo.price;
-                                const vaultTokenPrice = assetPrice;
-                                // console.log("promo token price",promoTokenPrice,"tokens",annualTokens,"total assets",totalAssetsInVault,"vault token price",vaultTokenPrice)
-                                const annualYieldPercentage =
-                                  ((annualTokens * promoTokenPrice) /
-                                    (totalAssetsInVault * vaultTokenPrice)) *
-                                  100;
-
-                                type TokenInfo = {
-                                  chain: string;
-                                  symbol: string;
-                                  icon: string;
-                                } | null;
-                                function getPromoTokenInfo(address: string) {
-                                  for (const chain in WHITELIST_REWARDS) {
-                                    const tokens = WHITELIST_REWARDS[chain];
-                                    const tokenInfo = tokens.find(
-                                      (token) =>
-                                        token.TOKEN.toLowerCase() ===
-                                        address.toLowerCase()
-                                    );
-                                    if (tokenInfo) {
-                                      return {
-                                        chain,
-                                        symbol: tokenInfo.SYMBOL,
-                                        icon: tokenInfo.ICON,
-                                      };
-                                    }
-                                  }
-                                  return null; // Return null if the token is not found
-                                }
-
-                                const tokenInfo = getPromoTokenInfo(
-                                  activePromo.token
-                                );
-                                let symbol, icon;
-
-                                if (tokenInfo) {
-                                  ({ symbol, icon } = tokenInfo);
-                                } else {
-                                  // Handle the case where tokenInfo is null, if necessary
-                                  console.error(
-                                    "Token info not found for the address:",
-                                    activePromo.token
-                                  );
-                                }
-
-                                return (
-                                  <div key={index} className="data-row">
-                                    <span className="vault-label">Rewards</span>
-                                    <span className="vault-data">
-                                      <span className="value-container">
-                                        {icon && symbol && (
-                                          <span className="reward-icon rounded-icon">
-                                            <Image
-                                              src={icon}
-                                              width={16}
-                                              height={16}
-                                              alt={symbol}
-                                            />
-                                          </span>
-                                        )}
-                                        &nbsp;
-                                        {NumberWithCommas(
-                                          activePromo.meta
-                                            ? (
-                                                annualYieldPercentage *
-                                                (vaultData.vp ?? 1)
-                                              ).toFixed(1)
-                                            : annualYieldPercentage.toFixed(1)
-                                        )}
-                                        %
-                                      </span>
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                          </>
-                        )}
-                      <div className="data-row">
-                        <span className="vault-label">
-                          Total Deposits{" "}
-                          <span className="hidden-mobile">(TVL)</span>
-                        </span>
-
-                        <span
-                          className="vault-data"
-                          style={{ backgroundColor: "#c6c0e2" }}>
-                          <span className="vault-align">
-                            <IconDisplay
-                              name={vaultData.assetSymbol}
-                              size={18}
-                              alignment={"middle"}
-                            />
-                            &nbsp;
-                            {NumberWithCommas(
-                              CropDecimals(
-                                ethers.utils.formatUnits(
-                                  vaultData.tvl.gt(vaultData.totalAssets)
-                                    ? vaultData.tvl
-                                    : vaultData.totalAssets,
-                                  vaultData.decimals
-                                )
-                              )
-                            )}{" "}
-                            {/* {vaultData.assetSymbol} */}
-                          </span>
-                        </span>
-                      </div>
-                      {!seeAddresses && (
-                        <>
-                          {vaultData.poolers && (
-                            <div className="data-row">
-                              <span className="vault-label">Poolers</span>
-                              <span
-                                className="vault-data"
-                                style={{ backgroundColor: "#c6c0e2" }}>
-                                {NumberWithCommas(vaultData.poolers.toFixed(0))}
-                              </span>
-                            </div>
-                          )}
-                          {(() => {
-                            return null; // You need to return null or something renderable
-                          })()}
-                          {(parseFloat(vaultData.contributed7d) > 0 ||
-                            parseFloat(vaultData.contributed24h) > 0 ||
-                            parseFloat(vaultData.contributed28d) > 0) && (
-                            <div className="data-row hidden-mobile">
-                              <span className="vault-label">
-                                {(() => {
-                                  // console.log("yes", vaultData);
-                                  return null; // You need to return null or something renderable
-                                })()}
-                                {parseFloat(vaultData.contributed24h) >
-                                parseFloat(vaultData.contributed7d) / 3
-                                  ? "24h Vault Yield"
-                                  : parseFloat(vaultData.contributed7d) > 0
-                                  ? "7d Vault Yield"
-                                  : parseFloat(vaultData.contributed28d) > 0
-                                  ? "28d Vault Yield"
-                                  : "No Yield Data Available"}
-                              </span>
-                              <div className="vault-data">
-                                <div className="value-container">
-                                  <div className="value-element">
-                                    <PrizeValueIcon
-                                      size={20}
-                                      chainname={GetChainName(activeVaultChain)}
-                                    />
-                                    <PrizeValue
-                                      amount={BigInt(
-                                        Math.round(
-                                          parseFloat(vaultData.contributed24h) >
-                                            parseFloat(
-                                              vaultData.contributed7d
-                                            ) /
-                                              3
-                                            ? Number(vaultData.contributed24h) *
-                                                1e18 // Use 24h data
-                                            : parseFloat(
-                                                vaultData.contributed7d
-                                              ) > 0
-                                            ? Number(vaultData.contributed7d) *
-                                              1e18 // Use 7d data
-                                            : parseFloat(
-                                                vaultData.contributed28d
-                                              ) > 0
-                                            ? Number(vaultData.contributed28d) *
-                                              1e18 // Use 28d data as fallback
-                                            : 0 // Fallback to 0 if no contribution data is available
-                                        )
-                                      )}
-                                      size={20}
-                                      chainname={GetChainName(activeVaultChain)}
-                                    />
-                                  </div>
-                                  {prizeTokenPrice > 0 && assetPrice > 0 && (
-                                    <>
-                                      {(() => {
-                                        const contributed7d = Number(
-                                          vaultData.contributed7d
-                                        );
-                                        const contributed24h = Number(
-                                          vaultData.contributed24h
-                                        );
-                                        // Determine the effective contribution based on 24h, 7d, or 28d data
-                                        const effectiveContribution =
-                                          parseFloat(
-                                            vaultData.contributed7d
-                                          ) === 0 &&
-                                          parseFloat(
-                                            vaultData.contributed24h
-                                          ) === 0
-                                            ? parseFloat(
-                                                vaultData.contributed28d
-                                              ) / 4 // Use 28d / 4 if both 7d and 24h are 0
-                                            : parseFloat(
-                                                vaultData.contributed7d
-                                              ) === 0
-                                            ? parseFloat(
-                                                vaultData.contributed24h
-                                              ) * 7 // Use 24h contribution annualized if 7d is 0
-                                            : parseFloat(
-                                                vaultData.contributed24h
-                                              ) >
-                                              parseFloat(
-                                                vaultData.contributed7d
-                                              ) /
-                                                3
-                                            ? parseFloat(
-                                                vaultData.contributed24h
-                                              ) * 7 // Use 24h contribution if it's significantly higher than 7d
-                                            : parseFloat(
-                                                vaultData.contributed7d
-                                              ); // Otherwise, use the 7d contribution
-
-                                        // Annualize the effective contribution
-                                        const annualContribution =
-                                          effectiveContribution * (365 / 7);
-
-                                        const totalAssets = Number(
-                                          ethers.utils.formatUnits(
-                                            vaultData.totalAssets,
-                                            vaultData.decimals
-                                          )
-                                        );
-                                        const contributionValue =
-                                          annualContribution * prizeTokenPrice;
-                                        const totalAssetsValue =
-                                          totalAssets * assetPrice;
-                                        const percentage =
-                                          (contributionValue /
-                                            totalAssetsValue) *
-                                          100;
-                                        // console.log("contributed 24h",contributed24h,"prize tokens price",prizeTokenPrice,"contribution value",contributionValue)
-                                        // console.log("apr",percentage)
-                                        // console.log("total asset value",totalAssetsValue)
-                                        return (
-                                          <div className="value-element">
-                                            {`(${percentage.toFixed(1)}% APR)`}
-                                          </div>
-                                        );
-                                      })()}
-                                    </>
+                                  &nbsp;
+                                  {NumberWithCommas(
+                                    CropDecimals(
+                                      ethers.utils.formatUnits(
+                                        vaultData.userDelegatedBalance.sub(
+                                          vaultData.userVaultBalance
+                                        ),
+                                        vaultData.decimals
+                                      )
+                                    )
                                   )}
-                                </div>
+                                </span>
                               </div>
-                            </div>
-                          )}
+                            )}
+                          {address &&
+                            activeVaultAddress &&
+                            overviewFromContext &&
+                            overviewFromContext.overview && (
+                              <div className="data-row">
+                                <span className="vault-two">
+                                  <VaultRewards
+                                    chainName={GetChainName(activeVaultChain)}
+                                    chainId={activeVaultChain}
+                                    address={address}
+                                    vaults={[activeVaultAddress]}
+                                    prices={overviewFromContext.overview.prices}
+                                  />
+                                </span>
+                              </div>
+                            )}
+                          {activePromos &&
+                            vaultData &&
+                            vaultData.vp &&
+                            (activePromos as { [key: string]: any[] })[
+                              activeVaultAddress.toLowerCase()
+                            ] &&
+                            (activePromos as { [key: string]: any[] })[
+                              activeVaultAddress.toLowerCase()
+                            ].length > 0 &&
+                            vaultData && (
+                              <>
+                                {(activePromos as { [key: string]: any[] })[
+                                  activeVaultAddress.toLowerCase()
+                                ]
+                                  // .filter((activePromo) => activePromo.whitelist) // Filter to only include whitelisted promotions
+                                  .map((activePromo, index) => {
+                                    // console.log("active promo tokens",activePromo.tokensPerSecond,"decimals,",activePromo.decimals)
+                                    const tokensPerSecond =
+                                      Math.round(activePromo.tokensPerSecond) /
+                                      Math.pow(10, activePromo.tokenDecimals);
+                                    // console.log("tokens epr second",tokensPerSecond)
+                                    const annualTokens =
+                                      tokensPerSecond * 60 * 60 * 24 * 365;
+                                    const totalAssetsInVault = Number(
+                                      ethers.utils.formatUnits(
+                                        vaultData.totalAssets,
+                                        vaultData.decimals
+                                      )
+                                    );
+                                    const promoTokenPrice = activePromo.price;
+                                    const vaultTokenPrice = assetPrice;
+                                    // console.log("promo token price",promoTokenPrice,"tokens",annualTokens,"total assets",totalAssetsInVault,"vault token price",vaultTokenPrice)
+                                    const annualYieldPercentage =
+                                      ((annualTokens * promoTokenPrice) /
+                                        (totalAssetsInVault * vaultTokenPrice)) *
+                                      100;
 
-                          {vaultData.yieldFeePercentage.gt(
-                            ethers.BigNumber.from(0)
-                          ) && (
-                            <div className="data-row">
-                              <span className="vault-label">Yield Fee</span>
-                              <span className="vault-data">
+                                    type TokenInfo = {
+                                      chain: string;
+                                      symbol: string;
+                                      icon: string;
+                                    } | null;
+                                    function getPromoTokenInfo(address: string) {
+                                      for (const chain in WHITELIST_REWARDS) {
+                                        const tokens = WHITELIST_REWARDS[chain];
+                                        const tokenInfo = tokens.find(
+                                          (token) =>
+                                            token.TOKEN.toLowerCase() ===
+                                            address.toLowerCase()
+                                        );
+                                        if (tokenInfo) {
+                                          return {
+                                            chain,
+                                            symbol: tokenInfo.SYMBOL,
+                                            icon: tokenInfo.ICON,
+                                          };
+                                        }
+                                      }
+                                      return null; // Return null if the token is not found
+                                    }
+
+                                    const tokenInfo = getPromoTokenInfo(
+                                      activePromo.token
+                                    );
+                                    let symbol, icon;
+
+                                    if (tokenInfo) {
+                                      ({ symbol, icon } = tokenInfo);
+                                    } else {
+                                      // Handle the case where tokenInfo is null, if necessary
+                                      console.error(
+                                        "Token info not found for the address:",
+                                        activePromo.token
+                                      );
+                                    }
+
+                                    return (
+                                      <div key={index} className="data-row">
+                                        <span className="vault-label">Rewards</span>
+                                        <span className="vault-data">
+                                          <span className="value-container">
+                                            {icon && symbol && (
+                                              <span className="reward-icon rounded-icon">
+                                                <Image
+                                                  src={icon}
+                                                  width={16}
+                                                  height={16}
+                                                  alt={symbol}
+                                                />
+                                              </span>
+                                            )}
+                                            &nbsp;
+                                            {NumberWithCommas(
+                                              activePromo.meta
+                                                ? (
+                                                    annualYieldPercentage *
+                                                    (vaultData.vp ?? 1)
+                                                  ).toFixed(1)
+                                                : annualYieldPercentage.toFixed(1)
+                                            )}
+                                            %
+                                          </span>
+                                        </span>
+                                      </div>
+                                    );
+                                  })}
+                              </>
+                            )}
+                          <div className="data-row">
+                            <span className="vault-label">
+                              Total Deposits{" "}
+                              <span className="hidden-mobile">(TVL)</span>
+                            </span>
+
+                            <span
+                              className="vault-data"
+                              style={{ backgroundColor: "#c6c0e2" }}>
+                              <span className="vault-align">
+                                <IconDisplay
+                                  name={vaultData.assetSymbol}
+                                  size={18}
+                                  alignment={"middle"}
+                                />
+                                &nbsp;
                                 {NumberWithCommas(
                                   CropDecimals(
-                                    parseFloat(
-                                      ethers.utils.formatUnits(
-                                        vaultData.yieldFeePercentage,
-                                        7
-                                      )
-                                    ).toFixed(2)
+                                    ethers.utils.formatUnits(
+                                      vaultData.tvl.gt(vaultData.totalAssets)
+                                        ? vaultData.tvl
+                                        : vaultData.totalAssets,
+                                      vaultData.decimals
+                                    )
                                   )
-                                )}
-                                %
+                                )}{" "}
+                                {/* {vaultData.assetSymbol} */}
                               </span>
-                            </div>
+                            </span>
+                          </div>
+                          {!seeAddresses && (
+                            <>
+                              {vaultData.poolers && (
+                                <div className="data-row">
+                                  <span className="vault-label">Poolers</span>
+                                  <span
+                                    className="vault-data"
+                                    style={{ backgroundColor: "#c6c0e2" }}>
+                                    {NumberWithCommas(vaultData.poolers.toFixed(0))}
+                                  </span>
+                                </div>
+                              )}
+                              {(() => {
+                                return null; // You need to return null or something renderable
+                              })()}
+                              {(parseFloat(vaultData.contributed7d) > 0 ||
+                                parseFloat(vaultData.contributed24h) > 0 ||
+                                parseFloat(vaultData.contributed28d) > 0) && (
+                                <div className="data-row hidden-mobile">
+                                  <span className="vault-label">
+                                    {(() => {
+                                      // console.log("yes", vaultData);
+                                      return null; // You need to return null or something renderable
+                                    })()}
+                                    {parseFloat(vaultData.contributed24h) >
+                                    parseFloat(vaultData.contributed7d) / 3
+                                      ? "24h Vault Yield"
+                                      : parseFloat(vaultData.contributed7d) > 0
+                                      ? "7d Vault Yield"
+                                      : parseFloat(vaultData.contributed28d) > 0
+                                      ? "28d Vault Yield"
+                                      : "No Yield Data Available"}
+                                  </span>
+                                  <div className="vault-data">
+                                    <div className="value-container">
+                                      <div className="value-element">
+                                        <PrizeValueIcon
+                                          size={20}
+                                          chainname={GetChainName(activeVaultChain)}
+                                        />
+                                        <PrizeValue
+                                          amount={BigInt(
+                                            Math.round(
+                                              parseFloat(vaultData.contributed24h) >
+                                                parseFloat(
+                                                  vaultData.contributed7d
+                                                ) /
+                                                  3
+                                                ? Number(vaultData.contributed24h) *
+                                                    1e18 // Use 24h data
+                                                : parseFloat(
+                                                    vaultData.contributed7d
+                                                  ) > 0
+                                                ? Number(vaultData.contributed7d) *
+                                                  1e18 // Use 7d data
+                                                : parseFloat(
+                                                    vaultData.contributed28d
+                                                  ) > 0
+                                                ? Number(vaultData.contributed28d) *
+                                                  1e18 // Use 28d data as fallback
+                                                : 0 // Fallback to 0 if no contribution data is available
+                                            )
+                                          )}
+                                          size={20}
+                                          chainname={GetChainName(activeVaultChain)}
+                                        />
+                                      </div>
+                                      {prizeTokenPrice > 0 && assetPrice > 0 && (
+                                        <>
+                                          {(() => {
+                                            const contributed7d = Number(
+                                              vaultData.contributed7d
+                                            );
+                                            const contributed24h = Number(
+                                              vaultData.contributed24h
+                                            );
+                                            // Determine the effective contribution based on 24h, 7d, or 28d data
+                                            const effectiveContribution =
+                                              parseFloat(
+                                                vaultData.contributed7d
+                                              ) === 0 &&
+                                              parseFloat(
+                                                vaultData.contributed24h
+                                              ) === 0
+                                                ? parseFloat(
+                                                    vaultData.contributed28d
+                                                  ) / 4 // Use 28d / 4 if both 7d and 24h are 0
+                                                : parseFloat(
+                                                    vaultData.contributed7d
+                                                  ) === 0
+                                                ? parseFloat(
+                                                    vaultData.contributed24h
+                                                  ) * 7 // Use 24h contribution annualized if 7d is 0
+                                                : parseFloat(
+                                                    vaultData.contributed24h
+                                                  ) >
+                                                  parseFloat(
+                                                    vaultData.contributed7d
+                                                  ) /
+                                                    3
+                                                ? parseFloat(
+                                                    vaultData.contributed24h
+                                                  ) * 7 // Use 24h contribution if it's significantly higher than 7d
+                                                : parseFloat(
+                                                    vaultData.contributed7d
+                                                  ); // Otherwise, use the 7d contribution
+
+                                            // Annualize the effective contribution
+                                            const annualContribution =
+                                              effectiveContribution * (365 / 7);
+
+                                            const totalAssets = Number(
+                                              ethers.utils.formatUnits(
+                                                vaultData.totalAssets,
+                                                vaultData.decimals
+                                              )
+                                            );
+                                            const contributionValue =
+                                              annualContribution * prizeTokenPrice;
+                                            const totalAssetsValue =
+                                              totalAssets * assetPrice;
+                                            const percentage =
+                                              (contributionValue /
+                                                totalAssetsValue) *
+                                              100;
+                                            // console.log("contributed 24h",contributed24h,"prize tokens price",prizeTokenPrice,"contribution value",contributionValue)
+                                            // console.log("apr",percentage)
+                                            // console.log("total asset value",totalAssetsValue)
+                                            return (
+                                              <div className="value-element">
+                                                {`(${percentage.toFixed(1)}% APR)`}
+                                              </div>
+                                            );
+                                          })()}
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {vaultData.yieldFeePercentage.gt(
+                                ethers.BigNumber.from(0)
+                              ) && (
+                                <div className="data-row">
+                                  <span className="vault-label">Yield Fee</span>
+                                  <span className="vault-data">
+                                    {NumberWithCommas(
+                                      CropDecimals(
+                                        parseFloat(
+                                          ethers.utils.formatUnits(
+                                            vaultData.yieldFeePercentage,
+                                            7
+                                          )
+                                        ).toFixed(2)
+                                      )
+                                    )}
+                                    %
+                                  </span>
+                                </div>
+                              )}
+                            </>
                           )}
-                        </>
-                      )}
-                      {/* TWAB REWARDS  */}
-                      {/* {console.log("promos?", activePromos)} */}
-                      {/* // rewards per second * seconds in year / total assets * assets price */}
-                      <br></br>
-                      {seeAddresses && (
-                        <span
-                          className="vault-two small-font pointer"
-                          onClick={() => setSeeAddresses(false)}>
-                          - Close contract info
-                        </span>
-                      )}
-                      {!seeAddresses ? (
-                        <span
-                          className="vault-two small-font pointer"
-                          onClick={() => setSeeAddresses(true)}>
-                          <>
-                            {!vaultData.gnosis
-                              ? "+ Click for more info"
-                              : vaultData.gnosis.required === -1
-                              ? "+ Yield is governed by EOA wallet, click for more info"
-                              : vaultData.gnosis.total === 0 &&
-                                vaultData.gnosis.required === 0
-                              ? "+ This vault is immutable! Click for more info"
-                              : `+ Yield is governed by a ${vaultData.gnosis.required} of ${vaultData.gnosis.total} Gnosis Safe, click for more info`}
-                          </>
-                        </span>
-                      ) : (
-                        <>
-                          <div className="data-row">
-                            <span className="address-label">
-                              Vault Address{" "}
+                          {/* TWAB REWARDS  */}
+                          {/* {console.log("promos?", activePromos)} */}
+                          {/* // rewards per second * seconds in year / total assets * assets price */}
+                          <br></br>
+                          {seeAddresses && (
+                            <span
+                              className="vault-two small-font pointer"
+                              onClick={() => setSeeAddresses(false)}>
+                              - Close contract info
                             </span>
-                            <span className="address-data small-font">
-                              <span className="hidden-mobile">
-                                {activeVaultAddress}{" "}
-                              </span>
-                              <span className="hidden-desktop">
-                                {activeVaultAddress.substring(0, 12)}...{" "}
-                              </span>
-
-                              <FontAwesomeIcon
-                                icon={faCopy}
-                                size="sm"
-                                style={{
-                                  cursor: "pointer",
-                                  color: "#21325c",
-                                  height: "14px",
-                                  marginRight: "5px",
-                                  marginLeft: "5px",
-                                }}
-                                onClick={() =>
-                                  CopyToClipboardButton(activeVaultAddress)
-                                }
-                              />
-                              <a
-                                href={
-                                  ADDRESS[GetChainName(activeVaultChain)]
-                                    .ETHERSCAN +
-                                  "address/" +
-                                  activeVaultAddress
-                                }
-                                target="_blank"
-                                rel="noreferrer">
-                                <Image
-                                  src="/images/etherscan.svg"
-                                  height={14}
-                                  width={14}
-                                  alt="etherscan"
-                                />
-                              </a>
+                          )}
+                          {!seeAddresses ? (
+                            <span
+                              className="vault-two small-font pointer"
+                              onClick={() => setSeeAddresses(true)}>
+                              <>
+                                {!vaultData.gnosis
+                                  ? "+ Click for more info"
+                                  : vaultData.gnosis.required === -1
+                                  ? "+ Yield is governed by EOA wallet, click for more info"
+                                  : vaultData.gnosis.total === 0 &&
+                                    vaultData.gnosis.required === 0
+                                  ? "+ This vault is immutable! Click for more info"
+                                  : `+ Yield is governed by a ${vaultData.gnosis.required} of ${vaultData.gnosis.total} Gnosis Safe, click for more info`}
+                              </>
                             </span>
-                          </div>
-                          <hr className="condensed-hr" />
-                          <div className="address-row">
-                            <span className="address-label">Owner</span>
-                            <span className="address-data small-font">
-                              <span className="hidden-mobile">
-                                {vaultData.owner}{" "}
-                              </span>
-                              <span className="hidden-desktop">
-                                {vaultData.owner.substring(0, 12)}...{" "}
-                              </span>
+                          ) : (
+                            <>
+                              <div className="data-row">
+                                <span className="address-label">
+                                  Vault Address{" "}
+                                </span>
+                                <span className="address-data small-font">
+                                  <span className="hidden-mobile">
+                                    {activeVaultAddress}{" "}
+                                  </span>
+                                  <span className="hidden-desktop">
+                                    {activeVaultAddress.substring(0, 12)}...{" "}
+                                  </span>
 
-                              <FontAwesomeIcon
-                                icon={faCopy}
-                                size="sm"
-                                style={{
-                                  cursor: "pointer",
-                                  color: "#21325c",
-                                  height: "14px",
-                                  marginRight: "5px",
-                                  marginLeft: "5px",
-                                }}
-                                onClick={() =>
-                                  CopyToClipboardButton(vaultData.owner)
-                                }
-                              />
-                              <a
-                                href={
-                                  ADDRESS[GetChainName(activeVaultChain)]
-                                    .ETHERSCAN +
-                                  "address/" +
-                                  vaultData.owner
-                                }
-                                target="_blank"
-                                rel="noreferrer">
-                                <Image
-                                  src="/images/etherscan.svg"
-                                  height={14}
-                                  width={14}
-                                  alt="etherscan"
-                                />
-                              </a>
-                            </span>
-                          </div>
-                          <hr className="condensed-hr" />
+                                  <FontAwesomeIcon
+                                    icon={faCopy}
+                                    size="sm"
+                                    style={{
+                                      cursor: "pointer",
+                                      color: "#21325c",
+                                      height: "14px",
+                                      marginRight: "5px",
+                                      marginLeft: "5px",
+                                    }}
+                                    onClick={() =>
+                                      CopyToClipboardButton(activeVaultAddress)
+                                    }
+                                  />
+                                  <a
+                                    href={
+                                      ADDRESS[GetChainName(activeVaultChain)]
+                                        .ETHERSCAN +
+                                      "address/" +
+                                      activeVaultAddress
+                                    }
+                                    target="_blank"
+                                    rel="noreferrer">
+                                    <Image
+                                      src="/images/etherscan.svg"
+                                      height={14}
+                                      width={14}
+                                      alt="etherscan"
+                                    />
+                                  </a>
+                                </span>
+                              </div>
+                              <hr className="condensed-hr" />
+                              <div className="address-row">
+                                <span className="address-label">Owner</span>
+                                <span className="address-data small-font">
+                                  <span className="hidden-mobile">
+                                    {vaultData.owner}{" "}
+                                  </span>
+                                  <span className="hidden-desktop">
+                                    {vaultData.owner.substring(0, 12)}...{" "}
+                                  </span>
 
-                          {/* <div className="data-row">
+                                  <FontAwesomeIcon
+                                    icon={faCopy}
+                                    size="sm"
+                                    style={{
+                                      cursor: "pointer",
+                                      color: "#21325c",
+                                      height: "14px",
+                                      marginRight: "5px",
+                                      marginLeft: "5px",
+                                    }}
+                                    onClick={() =>
+                                      CopyToClipboardButton(vaultData.owner)
+                                    }
+                                  />
+                                  <a
+                                    href={
+                                      ADDRESS[GetChainName(activeVaultChain)]
+                                        .ETHERSCAN +
+                                      "address/" +
+                                      vaultData.owner
+                                    }
+                                    target="_blank"
+                                    rel="noreferrer">
+                                    <Image
+                                      src="/images/etherscan.svg"
+                                      height={14}
+                                      width={14}
+                                      alt="etherscan"
+                                    />
+                                  </a>
+                                </span>
+                              </div>
+                              <hr className="condensed-hr" />
+
+                              {/* <div className="data-row">
                                     <span className="vault-label">Decimals</span>
                                     <span className="vault-data">{vaultData.decimals}</span>
                                 </div> */}
 
-                          {/* <div className="address-row">
+                              {/* <div className="address-row">
     <span className="address-label">Asset</span>
     <span className="address-data small-font">
         {vaultData.asset} &nbsp; &nbsp;
         <a href={"https://optimistic.etherscan.io/address/"+vaultData.asset} target="_blank" rel="noreferrer"><Image src="/images/etherscan.svg" height={14} width={14} alt="etherscan" /></a>
     </span>
 </div> */}
-                          {/* <hr className="condensed-hr"/> */}
+                              {/* <hr className="condensed-hr"/> */}
 
-                          <div className="address-row">
-                          <span className="address-label">
+                              <div className="address-row">
+                              <span className="address-label">
   Liquidate Pair{" "}
   {Number.isFinite(activeVaultChain) && vaultData?.liquidationPair && (
     <Link
@@ -2338,112 +2068,134 @@ const Vault: React.FC<VaultProps> = ({
   )}
 </span>
 
-                            <span className="address-data small-font">
-                              <span className="hidden-mobile">
-                                {vaultData.liquidationPair}{" "}
-                              </span>
-                              <span className="hidden-desktop">
-                                {vaultData.liquidationPair.substring(0, 12)}...{" "}
-                              </span>
+                                <span className="address-data small-font">
+                                  <span className="hidden-mobile">
+                                    {vaultData.liquidationPair}{" "}
+                                  </span>
+                                  <span className="hidden-desktop">
+                                    {vaultData.liquidationPair.substring(0, 12)}...{" "}
+                                  </span>
 
-                              <FontAwesomeIcon
-                                icon={faCopy}
-                                size="sm"
-                                style={{
-                                  cursor: "pointer",
-                                  color: "#21325c",
-                                  height: "14px",
-                                  marginRight: "5px",
-                                  marginLeft: "5px",
-                                }}
-                                onClick={() =>
-                                  CopyToClipboardButton(
-                                    vaultData.liquidationPair
-                                  )
-                                }
-                              />
-                              <a
-                                href={
-                                  ADDRESS[GetChainName(activeVaultChain)]
-                                    .ETHERSCAN +
-                                  "address/" +
-                                  vaultData.liquidationPair
-                                }
-                                target="_blank"
-                                rel="noreferrer">
-                                <Image
-                                  src="/images/etherscan.svg"
-                                  height={14}
-                                  width={14}
-                                  alt="etherscan"
-                                />
-                              </a>
-                            </span>
-                          </div>
-                          <hr className="condensed-hr" />
+                                  <FontAwesomeIcon
+                                    icon={faCopy}
+                                    size="sm"
+                                    style={{
+                                      cursor: "pointer",
+                                      color: "#21325c",
+                                      height: "14px",
+                                      marginRight: "5px",
+                                      marginLeft: "5px",
+                                    }}
+                                    onClick={() =>
+                                      CopyToClipboardButton(
+                                        vaultData.liquidationPair
+                                      )
+                                    }
+                                  />
+                                  <a
+                                    href={
+                                      ADDRESS[GetChainName(activeVaultChain)]
+                                        .ETHERSCAN +
+                                      "address/" +
+                                      vaultData.liquidationPair
+                                    }
+                                    target="_blank"
+                                    rel="noreferrer">
+                                    <Image
+                                      src="/images/etherscan.svg"
+                                      height={14}
+                                      width={14}
+                                      alt="etherscan"
+                                    />
+                                  </a>
+                                </span>
+                              </div>
+                              <hr className="condensed-hr" />
 
-                          <div className="address-row">
-                            <span className="address-label">Deposit Token</span>
-                            <span className="address-data small-font">
-                              <span className="hidden-mobile">
-                                {vaultData.asset}{" "}
-                              </span>
-                              <span className="hidden-desktop">
-                                {vaultData.asset.substring(0, 12)}...{" "}
-                              </span>
+                              <div className="address-row">
+                                <span className="address-label">Deposit Token</span>
+                                <span className="address-data small-font">
+                                  <span className="hidden-mobile">
+                                    {vaultData.asset}{" "}
+                                  </span>
+                                  <span className="hidden-desktop">
+                                    {vaultData.asset.substring(0, 12)}...{" "}
+                                  </span>
 
-                              <FontAwesomeIcon
-                                icon={faCopy}
-                                size="sm"
-                                style={{
-                                  cursor: "pointer",
-                                  color: "#21325c",
-                                  height: "14px",
-                                  marginRight: "5px",
-                                  marginLeft: "5px",
-                                }}
-                                onClick={() =>
-                                  CopyToClipboardButton(vaultData.asset)
-                                }
-                              />
-                              <a
-                                href={
-                                  ADDRESS[GetChainName(activeVaultChain)]
-                                    .ETHERSCAN +
-                                  "address/" +
-                                  vaultData.asset
-                                }
-                                target="_blank"
-                                rel="noreferrer">
-                                <Image
-                                  src="/images/etherscan.svg"
-                                  height={14}
-                                  width={14}
-                                  alt="etherscan"
-                                />
-                              </a>
-                            </span>
-                          </div>
-                        </>
-                      )}
-                      {/* <div className="data-row">
+                                  <FontAwesomeIcon
+                                    icon={faCopy}
+                                    size="sm"
+                                    style={{
+                                      cursor: "pointer",
+                                      color: "#21325c",
+                                      height: "14px",
+                                      marginRight: "5px",
+                                      marginLeft: "5px",
+                                    }}
+                                    onClick={() =>
+                                      CopyToClipboardButton(vaultData.asset)
+                                    }
+                                  />
+                                  <a
+                                    href={
+                                      ADDRESS[GetChainName(activeVaultChain)]
+                                        .ETHERSCAN +
+                                      "address/" +
+                                      vaultData.asset
+                                    }
+                                    target="_blank"
+                                    rel="noreferrer">
+                                    <Image
+                                      src="/images/etherscan.svg"
+                                      height={14}
+                                      width={14}
+                                      alt="etherscan"
+                                    />
+                                  </a>
+                                </span>
+                              </div>
+                            </>
+                          )}
+                          {/* <div className="data-row">
                                     <span className="vault-label">Asset Symbol</span>
                                     <span className="vault-data"></span>
                                 </div> */}
-                      {/* <div className="data-row">
+                          {/* <div className="data-row">
                                     <span className="vault-label">Balance</span>
                                     <span className="vault-data">{vaultData.balance}</span>
                                 </div> */}
+                        </>
+                      ) : (
+                        <center>
+                          <div className="spinner-large" />
+                        </center>
+                      )}
                     </>
-                  ) : (
-                    <center>
-                      <div className="spinner-large" />
-                    </center>
                   )}
-                </>
-              )}
-            </div>
-          </div>
+                </div>
+                </div>
+                </div>
+                {showChanceInfo && (
+                  <div className="vault-chance-content">
+                    <h3 className="chance-section-title">
+                      {vaultData && vaultData.userVaultBalance.gt(0)
+                        ? "Your Chance"
+                        : "Prizes"}
+                    </h3>
+                    {(() => {
+                      return null;
+                    })()}
+                    <VaultChanceInfo
+                      chance={chance}
+                      vaultData={vaultData}
+                      activeVaultChain={activeVaultChain}
+                      userWinChance={userWinChance}
+                      overviewFromContext={overviewFromContext}
+                    />
+                  </div>
+                )}
+                
+
           <ToastContainer style={{ zIndex: 9999 }} />
           {vaultData && (
             <DepositSuccessModal
@@ -2454,6 +2206,36 @@ const Vault: React.FC<VaultProps> = ({
               hash={depositHash}
             />
           )}
+          
+          {/* Mobile chance info modal */}
+          {isChanceModalOpen && (
+            <div className="chance-modal-overlay" onClick={() => setIsChanceModalOpen(false)}>
+              <div className="chance-modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="chance-modal-header">
+                  <h3>
+                    {vaultData && vaultData.userVaultBalance.gt(0)
+                      ? "Your Chance"
+                      : "Prizes"}
+                  </h3>
+                  <button 
+                    className="chance-modal-close"
+                    onClick={() => setIsChanceModalOpen(false)}
+                  >
+                    ×
+                  </button>
+                </div>
+                <VaultChanceInfo
+                  chance={chance}
+                  vaultData={vaultData}
+                  activeVaultChain={activeVaultChain}
+                  userWinChance={userWinChance}
+                  overviewFromContext={overviewFromContext}
+                  isModal={true}
+                />
+              </div>
+            </div>
+          )}
+        </div>
         </div>
         {/* </div> */}
       </center>
