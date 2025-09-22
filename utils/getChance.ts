@@ -8,10 +8,17 @@ interface UserBalanceTotalSupplyTwab {
   twabTotalSupply: ethers.BigNumber;
 }
 
+interface Tier {
+  odds: number;
+  duration: number;
+  vaultPortion: number;
+}
+
 export const GetChance = async (
   chainId: number,
   vault: string,
-  pooler: string
+  pooler: string,
+  numberOfTiers: number
 ) => {
   const chainName = GetChainName(chainId);
   const prizePoolContract = new ethers.Contract(
@@ -20,97 +27,97 @@ export const GetChance = async (
     PROVIDERS[chainName]
   );
   const historyUrl = `https://poolexplorer.xyz/${chainId}-${ADDRESS[chainName].PRIZEPOOL}-history`;
-// console.log("history url",historyUrl)
-  const calls = [
+
+  const tierAccrualCalls = [];
+  for (let i = 0; i < numberOfTiers; i++) {
+    tierAccrualCalls.push(prizePoolContract.getTierAccrualDurationInDraws(i));
+  }
+
+  const initialCalls = [
     prizePoolContract.getLastAwardedDrawId(),
-    prizePoolContract.getTierAccrualDurationInDraws(0),
-    prizePoolContract.getTierAccrualDurationInDraws(1),
+    ...tierAccrualCalls,
   ];
 
   const [historyResponse, multicallResponse] = await Promise.all([
     fetch(historyUrl),
-    Multicall(calls, chainName)
+    Multicall(initialCalls, chainName),
   ]);
 
-  const historyData = await historyResponse.json();
+  let historyData;
+  try {
+    historyData = await historyResponse.json();
+  } catch (e) {
+    console.error("Failed to parse history response:", e);
+    historyData = []; // Default to an empty array on failure
+  }
 
-  // console.log("history data", historyData);
-  const [lastDrawId, grandPrizeDuration, firstTierDuration] = multicallResponse as unknown as [ethers.BigNumber, ethers.BigNumber, ethers.BigNumber];
+  const [lastDrawId, ...tierDurations] =
+    multicallResponse as unknown as [ethers.BigNumber, ...ethers.BigNumber[]];
 
-  const grandPrizeStartDraw =
-    Math.max(0, Number(lastDrawId) - Number(grandPrizeDuration)) + 1;
-  const firstTierStartDraw =
-    Math.max(0, Number(lastDrawId) - Number(firstTierDuration)) + 1;
+  const twabAndPortionCalls = [];
+  for (let i = 0; i < numberOfTiers; i++) {
+    const startDraw =
+      Math.max(0, Number(lastDrawId) - Number(tierDurations[i])) + 1;
+    twabAndPortionCalls.push(
+      prizePoolContract.getVaultUserBalanceAndTotalSupplyTwab(
+        vault,
+        pooler,
+        startDraw,
+        Number(lastDrawId)
+      )
+    );
+    twabAndPortionCalls.push(
+      prizePoolContract.getVaultPortion(vault, startDraw, lastDrawId)
+    );
+  }
+  twabAndPortionCalls.push(
+    prizePoolContract.getVaultPortion(vault, Number(lastDrawId) - 7, lastDrawId)
+  );
 
-    const [
-      userGrandPrizeBalanceTotalSupplyTwab,
-      userFirstTierBalanceTotalSupplyTwab,
-      grandPrizeVaultPortion,
-      firstTierVaultPortion,
-      sevenDrawVaultPortion
-    ] = (await Multicall(
-      [
-        prizePoolContract.getVaultUserBalanceAndTotalSupplyTwab(
-          vault,
-          pooler,
-          grandPrizeStartDraw,
-          Number(lastDrawId)
-        ),
-        prizePoolContract.getVaultUserBalanceAndTotalSupplyTwab(
-          vault,
-          pooler,
-          firstTierStartDraw,
-          lastDrawId
-        ),
-        prizePoolContract.getVaultPortion(vault, grandPrizeStartDraw, lastDrawId),
-        prizePoolContract.getVaultPortion(vault, firstTierStartDraw, lastDrawId),
-        prizePoolContract.getVaultPortion(vault, Number(lastDrawId) - 7, lastDrawId),
-      ],
-      chainName
-    )) as unknown as [
-      UserBalanceTotalSupplyTwab,
-      UserBalanceTotalSupplyTwab,
-      ethers.BigNumber,
-      ethers.BigNumber,
-      ethers.BigNumber
-    ];
+  const subsequentMulticallResponse = (await Multicall(
+    twabAndPortionCalls,
+    chainName
+  )) as any[];
 
-  // console.log(
-  //   "chance calc",
-  //   Number(userGrandPrizeBalanceTotalSupplyTwab.twab),
-  //   Number(userGrandPrizeBalanceTotalSupplyTwab.twabTotalSupply),
-  //   Number(grandPrizeVaultPortion)
-  // );
-  const grandPrizeOdds =
-    (Number(userGrandPrizeBalanceTotalSupplyTwab.twab) /
-      Number(userGrandPrizeBalanceTotalSupplyTwab.twabTotalSupply)) *
-    (Number(grandPrizeVaultPortion) / 1e18);
+  const tiers: Tier[] = [];
+  for (let i = 0; i < numberOfTiers; i++) {
+    const userBalanceTotalSupplyTwab =
+      subsequentMulticallResponse[i * 2] as UserBalanceTotalSupplyTwab;
+    const vaultPortion = subsequentMulticallResponse[
+      i * 2 + 1
+    ] as ethers.BigNumber;
 
-  const firstTierOdds =
-    (Number(userFirstTierBalanceTotalSupplyTwab.twab) /
-      Number(userFirstTierBalanceTotalSupplyTwab.twabTotalSupply)) *
-    (Number(firstTierVaultPortion) / 1e18);
+    const odds =
+      (Number(userBalanceTotalSupplyTwab.twab) /
+        Number(userBalanceTotalSupplyTwab.twabTotalSupply)) *
+      (Number(vaultPortion) / 1e18);
+
+    tiers.push({
+      odds: 1 / odds,
+      duration: Number(tierDurations[i]),
+      vaultPortion: Number(vaultPortion) / 1e18,
+    });
+  }
+
+  const sevenDrawVaultPortion = subsequentMulticallResponse[
+    numberOfTiers * 2
+  ] as ethers.BigNumber;
 
   const winsPerDraw = getWinsPerDraw(historyData);
-  // console.log("wins per draw",winsPerDraw)
-const {winsPerDraw7d,winsPerDraw30d,winsPerDraw90d} = winsPerDraw
+  const { winsPerDraw7d, winsPerDraw30d, winsPerDraw90d } = winsPerDraw;
+
   const chance = {
-    winsPerDraw7d:winsPerDraw7d,
-    winsPerDraw30d:winsPerDraw30d,
-    winsPerDraw90d:winsPerDraw90d,
-    grandPrize: 1 / grandPrizeOdds,
-    grandPrizeDuration: Number(grandPrizeDuration),
-    grandPrizeVaultPortion: Number(grandPrizeVaultPortion) / 1e18,
+    winsPerDraw7d: winsPerDraw7d,
+    winsPerDraw30d: winsPerDraw30d,
+    winsPerDraw90d: winsPerDraw90d,
     sevenDrawVaultPortion: Number(sevenDrawVaultPortion) / 1e18,
-    firstTier: 1 / firstTierOdds / 4,
-    firstTierDuration: Number(firstTierDuration),
-    firstTierVaultPortion: Number(firstTierVaultPortion) / 1e18
+    tiers: tiers,
   };
-  // console.log("chance", chance);
+
   return chance;
 };
 
-function getWinsPerDraw(historyData: Array<{draw: string, wins: number}>) {
+function getWinsPerDraw(historyData: Array<{ draw: string; wins: number }>) {
   // Sort the data by draw number in descending order to get the most recent draws first
   historyData.sort((a, b) => Number(b.draw) - Number(a.draw));
 
