@@ -70,7 +70,7 @@ export const DepositSuccessModal: React.FC<TransactionModalProps> = ({
               height={50}
             />
             <div style={styles.headerText}>
-              <span className="hidden-mobile">
+              <span>
                 DEPOSIT SUCCESS
                 {/* {hash.length>0 &&  
 <a
@@ -86,7 +86,7 @@ export const DepositSuccessModal: React.FC<TransactionModalProps> = ({
               {/* {selectedWinValue && GetChainName(Number(selectedWinValue.network))} */}
             </div>
 
-            <button style={styles.closeModalButton} onClick={onClose}></button>
+            <button style={styles.closeModalButton} onClick={onClose}>×</button>
           </div>
 
           <p>
@@ -180,12 +180,18 @@ const styles: { [key: string]: React.CSSProperties } = {
   closeModalButton: {
     background: "none",
     border: "none",
-    fontSize: "15px",
+    fontSize: "24px",
     cursor: "pointer",
     color: "#FFF",
-    padding: "0px",
+    padding: "8px",
     marginLeft: "10px", // give a little space from the text
-    marginTop: "-25px",
+    marginTop: "0px",
+    width: "40px",
+    height: "40px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transition: "color 0.2s ease",
   },
   modalTier: {
     fontSize: "19px",
