@@ -2225,14 +2225,16 @@ const Vault: React.FC<VaultProps> = ({
                     ×
                   </button>
                 </div>
-                <VaultChanceInfo
-                  chance={chance}
-                  vaultData={vaultData}
-                  activeVaultChain={activeVaultChain}
-                  userWinChance={userWinChance}
-                  overviewFromContext={overviewFromContext}
-                  isModal={true}
-                />
+                <div className="chance-modal-body">
+                  <VaultChanceInfo
+                    chance={chance}
+                    vaultData={vaultData}
+                    activeVaultChain={activeVaultChain}
+                    userWinChance={userWinChance}
+                    overviewFromContext={overviewFromContext}
+                    isModal={true}
+                  />
+                </div>
               </div>
             </div>
           )}

@@ -2045,13 +2045,15 @@ tr {
 
 .chance-modal-content {
   background-color: #b8c4f3;
-  padding: 20px;
+  padding: 0;
   border-radius: 8px;
   width: 90vw;
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 @media (max-width: 768px) {
@@ -2062,7 +2064,7 @@ tr {
     max-height: 100vh;
     border-radius: 0;
     background-color: #225073;
-    padding: 20px;
+    padding: 0;
   }
 }
 
@@ -2071,8 +2073,12 @@ tr {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  position: relative;
-  padding: 0 10px;
+  position: sticky;
+  top: 0;
+  background-color: inherit;
+  z-index: 10002;
+  padding: 20px 20px 10px 20px;
+  flex-shrink: 0;
 }
 
 .chance-modal-header h3 {
@@ -2097,32 +2103,25 @@ tr {
   align-items: center;
   justify-content: center;
   position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
+  right: 20px;
+  top: 20px;
   transition: color 0.2s ease;
-  z-index: 10001;
+  z-index: 10003;
 }
 
 .chance-modal-close:hover {
   color: #fff;
 }
 
+.chance-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 20px 20px 20px;
+}
+
 @media (max-width: 768px) {
-  .chance-modal-header {
-    padding: 0 5px;
-    margin-bottom: 15px;
-  }
-  
-  .chance-modal-header h3 {
-    font-size: 20px;
-  }
-  
-  .chance-modal-close {
-    font-size: 32px;
-    width: 48px;
-    height: 48px;
-    right: 5px;
+  .chance-modal-body {
+    padding: 0 15px 15px 15px;
   }
 }
 
