@@ -1299,17 +1299,6 @@ const Vault: React.FC<VaultProps> = ({
                                   </>
                                 </div>
                               )}
-                            {/* Mobile chance info trigger */}
-                            {showChanceInfo && (
-                              <div className="mobile-chance-trigger">
-                                <button 
-                                  className="chance-details-button"
-                                  onClick={() => setIsChanceModalOpen(true)}
-                                >
-                                  See Prizes
-                                </button>
-                              </div>
-                            )}
                           </div>
                           {vaultData.userAssetBalance &&
                             vaultData.userAssetBalance.gt(0) &&
@@ -1547,6 +1536,18 @@ const Vault: React.FC<VaultProps> = ({
                                 <br></br>
                               </>
                             ))}{" "}
+                          
+                          {/* SEE PRIZES button - positioned after connect and deposit/withdraw sections */}
+                          {showChanceInfo && (
+                            <div className="mobile-chance-trigger" style={{ marginTop: "20px", marginBottom: "20px" }}>
+                              <button 
+                                className="chance-details-button"
+                                onClick={() => setIsChanceModalOpen(true)}
+                              >
+                                SEE PRIZES
+                              </button>
+                            </div>
+                          )}
                          {overviewFromContext && (
     <div className="draw-row">
         <span className="vault-label">Next draw</span>

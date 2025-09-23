@@ -1417,7 +1417,7 @@ tr {
 
 /* Chance info component styles */
 .vault-chance-info {
-  background-color: #d7dcf0;
+  background-color: #ffffff;
   padding: 30px;
   border-radius: 8px;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
@@ -1722,7 +1722,7 @@ tr {
   }
   
   .distribution-bar {
-    height: 8px;
+    height: 16px;
   }
 }
 
@@ -1930,7 +1930,7 @@ tr {
   }
   
   .distribution-bar {
-    height: 8px;
+    height: 16px;
   }
   
   .other-tiers-grid {
@@ -2014,9 +2014,9 @@ tr {
   color: white;
   border: none;
   padding: 8px 16px;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 18px;
 }
 
 .chance-details-button:hover {
@@ -2044,7 +2044,7 @@ tr {
 }
 
 .chance-modal-content {
-  background-color: #d7dcf0;
+  background-color: #b8c4f3;
   padding: 20px;
   border-radius: 8px;
   width: 90vw;
@@ -2061,20 +2061,23 @@ tr {
     max-width: 100vw;
     max-height: 100vh;
     border-radius: 0;
+    background-color: #225073;
   }
 }
 
 .chance-modal-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   margin-bottom: 20px;
+  position: relative;
 }
 
 .chance-modal-header h3 {
   margin: 0;
-  color: #21325c;
-  font-size: 18px;
+  color: #e1f5f9;
+  font-size: 24px;
+  text-transform: uppercase;
 }
 
 .chance-modal-close {
@@ -2082,13 +2085,17 @@ tr {
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: #21325c;
+  color: #e1f5f9;
   padding: 0;
   width: 30px;
   height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .chance-modal-close:hover {

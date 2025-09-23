@@ -275,7 +275,7 @@ const VaultChanceInfo: React.FC<VaultChanceInfoProps> = ({
             {userWinChance === 1 ? (
               <>every day</>
             ) : (
-              <>every {userWinChance.toFixed(0)} days</>
+              <>every {userWinChance.toFixed(0)} day{userWinChance !== 1 ? 's' : ''}</>
             )}
             &nbsp;
             {chance &&
@@ -322,6 +322,10 @@ const VaultChanceInfo: React.FC<VaultChanceInfoProps> = ({
               GetChainName(chainId)
             ]?.prizes?.tierData?.[index];
           if (!tierData) return null;
+
+          // Prize counts per tier: [1, 4, 16, 64, 256, 1024, 4096, ...]
+          const prizeCountsPerTier = [1, 4, 16, 64, 256, 1024, 4096, 16384, 65536];
+          const prizeCount = prizeCountsPerTier[index] || 1;
 
           return (
             <div className="chance-progress" key={index}>
@@ -370,10 +374,10 @@ const VaultChanceInfo: React.FC<VaultChanceInfoProps> = ({
                     <span className="chance-stat">
                       Projected 1 in{" "}
                       {CropDecimals(
-                        1 /
+                        (1 /
                           ((Number(vaultData.userVaultBalance) /
                             Number(vaultData.totalAssets)) *
-                            tier.vaultPortion),
+                            tier.vaultPortion)) / prizeCount,
                         true
                       )}
                     </span>

@@ -28,6 +28,9 @@ export const GetChance = async (
   );
   const historyUrl = `https://poolexplorer.xyz/${chainId}-${ADDRESS[chainName].PRIZEPOOL}-history`;
 
+  // Prize counts per tier: [1, 4, 16, 64, 256, 1024, 4096, ...]
+  const prizeCountsPerTier = [1, 4, 16, 64, 256, 1024, 4096, 16384, 65536];
+
   const tierAccrualCalls = [];
   for (let i = 0; i < numberOfTiers; i++) {
     tierAccrualCalls.push(prizePoolContract.getTierAccrualDurationInDraws(i));
@@ -92,8 +95,11 @@ export const GetChance = async (
         Number(userBalanceTotalSupplyTwab.twabTotalSupply)) *
       (Number(vaultPortion) / 1e18);
 
+    // Get the number of prizes for this tier (default to 1 if tier index is out of bounds)
+    const prizeCount = prizeCountsPerTier[i] || 1;
+
     tiers.push({
-      odds: 1 / odds,
+      odds: (1 / odds) / prizeCount, // Divide by number of prizes in this tier
       duration: Number(tierDurations[i]),
       vaultPortion: Number(vaultPortion) / 1e18,
     });
