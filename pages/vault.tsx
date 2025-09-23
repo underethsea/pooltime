@@ -1561,13 +1561,13 @@ const Vault: React.FC<VaultProps> = ({
                               <>
                                 {/* <button onClick={openConnectModal} type="button" className="hover-button"> */}
                                 <MyConnect connectText={"CONNECT TO WIN"} />
-                                <br></br>
+                             
                               </>
-                            ))}{" "}
+                            ))}
                           
                           {/* SEE PRIZES button - positioned after connect and deposit/withdraw sections */}
                           {showChanceInfo && (
-                            <div className="mobile-chance-trigger" style={{ marginTop: "20px", marginBottom: "20px" }}>
+                            <div className="mobile-chance-trigger" style={{ marginTop: "15px", marginBottom: "20px" }}>
                               <button 
                                 className="chance-details-button"
                                 onClick={() => setIsChanceModalOpen(true)}
@@ -1578,7 +1578,7 @@ const Vault: React.FC<VaultProps> = ({
                           )}
                          {overviewFromContext && (
     <div className="draw-row">
-        <span className="vault-label">Next draw</span>
+        <span className="vault-label" style={{ marginTop: "15px"}}>Next draw</span>
         <span className="vault-data metric-value">
             <DrawCountdown
                 pendingPrize={
