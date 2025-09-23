@@ -173,6 +173,34 @@ const Vault: React.FC<VaultProps> = ({
   const [seeChance, setSeeChance] = useState<boolean>(false);
   const [isChanceModalOpen, setIsChanceModalOpen] = useState<boolean>(false);
 
+  // Prevent background scrolling when modal is open
+  useEffect(() => {
+    if (isChanceModalOpen) {
+      // Prevent scrolling on the body
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.height = '100%';
+      document.body.classList.add('modal-open');
+    } else {
+      // Restore scrolling
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+      document.body.classList.remove('modal-open');
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+      document.body.classList.remove('modal-open');
+    };
+  }, [isChanceModalOpen]);
+
   // const [urlChain, setUrlChain] = useState<string>("");
   // const chainId = useChainId();
   const { address, chainId } = useAccount();
@@ -2225,14 +2253,16 @@ const Vault: React.FC<VaultProps> = ({
                     ×
                   </button>
                 </div>
-                <VaultChanceInfo
-                  chance={chance}
-                  vaultData={vaultData}
-                  activeVaultChain={activeVaultChain}
-                  userWinChance={userWinChance}
-                  overviewFromContext={overviewFromContext}
-                  isModal={true}
-                />
+                <div className="chance-modal-body">
+                  <VaultChanceInfo
+                    chance={chance}
+                    vaultData={vaultData}
+                    activeVaultChain={activeVaultChain}
+                    userWinChance={userWinChance}
+                    overviewFromContext={overviewFromContext}
+                    isModal={true}
+                  />
+                </div>
               </div>
             </div>
           )}
