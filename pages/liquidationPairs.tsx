@@ -499,7 +499,8 @@ const LiquidationPairsPage: React.FC = () => {
                     gridTemplateColumns: "1fr 1fr",
                     gap: "8px",
                     fontSize: "12px",
-                    marginTop: "20px"
+                    marginTop: "20px",
+                    textAlign: "center"
                   }}>
                     <div>
                       <div style={{ color: "#666", marginBottom: "2px" }}>Max Out</div>
@@ -542,6 +543,14 @@ const LiquidationPairsPage: React.FC = () => {
                     justifyContent: "space-between",
                     alignItems: "center"
                   }}>
+                    <div style={{ 
+                      color: pair.isProfitable ? "#28a745" : "#dc3545",
+                      fontWeight: "bold",
+                      fontSize: "14px",
+                      marginLeft: "8px"
+                    }}>
+                      {pair.profitability >= 0 ? "+" : ""}{formatUSD(pair.profitability)}
+                    </div>
                     <a 
                       href={`/liquidate?chain=${pair.chainId}&pair=${pair.liquidationPairAddress}`}
                       style={{ 
@@ -549,7 +558,7 @@ const LiquidationPairsPage: React.FC = () => {
                         textDecoration: "none",
                         fontSize: "12px",
                         fontWeight: "500",
-                        marginLeft: "8px"
+                        marginRight: "8px"
                       }}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -557,14 +566,6 @@ const LiquidationPairsPage: React.FC = () => {
                     >
                       Liquidate →
                     </a>
-                    <div style={{ 
-                      color: pair.isProfitable ? "#28a745" : "#dc3545",
-                      fontWeight: "bold",
-                      fontSize: "14px",
-                      marginRight: "8px"
-                    }}>
-                      {pair.profitability >= 0 ? "+" : ""}{formatUSD(pair.profitability)}
-                    </div>
                   </div>
                 </div>
               );
