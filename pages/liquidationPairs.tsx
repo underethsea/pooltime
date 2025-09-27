@@ -284,14 +284,31 @@ const LiquidationPairsPage: React.FC = () => {
             letterSpacing: "3px",
             textShadow: "2px 2px 4px rgba(0, 0, 0, 0.5)",
             marginBottom: "20px"
-          }}>
+          }}
+          className="hidden-mobile">
+            Liquidation Pairs
+          </h1>
+          <h1 style={{ 
+            color: "#f0f9fa",
+            fontSize: "2rem",
+            textAlign: "center",
+            marginTop: "20px",
+            textTransform: "uppercase",
+            letterSpacing: "2px",
+            textShadow: "2px 2px 4px rgba(0, 0, 0, 0.5)",
+            marginBottom: "20px"
+          }}
+          className="hidden-desktop">
             Liquidation Pairs
           </h1>
         </div>
         
         <div style={{ marginBottom: "20px", textAlign: "center" }}>
-          <p style={{ color: "#fff", fontSize: "14px" }}>
+          <p style={{ color: "#fff", fontSize: "14px" }} className="hidden-mobile">
             Showing all liquidation pairs with available maxOut across all chains ({pairsData.length} pairs found)
+          </p>
+          <p style={{ color: "#fff", fontSize: "12px" }} className="hidden-desktop">
+            {pairsData.length} pairs found
           </p>
           <p style={{ color: "#f24444", fontSize: "12px", marginTop: "10px", fontWeight: "bold" }}>
             This application is for expert operators only, use at your own risk.
@@ -303,12 +320,14 @@ const LiquidationPairsPage: React.FC = () => {
             <p style={{ color: "#fff" }}>No liquidation pairs with available maxOut found.</p>
           </div>
         ) : (
+          <>
           <div style={{ 
             backgroundColor: "#ecf0f6", 
             borderRadius: "12px", 
             padding: "20px",
             overflowX: "auto"
-          }}>
+          }}
+          className="hidden-mobile">
             {/* Header */}
             <div className="vault-table-header-row" style={{ 
               display: "grid", 
@@ -420,9 +439,139 @@ const LiquidationPairsPage: React.FC = () => {
               );
             })}
           </div>
+          
+          {/* Mobile Layout */}
+          <div className="hidden-desktop" style={{ 
+            backgroundColor: "#ecf0f6", 
+            borderRadius: "12px", 
+            padding: "15px"
+          }}>
+            {pairsData.map((pair, index) => {
+              const amountInTokens = pair.amountInRequired 
+                ? Number(ethers.utils.formatUnits(pair.amountInRequired, 18))
+                : 0;
+              const amountOutTokens = Number(ethers.utils.formatUnits(pair.maxOut, pair.decimals));
+              
+              const valueInUSD = amountInTokens * pair.tokenInPrice;
+              const valueOutUSD = amountOutTokens * pair.tokenOutPrice;
+              
+              return (
+                <div 
+                  key={`${pair.chainName}-${pair.vaultAddress}`}
+                  style={{ 
+                    backgroundColor: "white",
+                    borderRadius: "16px",
+                    padding: "16px",
+                    marginBottom: "12px",
+                    boxShadow: "0 4px 6px rgba(0, 0, 0, .1)",
+                    cursor: "pointer",
+                    transition: "transform 0.2s ease, box-shadow 0.2s ease"
+                  }}
+                  onClick={() => window.open(`/liquidate?chain=${pair.chainId}&pair=${pair.liquidationPairAddress}`, '_blank')}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 6px 12px rgba(0, 0, 0, .15)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 4px 6px rgba(0, 0, 0, .1)";
+                  }}
+                >
+                  {/* Mobile Header */}
+                  <div style={{ display: "flex", alignItems: "center", marginBottom: "12px" }}>
+                    <ChainTag chainId={pair.chainId} horizontal={false} />
+                    <div style={{ marginLeft: "-15px", flex: 1, display: "flex", alignItems: "center", gap: "4px" }}>
+                      <IconDisplay name={pair.assetSymbol} size={16} />
+                      <div>
+                        <div style={{ fontWeight: "bold", color: "#173d5a", fontSize: "14px" }}>
+                          {pair.vaultName}
+                        </div>
+                        <div style={{ fontSize: "12px", color: "#666" }}>
+                          {pair.assetSymbol}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Mobile Data Grid */}
+                  <div style={{ 
+                    display: "grid", 
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "8px",
+                    fontSize: "12px",
+                    marginTop: "20px"
+                  }}>
+                    <div>
+                      <div style={{ color: "#666", marginBottom: "2px" }}>Max Out</div>
+                      <div style={{ color: "#173d5a", fontWeight: "500" }}>
+                        {formatAmount(pair.maxOut, pair.decimals)} {pair.assetSymbol}
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ color: "#666", marginBottom: "2px" }}>Amount In</div>
+                      <div style={{ color: "#173d5a", fontWeight: "500" }}>
+                        {pair.amountInRequired ? (
+                          formatAmount(pair.amountInRequired, 18) + " PRIZE"
+                        ) : (
+                          <span style={{ color: "#999" }}>N/A</span>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ color: "#666", marginBottom: "2px" }}>Value Out</div>
+                      <div style={{ color: "#173d5a", fontWeight: "500" }}>
+                        {formatUSD(valueOutUSD)}
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ color: "#666", marginBottom: "2px" }}>Value In</div>
+                      <div style={{ color: "#173d5a", fontWeight: "500" }}>
+                        {formatUSD(valueInUSD)}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Mobile Profitability and Action */}
+                  <div style={{ 
+                    textAlign: "center", 
+                    marginTop: "16px",
+                    padding: "8px",
+                    backgroundColor: "#f8f9fa",
+                    borderRadius: "8px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center"
+                  }}>
+                    <a 
+                      href={`/liquidate?chain=${pair.chainId}&pair=${pair.liquidationPairAddress}`}
+                      style={{ 
+                        color: "#007bff", 
+                        textDecoration: "none",
+                        fontSize: "12px",
+                        fontWeight: "500",
+                        marginLeft: "8px"
+                      }}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Liquidate →
+                    </a>
+                    <div style={{ 
+                      color: pair.isProfitable ? "#28a745" : "#dc3545",
+                      fontWeight: "bold",
+                      fontSize: "14px",
+                      marginRight: "8px"
+                    }}>
+                      {pair.profitability >= 0 ? "+" : ""}{formatUSD(pair.profitability)}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          </>
         )}
-        
-        
       </div>
     </Layout>
   );

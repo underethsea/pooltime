@@ -635,9 +635,21 @@ const LiquidatePage: React.FC = () => {
     await refreshQuote();
   }, [refreshMaxOut, loadPrices, loadAllowances, refreshQuote]);
 
+  // Track if we've already shown success toast to prevent duplicates
+  const successToastShown = useRef(false);
+
   useEffect(() => {
-    const success = (callStatus as any)?.status === "success" || swapMined;
-    if (success) {
+    const batchSuccess = (callStatus as any)?.status === "success";
+    const swapSuccess = swapMined;
+    
+    // Reset success toast flag when starting a new transaction
+    if (swapHash && !swapMined && !batchSuccess) {
+      successToastShown.current = false;
+    }
+    
+    // Show success toast only once per transaction
+    if ((batchSuccess || swapSuccess) && !successToastShown.current) {
+      successToastShown.current = true;
       toast("Liquidation complete!", { position: toast.POSITION.BOTTOM_LEFT });
       refreshAll();
       setTimeout(refreshAll, 2500); // small follow-up to reflect new on-chain state
@@ -755,7 +767,7 @@ const LiquidatePage: React.FC = () => {
   return (
     <Layout>
       <div style={{ maxWidth: 960, margin: "0 auto" }}>
-        <div style={{ marginTop: 16, marginBottom: 16 }}>
+        <div style={{ marginTop: 16, marginBottom: 16, display: "flex", justifyContent: "center" }}>
           {vaultBackUrl ? (
             <a href={vaultBackUrl} target="_blank" rel="noreferrer">
               <div className="back-to-vaults" style={{ marginTop: 12 }}>
@@ -765,8 +777,8 @@ const LiquidatePage: React.FC = () => {
           ) : null}
         </div>
 
-        <div className="vault-view-bubble">
-          <div>
+        <div className="vault-view-bubble liquidate-bubble">
+          <div style={{ marginBottom: 20 }}>
             <span className="vault-header-name">
               <span style={{ color: "#E1F5F9", padding: 10 }}>
                 Liquidate {chainNameFromUrl ? "on " + chainNameFromUrl : ""}
@@ -866,6 +878,7 @@ const LiquidatePage: React.FC = () => {
                       width: "100%",
                       display: "flex",
                       justifyContent: "center",
+                      alignItems: "center",
                       marginTop: 16,
                       paddingTop: 8,
                     }}
@@ -880,7 +893,9 @@ const LiquidatePage: React.FC = () => {
                         display: "inline-flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        margin: 0,
+                        margin: "0 auto",
+                        width: "auto",
+                        minWidth: "200px",
                       }}
                       disabled={action.disabled}
                       onClick={onClickAction}
@@ -891,13 +906,35 @@ const LiquidatePage: React.FC = () => {
 
                   {/* Swap-at-loss override (centered to match button row) */}
                   {!isValueProfitable && amountsValid ? (
-                    <div className="override-row">
-                      <label className="small-font override-label">
+                    <div 
+                      className="override-row"
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        marginTop: "12px",
+                      }}
+                    >
+                      <label 
+                        className="small-font override-label"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          margin: 0,
+                          padding: 0,
+                        }}
+                      >
                         <input
                           type="checkbox"
                           checked={forceAtLoss}
                           onChange={(e) => setForceAtLoss(e.target.checked)}
                           className="override-checkbox"
+                          style={{
+                            margin: "0 8px 0 0",
+                            verticalAlign: "middle",
+                          }}
                         />
                         Swap at a LOSS
                       </label>
@@ -913,10 +950,24 @@ const LiquidatePage: React.FC = () => {
 
         {/* defensively override any inherited weird positioning */}
         <style jsx>{`
-          .liquidate-action-row { width: 100%; }
+          .liquidate-action-row { 
+            width: 100% !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+          }
           .liquidate-action-btn {
             position: relative !important;
             float: none !important;
+            right: auto !important;
+            top: auto !important;
+            transform: none !important;
+            margin: 0 auto !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: auto !important;
+            min-width: 200px !important;
           }
           .refresh-icon-btn {
             margin-left: 8px;
@@ -938,21 +989,22 @@ const LiquidatePage: React.FC = () => {
 
           /* Center the override row exactly under the action button */
           .override-row {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 8px;
+            width: 100% !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            margin-top: 12px !important;
           }
           .override-label {
-            display: inline-flex;
-            align-items: center;
-            margin: 0;
-            padding: 0;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
           .override-checkbox {
-            margin: 0 8px 0 0;
-            vertical-align: middle;
+            margin: 0 8px 0 0 !important;
+            vertical-align: middle !important;
           }
         `}</style>
       </div>

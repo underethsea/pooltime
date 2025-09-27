@@ -174,7 +174,13 @@ function AllVaults() {
     return false;
   });
   const [data, setData] = useState<VaultData[]>([]);
-  const [searchInput, setSearchInput] = useState("");
+  const [searchInput, setSearchInput] = useState(() => {
+    // Initialize from sessionStorage if available
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('allvaults-search') || "";
+    }
+    return "";
+  });
   // const [poolPrice, setPoolPrice] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [tvl, setTvl] = useState<TVL | null>(null);
@@ -844,6 +850,11 @@ function AllVaults() {
     }
 
     setSearchInput(value);
+    
+    // Cache the search input in sessionStorage
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('allvaults-search', value);
+    }
 
     // Proceed with normal filtering
     const filtered = filterVaultsByChainAndSearch(allVaults, chains, value);
