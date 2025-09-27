@@ -2417,7 +2417,7 @@ padding:15px;
   background: linear-gradient(135deg, #0b315d 0%, #225073 50%, #c4a9d0 100%);
   /* background-color:#6f7cb7; */
 
-  margin-top: 30px;
+  margin: 30px auto 0 auto;
   align-items: center;
   /* position: relative; */
   padding: 20px;
@@ -2436,6 +2436,10 @@ padding:15px;
   }
   .vault-view-bubble:not(.has-chance) {
     padding: 30px 0px 30px 40px;
+  }
+  /* Specific padding for liquidate page bubble */
+  .vault-view-bubble.liquidate-bubble {
+    padding: 30px 40px 30px 40px;
   }
 }
 

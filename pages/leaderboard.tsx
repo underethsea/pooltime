@@ -14,7 +14,13 @@ interface Winner {
 
 const Leaderboard: React.FC = () => {
   const [winners, setWinners] = useState<Winner[]>([]);
-  const [searchQuery, setSearchQuery] = useState(""); 
+  const [searchQuery, setSearchQuery] = useState(() => {
+    // Initialize from sessionStorage if available
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('leaderboard-search') || "";
+    }
+    return "";
+  }); 
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
 
   useEffect(() => {
@@ -64,7 +70,14 @@ const Leaderboard: React.FC = () => {
         <div className="vault-search-container-leaderboard">
           <input
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSearchQuery(value);
+              // Cache the search input in sessionStorage
+              if (typeof window !== 'undefined') {
+                sessionStorage.setItem('leaderboard-search', value);
+              }
+            }}
             className="vaultsearchleaderboard"
             placeholder="Search..."
           />
