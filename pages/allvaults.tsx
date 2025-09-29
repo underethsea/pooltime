@@ -9,6 +9,7 @@ import { ABI } from "../constants/constants";
 import { Multicall } from "../utils/multicall";
 import { CropDecimals, NumberWithCommas } from "../utils/tokenMaths";
 import { getVaultColumns } from "../components/vaults/vaultColumns";
+import { useOverview } from "../components/contextOverview";
 // import VaultModal from "../components/vaultModal.tsx.OLD";
 // import Layout from ".";
 import Image from "next/image";
@@ -35,7 +36,6 @@ import PrizeValue from "../components/prizeValue";
 import Link from "next/link";
 import { GetChainIcon } from "../utils/getChain";
 import { WHITELIST_REWARDS, WHITELIST_VAULTS } from "../constants/address";
-import { useOverview } from "../components/contextOverview";
 import {
   VaultData,
   sortData,
@@ -167,6 +167,7 @@ const VaultYieldTooltip: React.FC<YieldTooltipProps> = ({
 };
 
 function AllVaults() {
+  const { overview } = useOverview();
   const [showStats, setShowStats] = useState(() => {
     if (typeof window !== "undefined") {
       return window.innerWidth < 501;
@@ -192,7 +193,6 @@ function AllVaults() {
   const [showPrzPOOLVaults, setShowPrzPOOLVaults] = useState(false);
   const [isTvlModalOpen, setIsTvlModalOpen] = useState(false);
 
-  const overviewFromContext = useOverview();
 
   const { address } = useAccount();
   const toggleChain = (chainId: number) => {
@@ -359,40 +359,50 @@ function AllVaults() {
   const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
     tableInstance;
 
+  // Format pricing timestamp for display
+  const pricingTimestamp = useMemo(() => {
+    if (!overview?.prices?.timestamp) return null;
+    try {
+      const date = new Date(overview.prices.timestamp);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      
+      if (diffMins < 1) return "Just now";
+      if (diffMins < 60) return `${diffMins}m ago`;
+      const diffHours = Math.floor(diffMins / 60);
+      if (diffHours < 24) return `${diffHours}h ago`;
+      const diffDays = Math.floor(diffHours / 24);
+      return `${diffDays}d ago`;
+    } catch {
+      return null;
+    }
+  }, [overview?.prices?.timestamp]);
+
   useEffect(() => {
     const fetchData = async () => {
+      // Only fetch if overview is available
+      if (!overview?.prices) {
+        console.log("Waiting for overview prices...");
+        return;
+      }
+
       try {
         setIsLoading(true);
         const secondsInAYear = 31536000; // 60 * 60 * 24 * 365
         let vaultsResponse: Response | null = null;
-        let pricesFetch: Response | null = null;
         let prices = { geckos: {}, assets: {} };
         let vaults: VaultData[] = vaultsAPIFormatted as any; // Default to static data
 
         try {
-          // Fetch both vaults and prices
-          [vaultsResponse, pricesFetch] = await Promise.all([
-            fetch(`https://poolexplorer.xyz/vaults`),
-            fetch(`https://poolexplorer.xyz/prices`),
-          ]);
+          // Fetch vaults only (prices come from context)
+          vaultsResponse = await fetch(`https://poolexplorer.xyz/vaults`);
         } catch (error) {
           console.error("Error during API fetch:", error);
         }
 
-        // Handle `pricesFetch` response
-        if (pricesFetch && pricesFetch.ok) {
-          try {
-            prices = await pricesFetch.json();
-          } catch (error) {
-            console.error("Failed to parse prices response:", error);
-          }
-        } else {
-          console.log(
-            `Failed to fetch prices. ${
-              pricesFetch ? `Status: ${pricesFetch.status}` : "No response"
-            }`
-          );
-        }
+        // Use prices from context overview
+        prices = overview.prices;
         const geckoPrices: any = prices.geckos;
         const assetPrices: any = prices.assets;
         // Handle `vaultsResponse` response
@@ -739,7 +749,7 @@ function AllVaults() {
     };
 
     fetchData();
-  }, [overviewFromContext]);
+  }, [overview?.prices]);
 
   useEffect(() => {
     const filtered = filterVaultsByChainAndSearch(
@@ -802,18 +812,18 @@ function AllVaults() {
       );
 
       // Update the state with the new enriched data array
-      // console.log("overview for sort", overviewFromContext);
+      // console.log("overview for sort", overview);
       let sortedVaults;
       if (
-        overviewFromContext === null ||
-        overviewFromContext.overview === null
+        overview === null ||
+        overview.prices === null
       ) {
         console.log("overview is null");
       } else {
         sortedVaults = sortData(
           flattenedVaults,
-          overviewFromContext.overview.prices.geckos,
-          overviewFromContext.overview.prices.assets
+          overview.prices.geckos,
+          overview.prices.assets
         );
         // console.log("sort vaults", sortedVaults);
         setAllVaults(sortedVaults);
@@ -1061,6 +1071,11 @@ function AllVaults() {
                   >
                     <div style={{ fontSize: "14px", marginBottom: '5px', display: 'inline-flex', alignItems: 'center', color: "#afcde4" }}>
                       Total Saved
+                      {pricingTimestamp && (
+                        <span style={{ fontSize: "10px", marginLeft: "8px", opacity: 0.7 }}>
+                          ({pricingTimestamp})
+                        </span>
+                      )}
                     </div>
                     <span>
                       <PrizeValueIcon size={22} />

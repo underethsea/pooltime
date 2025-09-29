@@ -19,6 +19,7 @@ import {
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Link from "next/link";
+import { useOverview } from "../components/contextOverview";
 
 // ---------- Types ----------
 interface ERC20Meta {
@@ -96,6 +97,7 @@ const dgroup = (label: string, fn: () => void) => {
 // ---------- Component ----------
 const LiquidatePage: React.FC = () => {
   const router = useRouter();
+  const { overview } = useOverview();
 
   // /liquidate?chain=100&pair=0x...
   const { chain: chainParamRaw, pair: pairParamRaw, address: addressParam } =
@@ -295,31 +297,16 @@ const LiquidatePage: React.FC = () => {
     loadUnderlying();
   }, [pairInfo, provider]);
 
-  // -------- prices (PoolExplorer) --------
-  const fetchPriceFromPoolExplorer = useCallback(async (chain: string, addr: string) => {
-    try {
-      const res = await fetch("https://poolexplorer.xyz/prices", { cache: "no-store" });
-      const json = await res.json();
-      const price = json?.assets?.[chain]?.[addr.toLowerCase()] || 0;
-      return Number(price) || 0;
-    } catch (e) {
-      console.warn("price fetch failed", e);
-      return 0;
-    }
-  }, []);
+  // -------- prices (from context overview) --------
+  const loadPrices = useCallback(() => {
+    if (!pairInfo || !chainNameFromUrl || !overview?.prices) return;
+    
+    const pIn = overview.prices.assets?.[chainNameFromUrl]?.[pairInfo.tokenIn.address.toLowerCase()] || 0;
+    const pOut = underlyingAddr 
+      ? overview.prices.assets?.[chainNameFromUrl]?.[underlyingAddr.toLowerCase()] || 0
+      : 0;
 
-  const loadPrices = useCallback(async () => {
-    if (!pairInfo || !chainNameFromUrl) return;
-    const pInPromise = fetchPriceFromPoolExplorer(
-      chainNameFromUrl,
-      pairInfo.tokenIn.address
-    );
-    const pOutPromise = underlyingAddr
-      ? fetchPriceFromPoolExplorer(chainNameFromUrl, underlyingAddr)
-      : Promise.resolve(0);
-    const [pIn, pOut] = await Promise.all([pInPromise, pOutPromise]);
-
-    dgroup("Prices loaded", () => {
+    dgroup("Prices loaded from context", () => {
       dlog("tokenIn", pairInfo?.tokenIn.address);
       dlog("underlying", underlyingAddr);
       dlog("priceInUSD", pIn);
@@ -328,7 +315,7 @@ const LiquidatePage: React.FC = () => {
 
     setPriceInUSD(pIn || 0);
     setPriceOutUSD(pOut || 0);
-  }, [pairInfo, chainNameFromUrl, underlyingAddr, fetchPriceFromPoolExplorer]);
+  }, [pairInfo, chainNameFromUrl, underlyingAddr, overview?.prices]);
 
   useEffect(() => {
     loadPrices();
@@ -631,7 +618,8 @@ const LiquidatePage: React.FC = () => {
 
   // On success, auto-refresh data (and once more shortly after)
   const refreshAll = useCallback(async () => {
-    await Promise.allSettled([refreshMaxOut(), loadPrices(), loadAllowances()]);
+    await Promise.allSettled([refreshMaxOut(), loadAllowances()]);
+    loadPrices(); // No longer async since it uses context
     await refreshQuote();
   }, [refreshMaxOut, loadPrices, loadAllowances, refreshQuote]);
 
@@ -764,6 +752,26 @@ const LiquidatePage: React.FC = () => {
     return `https://pooltime.xyz/vault?chain=${c}&address=${vaultSourceAddr}`;
   }, [isVaultFromSource, vaultSourceAddr, targetChainIdFromUrl, chainId]);
 
+  // Format pricing timestamp for display
+  const pricingTimestamp = useMemo(() => {
+    if (!overview?.prices?.timestamp) return null;
+    try {
+      const date = new Date(overview.prices.timestamp);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      
+      if (diffMins < 1) return "Just now";
+      if (diffMins < 60) return `${diffMins}m ago`;
+      const diffHours = Math.floor(diffMins / 60);
+      if (diffHours < 24) return `${diffHours}h ago`;
+      const diffDays = Math.floor(diffHours / 24);
+      return `${diffDays}d ago`;
+    } catch {
+      return null;
+    }
+  }, [overview?.prices?.timestamp]);
+
   return (
     <Layout>
       <div style={{ maxWidth: 960, margin: "0 auto" }}>
@@ -864,6 +872,16 @@ const LiquidatePage: React.FC = () => {
                       )}
                     </span>
                   </div>
+
+                  {/* Pricing timestamp */}
+                  {pricingTimestamp && (
+                    <div className="data-row">
+                      <span className="vault-label">Prices updated</span>
+                      <span className="vault-data small-font">
+                        {pricingTimestamp}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Profitable In (live countdown if in future) */}
                   {/* <div className="data-row">

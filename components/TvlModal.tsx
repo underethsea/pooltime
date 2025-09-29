@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import PrizeValueIcon from "./prizeValueIcon";
 import PrizeValue from "./prizeValue";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { GetChainName, GetChainIcon } from "../utils/getChain";
+import { useOverview } from "./contextOverview";
 
 interface TvlModalProps {
   isOpen: boolean;
@@ -16,7 +17,28 @@ interface TvlModalProps {
 }
 
 const TvlModal: React.FC<TvlModalProps> = ({ isOpen, onClose, tvl }) => {
+  const { overview } = useOverview();
   const [isMobile, setIsMobile] = useState(false);
+
+  // Format pricing timestamp for display
+  const pricingTimestamp = useMemo(() => {
+    if (!overview?.prices?.timestamp) return null;
+    try {
+      const date = new Date(overview.prices.timestamp);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      
+      if (diffMins < 1) return "Just now";
+      if (diffMins < 60) return `${diffMins}m ago`;
+      const diffHours = Math.floor(diffMins / 60);
+      if (diffHours < 24) return `${diffHours}h ago`;
+      const diffDays = Math.floor(diffHours / 24);
+      return `${diffDays}d ago`;
+    } catch {
+      return null;
+    }
+  }, [overview?.prices?.timestamp]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -55,7 +77,14 @@ const TvlModal: React.FC<TvlModalProps> = ({ isOpen, onClose, tvl }) => {
             </button>
           </div>
           <div className="prize-header">
-            <span className="prize-header-title">Total Value Locked</span>
+            <span className="prize-header-title">
+              Total Value Locked
+              {pricingTimestamp && (
+                <span style={{ fontSize: "12px", marginLeft: "8px", opacity: 0.7 }}>
+                  (prices updated {pricingTimestamp})
+                </span>
+              )}
+            </span>
             <div>
               <PrizeValueIcon size={isMobile ? 26 : 32} />
               <PrizeValue
