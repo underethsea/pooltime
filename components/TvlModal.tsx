@@ -77,14 +77,7 @@ const TvlModal: React.FC<TvlModalProps> = ({ isOpen, onClose, tvl }) => {
             </button>
           </div>
           <div className="prize-header">
-            <span className="prize-header-title">
-              Total Value Locked
-              {pricingTimestamp && (
-                <span style={{ fontSize: "12px", marginLeft: "8px", opacity: 0.7 }}>
-                  (prices updated {pricingTimestamp})
-                </span>
-              )}
-            </span>
+            <span className="prize-header-title">Total Value Locked</span>
             <div>
               <PrizeValueIcon size={isMobile ? 26 : 32} />
               <PrizeValue

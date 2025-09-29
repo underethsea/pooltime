@@ -1071,11 +1071,6 @@ function AllVaults() {
                   >
                     <div style={{ fontSize: "14px", marginBottom: '5px', display: 'inline-flex', alignItems: 'center', color: "#afcde4" }}>
                       Total Saved
-                      {pricingTimestamp && (
-                        <span style={{ fontSize: "10px", marginLeft: "8px", opacity: 0.7 }}>
-                          ({pricingTimestamp})
-                        </span>
-                      )}
                     </div>
                     <span>
                       <PrizeValueIcon size={22} />
