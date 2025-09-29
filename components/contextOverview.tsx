@@ -40,6 +40,7 @@ interface Prices {
       [asset: string]: number;
     };
   };
+  timestamp?: string;
 }
 
 interface Overview {

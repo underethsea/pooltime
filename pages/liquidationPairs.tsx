@@ -246,6 +246,26 @@ const LiquidationPairsPage: React.FC = () => {
     return `$${NumberWithCommas(CropDecimals(amount.toFixed(2)))}`;
   };
 
+  // Format pricing timestamp for display
+  const pricingTimestamp = useMemo(() => {
+    if (!overviewFromContext?.overview?.prices?.timestamp) return null;
+    try {
+      const date = new Date(overviewFromContext.overview.prices.timestamp);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      
+      if (diffMins < 1) return "Just now";
+      if (diffMins < 60) return `${diffMins}m ago`;
+      const diffHours = Math.floor(diffMins / 60);
+      if (diffHours < 24) return `${diffHours}h ago`;
+      const diffDays = Math.floor(diffHours / 24);
+      return `${diffDays}d ago`;
+    } catch {
+      return null;
+    }
+  }, [overviewFromContext?.overview?.prices?.timestamp]);
+
   if (loading) {
     return (
       <Layout>
@@ -310,6 +330,11 @@ const LiquidationPairsPage: React.FC = () => {
           <p style={{ color: "#fff", fontSize: "12px" }} className="hidden-desktop">
             {pairsData.length} pairs found
           </p>
+          {pricingTimestamp && (
+            <p style={{ color: "#ccc", fontSize: "12px", marginTop: "5px" }}>
+              Prices updated {pricingTimestamp}
+            </p>
+          )}
           <p style={{ color: "#f24444", fontSize: "12px", marginTop: "10px", fontWeight: "bold" }}>
             This application is for expert operators only, use at your own risk.
           </p>
