@@ -52,6 +52,7 @@ interface OverviewContextProps {
   overview: Overview | null;
   currency: Currency;
   toggleCurrency: () => void;
+  isLoading: boolean;
 }
 
 const OverviewContext = createContext<OverviewContextProps | null>(null);
@@ -59,12 +60,19 @@ const OverviewContext = createContext<OverviewContextProps | null>(null);
 export const OverviewProvider: React.FC<OverviewProviderProps> = ({ children }) => {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [currency, setCurrency] = useState<Currency>('USD');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchOverview = async () => {
-      const overviewFetch = await fetch(`https://poolexplorer.xyz/overview`);
-      const overviewReceived = await overviewFetch.json();
-      setOverview(overviewReceived);
+      try {
+        const overviewFetch = await fetch(`https://poolexplorer.xyz/overview`);
+        const overviewReceived = await overviewFetch.json();
+        setOverview(overviewReceived);
+      } catch (error) {
+        console.error('Failed to fetch overview:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchOverview();
@@ -75,7 +83,7 @@ export const OverviewProvider: React.FC<OverviewProviderProps> = ({ children }) 
   };
 
   return (
-    <OverviewContext.Provider value={{ overview, currency, toggleCurrency }}>
+    <OverviewContext.Provider value={{ overview, currency, toggleCurrency, isLoading }}>
       {children}
     </OverviewContext.Provider>
   );

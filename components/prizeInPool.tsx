@@ -79,14 +79,25 @@ const PrizeInPool: React.FC = () => {
   };
 
   // console.log("overview from", overviewFromContext);
-  // Ensure overviewFromContext and ethereumPrice are defined before use
+  // Show loading state while overview is being fetched
   if (
     !overviewFromContext ||
+    overviewFromContext.isLoading ||
     !overviewFromContext.overview ||
     !overviewFromContext.overview.prices ||
     !overviewFromContext.overview.prices.geckos
   ) {
-    return <div></div>;
+    return (
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: '8px',
+        minWidth: '120px',
+        height: '40px'
+      }}>
+        <div className="skeleton-item" style={{ width: '100%', height: '20px' }}></div>
+      </div>
+    );
   }
 
   const ethereumPrice = overviewFromContext.overview.prices.geckos.ethereum;
