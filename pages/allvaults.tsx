@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import LoadGrid from "../components/loadGrid";
+import TableSkeleton from "../components/tableSkeleton";
 import { vaultsAPIFormatted } from "../utils/vaultsFromConstantsAdapter";
 // import { useRouter } from "next/router";
 import { ethers } from "ethers";
@@ -183,7 +184,7 @@ function AllVaults() {
     return "";
   });
   // const [poolPrice, setPoolPrice] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Start with false to show UI immediately
   const [tvl, setTvl] = useState<TVL | null>(null);
   const [allVaults, setAllVaults] = useState<VaultData[]>([]);
   const [filteredVaults, setFilteredVaults] = useState<VaultData[]>([]);
@@ -192,6 +193,7 @@ function AllVaults() {
   const [isVaultsLoaded, setIsVaultsLoaded] = useState(0);
   const [showPrzPOOLVaults, setShowPrzPOOLVaults] = useState(false);
   const [isTvlModalOpen, setIsTvlModalOpen] = useState(false);
+  const [isDataLoading, setIsDataLoading] = useState(true); // Track data loading separately
 
 
   const { address } = useAccount();
@@ -388,7 +390,7 @@ function AllVaults() {
       }
 
       try {
-        setIsLoading(true);
+        setIsDataLoading(true);
         const secondsInAYear = 31536000; // 60 * 60 * 24 * 365
         let vaultsResponse: Response | null = null;
         let prices = { geckos: {}, assets: {} };
@@ -741,10 +743,11 @@ function AllVaults() {
             }
             return prevData;
           });
-          setIsLoading(false);
+          setIsDataLoading(false);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
+        setIsDataLoading(false);
       }
     };
 
@@ -896,148 +899,143 @@ function AllVaults() {
       <div>
         <div className="vaults-header-container">
           <div className="hidden-mobile-vault-header">
-            {!isLoading && (
-              <>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-end",
+                justifyContent: "space-between",
+                width: "100%",
+              }}>
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <input
+                  value={searchInput}
+                  className="vaultsearch"
+                  onChange={handleSearch}
+                  placeholder="Search..."
+                />
+                <div className="vaults-chain-toggle">
+                  {chains.map((chain) => {
+                    const icon = GetChainIcon(chain.chainId);
+                    return (
+                      <div
+                        key={chain.chainId}
+                        className={`vaults-chain-option ${
+                          chain.active ? "active" : ""
+                        }`}
+                        onClick={() => toggleChain(chain.chainId)}>
+                        {icon && (
+                          <Image
+                            src={icon}
+                            alt={chain.name}
+                            width={24}
+                            height={24}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                  &nbsp;
+                  {/* przPOOL toggle */}
+                  <div
+                    className={`vaults-chain-option ${
+                      showPrzPOOLVaults ? "active" : ""
+                    }`}
+                    onClick={togglePrzPOOLVaults}>
+                    <Image
+                      src="/images/pool.png"
+                      alt="przPOOL Vaults"
+                      width={24}
+                      height={24}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {!showStats && (
                 <div
                   style={{
                     display: "flex",
-                    alignItems: "flex-end",
-                    justifyContent: "space-between",
-                    width: "100%",
+                    alignItems: "center",
+                    gap: "1rem",
+                    paddingBottom: "8px",
                   }}>
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <input
-                      value={searchInput}
-                      className="vaultsearch"
-                      onChange={handleSearch}
-                      placeholder="Search..."
-                    />
-                    <div className="vaults-chain-toggle">
-                      {chains.map((chain) => {
-                        const icon = GetChainIcon(chain.chainId);
-                        return (
-                          <div
-                            key={chain.chainId}
-                            className={`vaults-chain-option ${
-                              chain.active ? "active" : ""
-                            }`}
-                            onClick={() => toggleChain(chain.chainId)}>
-                            {icon && (
-                              <Image
-                                src={icon}
-                                alt={chain.name}
-                                width={24}
-                                height={24}
-                              />
-                            )}
-                          </div>
-                        );
-                      })}
-                      &nbsp;
-                      {/* przPOOL toggle */}
-                      <div
-                        className={`vaults-chain-option ${
-                          showPrzPOOLVaults ? "active" : ""
-                        }`}
-                        onClick={togglePrzPOOLVaults}>
-                        <Image
-                          src="/images/pool.png"
-                          alt="przPOOL Vaults"
-                          width={24}
-                          height={24}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {!showStats && (
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "1rem",
-                        paddingBottom: "8px",
-                      }}>
-                      <PrizeInPool />
-                      {tvl && !showStats && (
-                        <div className="more">
-                          <span
-                            style={{ cursor: "pointer" }}
-                            onClick={() => {
-                              setShowStats(true);
-                            }}>
-                            <a className="custom-link">+nerd data</a>
-                          </span>
-                        </div>
-                      )}
+                  <PrizeInPool />
+                  {tvl && !showStats && (
+                    <div className="more">
+                      <span
+                        style={{ cursor: "pointer" }}
+                        onClick={() => {
+                          setShowStats(true);
+                        }}>
+                        <a className="custom-link">+nerd data</a>
+                      </span>
                     </div>
                   )}
                 </div>
-                {showStats && (
-                  <div
-                    className="tvl"
-                    style={{
-                      textAlign: "left",
-                      marginTop: "10px",
-                      color: "white",
-                      borderRadius: "10px",
-                      padding: "5px 8px 5px 8px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "2rem",
-                    }}>
-                    <PrizeInPool />
-                    {tvl && parseInt(tvl.totalTVL.toString()) > 0 ? (
-                      <>
-                        <div
+              )}
+            </div>
+            {showStats && (
+              <div
+                className="tvl"
+                style={{
+                  textAlign: "left",
+                  marginTop: "10px",
+                  color: "white",
+                  borderRadius: "10px",
+                  padding: "5px 8px 5px 8px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "2rem",
+                }}>
+                <PrizeInPool />
+                {tvl && parseInt(tvl.totalTVL.toString()) > 0 ? (
+                  <>
+                    <div
+                      style={{
+                        fontSize: "22px",
+                        display: "inline-block",
+                      }}
+                      onClick={() => {
+                        setShowStats(false);
+                      }}>
+                      TVL&nbsp;&nbsp;
+                      <PrizeValueIcon size={22} />
+                      {/* desktop tvl */}
+                      <PrizeValue
+                        amount={BigInt(
+                          Math.round(Number(tvl.totalTVL))
+                        )}
+                        size={22}
+                        rounded={false}
+                      />
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsTvlModalOpen(true);
+                        }}
+                        style={{
+                          cursor: "pointer",
+                          marginLeft: "8px",
+                        }}>
+                        <FontAwesomeIcon
+                          icon={faCircleInfo}
                           style={{
-                            fontSize: "22px",
-                            display: "inline-block",
+                            color: "#ebeeef",
+                            height: "16px",
                           }}
-                          onClick={() => {
-                            setShowStats(false);
-                          }}>
-                          TVL&nbsp;&nbsp;
-                          <PrizeValueIcon size={22} />
-                          {/* desktop tvl */}
-                          <PrizeValue
-                            amount={BigInt(
-                              Math.round(Number(tvl.totalTVL))
-                            )}
-                            size={22}
-                            rounded={false}
-                          />
-                          <span
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setIsTvlModalOpen(true);
-                            }}
-                            style={{
-                              cursor: "pointer",
-                              marginLeft: "8px",
-                            }}>
-                            <FontAwesomeIcon
-                              icon={faCircleInfo}
-                              style={{
-                                color: "#ebeeef",
-                                height: "16px",
-                              }}
-                            />
-                          </span>
-                        </div>
-                        &nbsp;
-                      </>
-                    ) : (
-                      <span style={{ width: "140px" }}></span>
-                    )}
-                  </div>
+                        />
+                      </span>
+                    </div>
+                    &nbsp;
+                  </>
+                ) : (
+                  <span style={{ width: "140px" }}></span>
                 )}
-              </>
+              </div>
             )}
           </div>
 
           <div className="hidden-desktop-vault-header">
-            {!isLoading && <></>}
             <div
               className="tvl"
               style={{
@@ -1049,11 +1047,10 @@ function AllVaults() {
                 width: "100%",
               }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: '10px', width: 'calc(100% + 16px)', margin: '5px -8px 0' }}>
-              {!isLoading && <PrizeInPool />}
+              <PrizeInPool />
 
               {tvl &&
               parseInt(tvl.totalTVL.toString()) > 0 &&
-              !isLoading &&
               showStats ? (
                 <>
                   <div
@@ -1128,7 +1125,7 @@ function AllVaults() {
                 // style={{ flex: 1 }}
               />
             </div>
-            {tvl && !isLoading && !showStats && (
+            {tvl && !showStats && (
               <div className="more">
                 <span
                   style={{ cursor: "pointer" }}
@@ -1143,83 +1140,85 @@ function AllVaults() {
         </div>
         {/* <SortingSelector selectedSort={selectedSort} handleSortChange={handleSortChange} /> */}
         <br></br>
-        {!isLoading && (
-          <div className="vault-table-container">
-            <>
-              {headerGroups.map((headerGroup: any, index: any) => (
-                <div
-                  className={`vault-table-header-row ${
-                    !showStats ? "vault-table-header-tvl-hidden" : ""
-                  }`}
-                  key={`header-group-${index}`}>
-                  {headerGroup.headers.map((column: any) => {
-                    if (column.id === "depositsAndTVL" && !showStats) {
-                      return null;
-                    } else {
-                      return (
-                        <div
-                          {...column.getHeaderProps(
-                            column.getSortByToggleProps()
-                          )}
-                          key={column.id}
-                          className={`vault-header ${
-                            column.id === "depositsAndTVL"
-                              ? "vault-deposits-tvl"
-                              : column.id === "yieldAndVaultAPR"
-                              ? "vault-yield-tvl"
-                              : column.id === "vaults"
-                              ? "vaults-header"
-                              : "vault-left-align"
-                          }`}>
-                          {(column.id === "tokens" &&
-                            hasTokens(filteredVaults)) ||
-                          (column.id === "tickets" &&
-                            hasTickets(filteredVaults)) ||
-                          (column.id !== "tokens" &&
-                            column.id !== "tickets") ? (
-                            <>
-                              <span className="hidden-mobile">
-                                {column.render("Header")}
-                              </span>
-                              <span>
-                                {column.isSorted ? (
-                                  column.isSortedDesc ? (
-                                    <FontAwesomeIcon
-                                      icon={faArrowAltCircleUp}
-                                      size="sm"
-                                      style={{
-                                        display: "inline",
-                                        color: "#1a4160",
-                                        height: "15px",
-                                        paddingLeft: "5px",
-                                      }}
-                                    />
-                                  ) : (
-                                    <FontAwesomeIcon
-                                      icon={faArrowAltCircleDown}
-                                      size="sm"
-                                      style={{
-                                        display: "inline",
-                                        color: "#1a4160",
-                                        height: "15px",
-                                        paddingLeft: "5px",
-                                      }}
-                                    />
-                                  )
+        <div className="vault-table-container">
+          <>
+            {headerGroups.map((headerGroup: any, index: any) => (
+              <div
+                className={`vault-table-header-row ${
+                  !showStats ? "vault-table-header-tvl-hidden" : ""
+                }`}
+                key={`header-group-${index}`}>
+                {headerGroup.headers.map((column: any) => {
+                  if (column.id === "depositsAndTVL" && !showStats) {
+                    return null;
+                  } else {
+                    return (
+                      <div
+                        {...column.getHeaderProps(
+                          column.getSortByToggleProps()
+                        )}
+                        key={column.id}
+                        className={`vault-header ${
+                          column.id === "depositsAndTVL"
+                            ? "vault-deposits-tvl"
+                            : column.id === "yieldAndVaultAPR"
+                            ? "vault-yield-tvl"
+                            : column.id === "vaults"
+                            ? "vaults-header"
+                            : "vault-left-align"
+                        }`}>
+                        {(column.id === "tokens" &&
+                          hasTokens(filteredVaults)) ||
+                        (column.id === "tickets" &&
+                          hasTickets(filteredVaults)) ||
+                        (column.id !== "tokens" &&
+                          column.id !== "tickets") ? (
+                          <>
+                            <span className="hidden-mobile">
+                              {column.render("Header")}
+                            </span>
+                            <span>
+                              {column.isSorted ? (
+                                column.isSortedDesc ? (
+                                  <FontAwesomeIcon
+                                    icon={faArrowAltCircleUp}
+                                    size="sm"
+                                    style={{
+                                      display: "inline",
+                                      color: "#1a4160",
+                                      height: "15px",
+                                      paddingLeft: "5px",
+                                    }}
+                                  />
                                 ) : (
-                                  ""
-                                )}
-                              </span>
-                            </>
-                          ) : null}
-                        </div>
-                      );
-                    }
-                  })}
-                </div>
-              ))}
-            </>
+                                  <FontAwesomeIcon
+                                    icon={faArrowAltCircleDown}
+                                    size="sm"
+                                    style={{
+                                      display: "inline",
+                                      color: "#1a4160",
+                                      height: "15px",
+                                      paddingLeft: "5px",
+                                    }}
+                                  />
+                                )
+                              ) : (
+                                ""
+                              )}
+                            </span>
+                          </>
+                        ) : null}
+                      </div>
+                    );
+                  }
+                })}
+              </div>
+            ))}
+          </>
 
+          {isDataLoading ? (
+            <TableSkeleton showStats={showStats} rowCount={8} />
+          ) : (
             <div className="vault-table-body">
               <>
                 {rows.map((row: any) => {
@@ -1301,23 +1300,22 @@ function AllVaults() {
                 })}
               </>
             </div>
-            <br></br>
-            <div
-              style={{ color: "black", fontSize: "12px", cursor: "pointer" }}
-              onClick={() => setShowAllVaults(!showAllVaults)}>
-              {showAllVaults
-                ? "Show Only Popular Vaults"
-                : "Show Any and All Vaults"}
-            </div>
+          )}
+          <br></br>
+          <div
+            style={{ color: "black", fontSize: "12px", cursor: "pointer" }}
+            onClick={() => setShowAllVaults(!showAllVaults)}>
+            {showAllVaults
+              ? "Show Only Popular Vaults"
+              : "Show Any and All Vaults"}
           </div>
-        )}{" "}
+        </div>
         <br></br>
         <br></br>
         <br></br>
         <br></br>
         <br></br>
         <br></br>
-        {isLoading && <LoadGrid />}
       </div>
       {tvl && (
         <TvlModal
