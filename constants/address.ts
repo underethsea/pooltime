@@ -386,7 +386,7 @@ const ADDRESS: Addresses = {
       },
       {
         VAULT: "0x9b53ef6f13077727d22cb4acad1119c79a97be17",
-        LIQUIDATIONPAIR: "0x055bFA086ecEbC21e6D6De0BB2e2b6BcE0401d58",
+        LIQUIDATIONPAIR: "0xa67e22fcd27f36ad699504e37d278dc4c6c89433",
         SYMBOL: "przPOOLWETH",
         NAME: "Prize POOL/WETH Beefy",
         DECIMALS: 18,
