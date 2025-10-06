@@ -325,7 +325,7 @@ const LiquidationPairsPage: React.FC = () => {
         
         <div style={{ marginBottom: "20px", textAlign: "center" }}>
           <p style={{ color: "#fff", fontSize: "14px" }} className="hidden-mobile">
-            Showing all liquidation pairs with available maxOut across all chains ({pairsData.length} pairs found)
+            {pairsData.length} pairs found
           </p>
           <p style={{ color: "#fff", fontSize: "12px" }} className="hidden-desktop">
             {pairsData.length} pairs found
