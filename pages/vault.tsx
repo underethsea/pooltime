@@ -1051,7 +1051,7 @@ const Vault: React.FC<VaultProps> = ({
 
   const userWinChance = averageDaysToWin();
   const showChanceInfo = !!(vaultData && overviewFromContext?.overview?.pendingPrize);
-  
+  const hasVp = vaultData?.vp ?? null;
   return (
     <Layout>
       <center>
@@ -1647,9 +1647,11 @@ const Vault: React.FC<VaultProps> = ({
                                 </span>
                               </div>
                             )}
-                          {activePromos &&
+                          { // null only if undefined/null
+
+                          activePromos &&
                             vaultData &&
-                            vaultData.vp &&
+                            hasVp !== null &&                  
                             (activePromos as { [key: string]: any[] })[
                               activeVaultAddress.toLowerCase()
                             ] &&
