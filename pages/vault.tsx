@@ -53,6 +53,7 @@ import { optimism } from "viem/chains";
 import { call } from "viem/actions";
 import DrawCountdown from "../components/drawCountdown";
 import VaultChanceInfo from "../components/vaultChanceInfo";
+import VaultSkeleton from "../components/vaultSkeleton";
 // import Drip from "./drip";
 
 interface vaultApi {
@@ -1088,34 +1089,35 @@ const Vault: React.FC<VaultProps> = ({
             Back to all vaults
           </div>
         </Link>
-        <div className={`vault-view-bubble ${showChanceInfo ? "has-chance" : ""}`}>
-          <span
-            className="hidden-desktop"
-            style={{
-              paddingBottom: "5px",
-              display: "flex",
-              alignItems: "left",
-            }}>
-            {activeVaultChain !== undefined && (
-              <span className="hidden-desktop">
-                <ChainTag chainId={activeVaultChain} horizontal={true} />
-                <br></br>
-              </span>
-              // <Image
-              //   src={GetChainIcon(activeVaultChain) as any}
-              //   alt={GetChainIcon(activeVaultChain)}
-              //   width={24}
-              //   height={24}
-              // />
-            )}
-          </span>
-          {/* <button className="modal-close-button">
-          &times;
-        </button>      */}
-          {/* {vaultData && <h3>{vaultData.name}</h3>} */}
+        {vaultData ? (
+          <div className={`vault-view-bubble ${showChanceInfo ? "has-chance" : ""}`}>
+            <span
+              className="hidden-desktop"
+              style={{
+                paddingBottom: "5px",
+                display: "flex",
+                alignItems: "left",
+              }}>
+              {activeVaultChain !== undefined && (
+                <span className="hidden-desktop">
+                  <ChainTag chainId={activeVaultChain} horizontal={true} />
+                  <br></br>
+                </span>
+                // <Image
+                //   src={GetChainIcon(activeVaultChain) as any}
+                //   alt={GetChainIcon(activeVaultChain)}
+                //   width={24}
+                //   height={24}
+                // />
+              )}
+            </span>
+            {/* <button className="modal-close-button">
+            &times;
+          </button>      */}
+            {/* {vaultData && <h3>{vaultData.name}</h3>} */}
 
-          {/* Desktop two-div layout */}
-          <div className="vault-desktop-layout">
+            {/* Desktop two-div layout */}
+            <div className="vault-desktop-layout">
             {/* Main vault content div */}
             <div className="vault-main-content">
               <div style={{ paddingBottom: "18px" }}>
@@ -1194,10 +1196,8 @@ const Vault: React.FC<VaultProps> = ({
                   {isInvalidVault ? (
                     <div className="error-message">Invalid Vault Address</div>
                   ) : (
-                    <>
-                      {vaultData ? (
-                        <>
-                          {/* DEPOSIT AND WITHDRAW */}
+                     <>
+                       {/* DEPOSIT AND WITHDRAW */}
                           {vaultData.userVaultBalance &&
                             vaultData.userVaultBalance.gt(0) &&
                             vaultData.status !== 0 && (
@@ -2195,14 +2195,8 @@ const Vault: React.FC<VaultProps> = ({
                                     <span className="vault-label">Balance</span>
                                     <span className="vault-data">{vaultData.balance}</span>
                                 </div> */}
-                        </>
-                      ) : (
-                        <center>
-                          <div className="spinner-large" />
-                        </center>
-                      )}
-                    </>
-                  )}
+                     </>
+                   )}
                 </div>
                 </div>
                 </div>
@@ -2270,6 +2264,9 @@ const Vault: React.FC<VaultProps> = ({
           )}
         </div>
         </div>
+        ) : (
+          <VaultSkeleton />
+        )}
         {/* </div> */}
       </center>
     </Layout>
