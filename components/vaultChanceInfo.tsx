@@ -104,7 +104,7 @@ const VaultChanceInfo: React.FC<VaultChanceInfoProps> = ({
                   <PrizeValue
                     amount={BigInt((1e18 * jackpotTier.value).toFixed(0))}
                     size={24}
-                    chainname={chainName}
+                    chainname={chainName === "WORLD" ? "ETHEREUM" : chainName}
                   />
                 </div>
                 <div className="jackpot-label">Jackpot</div>
@@ -140,8 +140,8 @@ const VaultChanceInfo: React.FC<VaultChanceInfoProps> = ({
                         <PrizeValue
                           amount={BigInt((1e18 * tier.value).toFixed(0))}
                           size={18}
-                          chainname={chainName}
-                        />
+                          chainname={chainName === "WORLD" ? "ETHEREUM" : chainName}
+                          />
                       </div>
                       <div className="prize-duration">
                         {durationDays ? `${durationDays}d` : ""}
@@ -207,7 +207,7 @@ const VaultChanceInfo: React.FC<VaultChanceInfoProps> = ({
                   <PrizeValue
                     amount={BigInt((1e18 * jackpotTier.value).toFixed(0))}
                     size={24}
-                    chainname={chainName}
+                    chainname={chainName === "WORLD" ? "ETHEREUM" : chainName}
                   />
                 </div>
                 <div className="jackpot-label">Jackpot</div>
@@ -243,8 +243,8 @@ const VaultChanceInfo: React.FC<VaultChanceInfoProps> = ({
                         <PrizeValue
                           amount={BigInt((1e18 * tier.value).toFixed(0))}
                           size={18}
-                          chainname={chainName}
-                        />
+                          chainname={chainName === "WORLD" ? "ETHEREUM" : chainName}
+                          />
                       </div>
                       <div className="prize-duration">
                         {durationDays ? `${durationDays}d` : ""}
@@ -384,7 +384,7 @@ const VaultChanceInfo: React.FC<VaultChanceInfoProps> = ({
                   <PrizeValue
                     amount={BigInt((1e18 * tierData.value).toFixed(0))}
                     size={15}
-                    chainname={GetChainName(chainId)}
+                    chainname={chainId === 100 ? "ETHEREUM" : GetChainName(chainId)}
                   />
                 </div>
                 <span className="prize-name">
