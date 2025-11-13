@@ -1,4 +1,5 @@
 import { providers } from "ethers";
+import { ADDRESS } from "./address";
 // import {mainnet, goerli, sepolia, polygonMumbai} from "viem/chains"
 // import { http, createPublicClient } from 'viem'
 
@@ -59,27 +60,44 @@ const ENDPOINTS : ChainEndpoints= {
   },
 } 
 
+function createStaticProvider(url: string, chainId: number, name: string): providers.JsonRpcProvider {
+  const provider = new providers.StaticJsonRpcProvider(url, { chainId, name });
+  
+  const originalSend = provider.send.bind(provider);
+  provider.send = function(method: string, params?: any[]): Promise<any> {
+    if (method === 'eth_chainId' || method === 'net_version') {
+      if (method === 'net_version') {
+        return Promise.resolve(chainId.toString());
+      }
+      return Promise.resolve(`0x${chainId.toString(16)}`);
+    }
+    return originalSend(method, params || []);
+  };
+  
+  return provider;
+}
+
 let PROVIDERS: Record<string, providers.JsonRpcProvider> = {};
 let rpc: keyof typeof ENDPOINTS = "INFURA";
 infura ? (rpc = "INFURA") : (rpc = "ALCHEMY");
 PROVIDERS = {
-  GNOSIS: new providers.JsonRpcProvider(ENDPOINTS[rpc].GNOSIS),
-  // GOERLI: new providers.JsonRpcProvider(ENDPOINTS[rpc].GOERLI),
-  // MUMBAI: new providers.JsonRpcProvider(ENDPOINTS[rpc].MUMBAI),
-  SEPOLIA: new providers.JsonRpcProvider(ENDPOINTS[rpc].SEPOLIA),
-  // OPGOERLI: new providers.JsonRpcProvider(ENDPOINTS[rpc].OPGOERLI),
-  OPTIMISM: new providers.JsonRpcProvider(ENDPOINTS[rpc].OPTIMISM),
-  MAINNET: new providers.JsonRpcProvider(ENDPOINTS[rpc].MAINNET),
-  POLYGON: new providers.JsonRpcProvider(ENDPOINTS[rpc].POLYGON),
-  WORLD: new providers.JsonRpcProvider(ENDPOINTS[rpc].WORLD),
-  // AVALANCHE: new providers.JsonRpcProvider(ENDPOINTS[rpc].AVALANCHE),
-  OPSEPOLIA: new providers.JsonRpcProvider(ENDPOINTS[rpc].OPSEPOLIA),
-  BASE: new providers.JsonRpcProvider(ENDPOINTS[rpc].BASE),
-  BASESEPOLIA: new providers.JsonRpcProvider(ENDPOINTS[rpc].BASESEPOLIA),
-  ARBSEPOLIA: new providers.JsonRpcProvider(ENDPOINTS[rpc].ARBSEPOLIA),
-  ARBITRUM: new providers.JsonRpcProvider(ENDPOINTS[rpc].ARBITRUM),
-  ETHEREUM: new providers.JsonRpcProvider(ENDPOINTS[rpc].MAINNET),
-  SCROLL: new providers.JsonRpcProvider(ENDPOINTS[rpc].SCROLL)
+  GNOSIS: createStaticProvider(ENDPOINTS[rpc].GNOSIS, ADDRESS.GNOSIS.CHAINID, 'gnosis'),
+  // GOERLI: createStaticProvider(ENDPOINTS[rpc].GOERLI, 5, 'goerli'),
+  // MUMBAI: createStaticProvider(ENDPOINTS[rpc].MUMBAI, 80001, 'maticmum'),
+  SEPOLIA: createStaticProvider(ENDPOINTS[rpc].SEPOLIA, 11155111, 'sepolia'),
+  // OPGOERLI: createStaticProvider(ENDPOINTS[rpc].OPGOERLI, 420, 'optimism-goerli'),
+  OPTIMISM: createStaticProvider(ENDPOINTS[rpc].OPTIMISM, ADDRESS.OPTIMISM.CHAINID, 'optimism'),
+  MAINNET: createStaticProvider(ENDPOINTS[rpc].MAINNET, ADDRESS.ETHEREUM.CHAINID, 'homestead'),
+  POLYGON: createStaticProvider(ENDPOINTS[rpc].POLYGON, 137, 'matic'),
+  WORLD: createStaticProvider(ENDPOINTS[rpc].WORLD, ADDRESS.WORLD.CHAINID, 'world'),
+  // AVALANCHE: createStaticProvider(ENDPOINTS[rpc].AVALANCHE, 43114, 'avalanche'),
+  OPSEPOLIA: createStaticProvider(ENDPOINTS[rpc].OPSEPOLIA, 11155420, 'optimism-sepolia'),
+  BASE: createStaticProvider(ENDPOINTS[rpc].BASE, ADDRESS.BASE.CHAINID, 'base'),
+  BASESEPOLIA: createStaticProvider(ENDPOINTS[rpc].BASESEPOLIA, 84532, 'base-sepolia'),
+  ARBSEPOLIA: createStaticProvider(ENDPOINTS[rpc].ARBSEPOLIA, 421614, 'arbitrum-sepolia'),
+  ARBITRUM: createStaticProvider(ENDPOINTS[rpc].ARBITRUM, ADDRESS.ARBITRUM.CHAINID, 'arbitrum'),
+  ETHEREUM: createStaticProvider(ENDPOINTS[rpc].MAINNET, ADDRESS.ETHEREUM.CHAINID, 'homestead'),
+  SCROLL: createStaticProvider(ENDPOINTS[rpc].SCROLL, ADDRESS.SCROLL.CHAINID, 'scroll')
 
 
 
