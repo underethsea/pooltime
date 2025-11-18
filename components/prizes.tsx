@@ -54,6 +54,57 @@ const calculateTierFrequency = (t: number, n: number, g: number) => {
   const odds = e ** ((t - n + 1) * Math.log(1 / g)) / (1 - n);
   return odds;
 };
+
+// ✅ Recommended Fix for getMostRecentDrawPrize
+async function getMostRecentDrawPrize(chain: number) {
+  try {
+    const fetchUrl = await fetch(
+      `https://poolexplorer.xyz/${chain}-${ADDRESS[CONFIG.CHAINNAME].PRIZEPOOL}-history`
+    );
+    
+    // Check if the HTTP request was successful
+    if (!fetchUrl.ok) {
+        throw new Error(`HTTP error! status: ${fetchUrl.status}`);
+    }
+    
+    const drawResult: any[] = await fetchUrl.json();
+
+    // Ensure drawResult is an array before trying to filter/sort
+    if (!Array.isArray(drawResult)) {
+        throw new Error("API returned non-array data");
+    }
+    
+    // Filter draws with a prize value greater than 0 first
+    const drawsWithPrizes = drawResult.filter((draw:any) => parseInt(draw.totalPayout) > 0);
+
+    // Sort the filtered draws in descending order based on draw IDs
+    const sortedDrawsWithPrizes = drawsWithPrizes.sort((a:any, b:any) => parseInt(b.draw) - parseInt(a.draw));
+
+    // Get the second most recent draw with prizes, if available
+    if (sortedDrawsWithPrizes.length < 2) {
+      console.error("Insufficient data for finding yesterday's draw with prizes");
+      return "";
+    }
+
+    // Use optional chaining for safe access
+    const yesterdayDrawWithPrizes = sortedDrawsWithPrizes[1]; 
+    const payout = yesterdayDrawWithPrizes?.totalPayout;
+    
+    if (typeof payout === 'string' && payout.length > 0) {
+        console.log("Yesterday's draw with prizes total payout: ", payout);
+        return payout;
+    } else {
+        console.error("Second most recent draw has invalid totalPayout data.");
+        return "";
+    }
+
+  } catch (e) {
+    console.error("Error fetching the most recent prize draw: ", e);
+    // Return a default error value on failure
+    return "";
+  }
+}
+/*
 async function getMostRecentDrawPrize(chain: number) {
   try {
     const fetchUrl = await fetch(
@@ -83,7 +134,7 @@ const sortedDrawsWithPrizes = drawsWithPrizes.sort((a:any, b:any) => parseInt(b.
     console.error("Error fetching the most recent prize draw: ", e);
   }
 }
-
+*/
 interface TierData {
   // tier: number;
   value: number;

@@ -245,18 +245,27 @@ export const getVaultColumns = (showStats: boolean): Column<VaultData>[] => [
             {totalSupply || "0"}
             <div className="hidden-desktop" style={{ display: "inline-block", marginLeft: "4px" }}>TVL</div>
           </div>
-          <div className="vaults-font-small hidden-mobile">
-            {depositsEthValue > 0 && (
-              <>
-                <PrizeValueIcon size={16} />
-                <PrizeValue
-                  amount={BigInt(depositsEthBigInt)}
-                  size={16}
-                  rounded={true}
-                />
-              </>
-            )}
-          </div>
+
+<div className="vaults-font-small hidden-mobile">
+  {depositsEthValue > 0 && (
+    <>
+      <PrizeValueIcon size={16} />
+      <PrizeValue
+        amount={
+          // Check if depositsEthBigInt is a finite number, truncate to integer, 
+          // and convert to string. Fallback to '0' string if invalid (Infinity/NaN).
+          BigInt(
+            Number.isFinite(depositsEthBigInt)
+              ? Math.trunc(depositsEthBigInt).toString()
+              : '0'
+          )
+        }
+        size={16}
+        rounded={true}
+      />
+    </>
+  )}
+</div>
         </div>
       );
     },
