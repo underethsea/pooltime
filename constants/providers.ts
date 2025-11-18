@@ -14,7 +14,7 @@ const ALCHEMY_KEY=process.env.NEXT_PUBLIC_ALCHEMY_KEY
 const ENDPOINTS : ChainEndpoints= {
   "ALCHEMY": {
     "SCROLL":
-    "https://rpc.scroll.io",
+    "https://scroll-mainnet.g.alchemy.com/v2/" + ALCHEMY_KEY,
     "OPTIMISM":
     "https://opt-mainnet.g.alchemy.com/v2/" +
     ALCHEMY_KEY,
