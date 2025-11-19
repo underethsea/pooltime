@@ -65,11 +65,18 @@ export const OverviewProvider: React.FC<OverviewProviderProps> = ({ children }) 
   useEffect(() => {
     const fetchOverview = async () => {
       try {
-        const overviewFetch = await fetch(`https://poolexplorer.xyz/overview`);
-        const overviewReceived = await overviewFetch.json();
+        const { fetchPoolexplorer } = await import('../utils/resilientFetch');
+        const overviewReceived = await fetchPoolexplorer('overview');
         setOverview(overviewReceived);
       } catch (error) {
         console.error('Failed to fetch overview:', error);
+        // Set a minimal overview object to prevent complete failure
+        setOverview({
+          totalValueLocked: '0',
+          totalPrizes: '0',
+          totalPlayers: 0,
+          totalVaults: 0,
+        } as any);
       } finally {
         setIsLoading(false);
       }

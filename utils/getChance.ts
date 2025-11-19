@@ -42,17 +42,20 @@ export const GetChance = async (
   ];
 
   const [historyResponse, multicallResponse] = await Promise.all([
-    fetch(historyUrl),
+    (async () => {
+      try {
+        const { fetchPoolexplorer } = await import('./resilientFetch');
+        const endpoint = historyUrl.replace('https://poolexplorer.xyz/', '');
+        return await fetchPoolexplorer(endpoint);
+      } catch (e) {
+        console.error("Failed to fetch history response:", e);
+        return []; // Default to an empty array on failure
+      }
+    })(),
     Multicall(initialCalls, chainName),
   ]);
 
-  let historyData;
-  try {
-    historyData = await historyResponse.json();
-  } catch (e) {
-    console.error("Failed to parse history response:", e);
-    historyData = []; // Default to an empty array on failure
-  }
+  let historyData = Array.isArray(historyResponse) ? historyResponse : [];
 
   const [lastDrawId, ...tierDurations] =
     multicallResponse as unknown as [ethers.BigNumber, ...ethers.BigNumber[]];
