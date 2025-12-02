@@ -130,33 +130,37 @@ const VaultYieldTooltip: React.FC<YieldTooltipProps> = ({
               />
             )}
             <div className="vault-tooltip-text">
-              {vaultAPR && vaultAPR > 0.001 && (
-                <div className="vault-tooltip-row">
-                  <div>{Number(vaultAPR).toFixed(1)}%</div>
-                  <div>Avg Prize Yield</div>
-                </div>
-              )}
-              {apr && apr > 0.0001 ? (
-                <>
+              {(() => {
+                const vaultAPRNum = vaultAPR ? Number(vaultAPR) : 0;
+                return vaultAPRNum > 0.001 && isFinite(vaultAPRNum) ? (
                   <div className="vault-tooltip-row">
-                    <div>{(apr * 100).toFixed(1)}%</div>
+                    <div>{vaultAPRNum.toFixed(1)}%</div>
+                    <div>Avg Prize Yield</div>
+                  </div>
+                ) : null;
+              })()}
+              {(() => {
+                const aprNum = apr ? Number(apr) : 0;
+                return aprNum > 0.0001 && isFinite(aprNum) ? (
+                  <div className="vault-tooltip-row">
+                    <div>{(aprNum * 100).toFixed(1)}%</div>
                     <div>{symbol} Incentives</div>
                   </div>
-                </>
-              ) : (
-                ""
-              )}
-              {apr && apr > 0.0001 && vaultAPR && vaultAPR > 0.001 ? (
-                <>
-                  <hr className="vault-tooltip-hr" />
-                  <div className="vault-tooltip-row">
-                    <div>{total.toFixed(1)}%</div>
-                    <div>Total</div>
-                  </div>
-                </>
-              ) : (
-                ""
-              )}
+                ) : null;
+              })()}
+              {(() => {
+                const vaultAPRNum = vaultAPR ? Number(vaultAPR) : 0;
+                const aprNum = apr ? Number(apr) : 0;
+                return aprNum > 0.0001 && vaultAPRNum > 0.001 && isFinite(aprNum) && isFinite(vaultAPRNum) ? (
+                  <>
+                    <hr className="vault-tooltip-hr" />
+                    <div className="vault-tooltip-row">
+                      <div>{total.toFixed(1)}%</div>
+                      <div>Total</div>
+                    </div>
+                  </>
+                ) : null;
+              })()}
             </div>
           </>
         )}
