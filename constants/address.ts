@@ -832,8 +832,9 @@ const WHITELIST_VAULTS = [
   "0xD56F6f32473D6321512956a1351D4BceC07914cb", // morpho eth
   "0x78adc13c9ab327c79d10cab513b7c6bd3b346858", // superOETHb
   // "0x8ad5959c9245b64173d4c0c3cd3ff66dac3cab0e", // wld
-  "0x0045cC66eCf34da9D8D89aD5b36cB82061c0907C", // pool on wld
+  "0x0045cC66eCf34da9D8D89aD5b36cB82061c0907C", // pool on wl
   "0x4c7e1f64a4b121d2f10d6fbca0db143787bf64bb", // morpho wld
+
 ];
 
 const WHITELIST_REWARDS: {
@@ -923,6 +924,12 @@ const WHITELIST_REWARDS: {
       ICON: "https://assets.coingecko.com/coins/images/14003/standard/PoolTogether.png?1696513732",
     },
   ],
+  WORLD: [
+    {TOKEN: "0x7077C71B4AF70737a08287E279B717Dcf64fdC57",
+      SYMBOL: "POOL",
+      GECKO: "pooltogether",
+      ICON: "https://assets.coingecko.com/coins/images/14003/standard/PoolTogether.png?1696513732",}
+  ]
 };
 
 export { ADDRESS, STARTBLOCK, ICONS, WHITELIST_REWARDS, WHITELIST_VAULTS };
