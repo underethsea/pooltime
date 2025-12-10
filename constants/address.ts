@@ -786,6 +786,7 @@ const ICONS: { [key: string]: string } = {
   eurc: "https://assets.coingecko.com/coins/images/26045/standard/euro.png?1696525125",
   world:
     "https://assets.coingecko.com/coins/images/31069/standard/worldcoin.jpeg?1696529903",
+  wld: "https://assets.coingecko.com/coins/images/31069/standard/worldcoin.jpeg?1696529903",
 };
 
 const WHITELIST_VAULTS = [
@@ -800,14 +801,14 @@ const WHITELIST_VAULTS = [
   "0x6b5a5c55e9dd4bb502ce25bbfbaa49b69cf7e4dd",
   "0x7f5c2b379b88499ac2b997db583f8079503f25b9",
   "0x8d1322cabe5ef2949f6bf4941cc7765187c1091a",
-  "0x75d700f4c21528a2bb603b6ed899acfde5c4b086",
+  // "0x75d700f4c21528a2bb603b6ed899acfde5c4b086",
   "0x850ec48d2605aad9c3de345a6a357a9a14b8cf1b",
-  "0x5b623c127254c6fec04b492ecdf4b11c45fbb9d5",
+  // "0x5b623c127254c6fec04b492ecdf4b11c45fbb9d5",
   "0x3c72a2a78c29d1f6454caa1bcb17a7792a180a2e",
   "0x7b0949204e7da1b0bed6d4ccb68497f51621b574",
-  "0xcacba8be4bc225fb8d15a9a3b702f84ca3eba991",
+  // "0xcacba8be4bc225fb8d15a9a3b702f84ca3eba991",
   "0x97a9c02cfbbf0332d8172331461ab476df1e8c95",
-  "0x8653084e01Bd8c9e24B9a8fEb2036251Ee0C16A9", // angle stUSD arbitrum
+  // "0x8653084e01Bd8c9e24B9a8fEb2036251Ee0C16A9", // angle stUSD arbitrum
   // "0x6Bb041d7E70b7040611ef688b5e707a799ADe60A", // angle stUSD base
   // "0xcadeacae6976bee87ec5ba44b0a5608a2259c517", // degen
   "0x4e42f783db2d0c5bdff40fdc66fcae8b1cda4a43", // base aave weth
