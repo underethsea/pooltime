@@ -157,16 +157,26 @@ const AccountPage: React.FC = () => {
       setRewardsLoading(true);
       try {
         const vaultAddresses = ticketVaults.map((v) => v.vault);
-        const promos = await GetActivePromotionsForVaults(
+        const promosResult = await GetActivePromotionsForVaults(
           vaultAddresses,
           true,
           overview.prices,
           false,
           ""
         );
+        const promos = (promosResult as unknown) as Record<string, any[]>;
         const claimables: Record<
           string,
-          { token: string; symbol: string; amount: string; decimals: number }[]
+          {
+            token: string;
+            symbol: string;
+            amount: string;
+            decimals: number;
+            promotionId: number;
+            completedEpochs: number[];
+            chainId: number;
+            meta?: boolean;
+          }[]
         > = {};
 
         // Fetch claimable rewards per chain for the user's ticketed vaults

@@ -72,7 +72,7 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
   }, []);
 
   const { data: capabilities } = useCapabilities({
-    account: activeAddress,
+    account: activeAddress as `0x${string}` | undefined,
   });
 
   const { writeContract: claimWrite } = useWriteContract({
@@ -85,7 +85,7 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
     },
   });
 
-  const { sendCalls, data: batchCallData } = useSendCalls();
+  const { sendCalls, data: batchCallId } = useSendCalls();
 
   const canBatchTransactions = (chainId: number) => {
     return (
@@ -95,11 +95,11 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
   };
 
   const { data: callStatusData } = useCallsStatus({
-    id: batchCallData?.id?.id || "",
+    id: batchCallId?.id || "",
     query: {
-      enabled: !!batchCallData?.id,
+      enabled: !!batchCallId,
       refetchInterval: (data) =>
-        data?.state?.data?.status === "success" || data?.state?.data?.status === "failed"
+        data?.state?.data?.status === "success" || data?.state?.data?.status === "failure"
           ? false
           : 1000,
     },
@@ -111,7 +111,7 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
         position: toast.POSITION.BOTTOM_LEFT,
       });
       setBatchClaimingChain(null);
-    } else if (callStatusData?.status === "failed") {
+    } else if (callStatusData?.status === "failure") {
       toast("Batch claim failed", {
         position: toast.POSITION.BOTTOM_LEFT,
       });

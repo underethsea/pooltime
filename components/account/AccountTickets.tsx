@@ -168,7 +168,9 @@ const AccountTickets: React.FC<AccountTicketsProps> = ({
 
     return (
       <div style={styles.list}>
-        {ticketVaults.map((vault) => (
+        {ticketVaults.map((vault) => {
+          const chainIcon = GetChainIcon(vault.c);
+          return (
           <Link
             key={`${vault.vault}-${vault.c}`}
             href={`/vault?chain=${vault.c}&address=${vault.vault}`}
@@ -176,13 +178,15 @@ const AccountTickets: React.FC<AccountTicketsProps> = ({
             <div style={styles.row}>
               <div style={styles.left}>
                 <div style={styles.iconStack}>
-                  <Image
-                    src={GetChainIcon(vault.c)}
-                    alt={GetChainName(vault.c)}
-                    width={20}
-                    height={20}
-                    style={{ borderRadius: "50%" }}
-                  />
+                  {chainIcon && (
+                    <Image
+                      src={chainIcon}
+                      alt={GetChainName(vault.c)}
+                      width={20}
+                      height={20}
+                      style={{ borderRadius: "50%" }}
+                    />
+                  )}
                   <IconDisplay name={vault.assetSymbol} size={22} />
                 </div>
                 <div style={styles.vaultName}>
@@ -201,7 +205,8 @@ const AccountTickets: React.FC<AccountTicketsProps> = ({
               </div>
             </div>
           </Link>
-        ))}
+          );
+        })}
       </div>
     );
   };
