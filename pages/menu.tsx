@@ -35,6 +35,11 @@ export const Menu = () => {
       show: true,
     },
     {
+      label: "Account",
+      path: "/account",
+      show: true,
+    },
+    {
       label: "Winners",
       icon: <FontAwesomeIcon icon={faCaretDown} width={15} height={15} />,
       path: "/winners",

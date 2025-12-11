@@ -273,7 +273,24 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
     }
 
     if (loading) {
-      return <p style={styles.bodyText}>Loading rewards...</p>;
+      return (
+        <div style={styles.skeletonContainer}>
+          {[1, 2].map((i) => (
+            <div key={i} style={styles.skeletonSection}>
+              <div style={styles.skeletonHeader}></div>
+              {[1, 2].map((j) => (
+                <div key={j} style={styles.skeletonRow}>
+                  <div style={styles.skeletonLeft}>
+                    <div style={styles.skeletonIcon}></div>
+                    <div style={styles.skeletonText}></div>
+                  </div>
+                  <div style={styles.skeletonRight}></div>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      );
     }
 
     if (chainGroups.length === 0) {
@@ -549,6 +566,64 @@ const styles: any = {
     fontWeight: 600,
     border: "1px solid #3d6a9e",
     textDecoration: "none",
+  },
+  skeletonContainer: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+  },
+  skeletonSection: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+  },
+  skeletonHeader: {
+    width: "120px",
+    height: "20px",
+    borderRadius: "4px",
+    background: "linear-gradient(90deg, #2a4a5f 25%, #3a5a6f 50%, #2a4a5f 75%)",
+    backgroundSize: "200% 100%",
+    animation: "skeleton-loading 1.5s infinite",
+    marginBottom: "4px",
+  },
+  skeletonRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#112538",
+    border: "1px solid #213349",
+    borderRadius: "10px",
+    padding: "10px 12px",
+  },
+  skeletonLeft: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    flex: 1,
+  },
+  skeletonIcon: {
+    width: "22px",
+    height: "22px",
+    borderRadius: "50%",
+    background: "linear-gradient(90deg, #2a4a5f 25%, #3a5a6f 50%, #2a4a5f 75%)",
+    backgroundSize: "200% 100%",
+    animation: "skeleton-loading 1.5s infinite",
+  },
+  skeletonText: {
+    width: "150px",
+    height: "14px",
+    borderRadius: "4px",
+    background: "linear-gradient(90deg, #2a4a5f 25%, #3a5a6f 50%, #2a4a5f 75%)",
+    backgroundSize: "200% 100%",
+    animation: "skeleton-loading 1.5s infinite",
+  },
+  skeletonRight: {
+    width: "100px",
+    height: "14px",
+    borderRadius: "4px",
+    background: "linear-gradient(90deg, #2a4a5f 25%, #3a5a6f 50%, #2a4a5f 75%)",
+    backgroundSize: "200% 100%",
+    animation: "skeleton-loading 1.5s infinite",
   },
 };
 

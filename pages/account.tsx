@@ -12,6 +12,7 @@ import { GetVaultBalances } from "../utils/getVaultBalances";
 import { GetActivePromotionsForVaults } from "../utils/getActivePromotions";
 import { GetUsersAwards } from "../utils/getUserRewards";
 import { WHITELIST_REWARDS } from "../constants/address";
+import Layout from "./index";
 
 const AccountPage: React.FC = () => {
   const { address, isConnected } = useAccount();
@@ -270,37 +271,39 @@ const AccountPage: React.FC = () => {
   }, [address, ticketVaults, overview?.prices]);
 
   return (
-    <div style={styles.page}>
-      <div style={styles.pageHeader}>
-        <h1 style={styles.title}>Account</h1>
-        <p style={styles.subtitle}>
-          Track your wins, tickets, and upcoming rewards.
-        </p>
-      </div>
-
-      {!isConnected && (
-        <div style={styles.notice}>
-          Connect your wallet to see personalized stats.
+    <Layout>
+      <div style={styles.page}>
+        <div style={styles.pageHeader}>
+          <h1 style={styles.title}>Account</h1>
+          <p style={styles.subtitle}>
+            Track your wins, tickets, and upcoming rewards.
+          </p>
         </div>
-      )}
 
-      <div style={styles.grid}>
-        <AccountWins address={address ?? undefined} />
-        <AccountTickets
-          address={address ?? undefined}
-          prefetchedVaults={vaults}
-          prefetchedTicketVaults={ticketVaults}
-          loadingOverride={vaultsLoading || ticketLoading}
-        />
-        <AccountRewards
-          address={address ?? undefined}
-          ticketVaults={ticketVaults}
-          promotionsByVault={promotionsByVault}
-          claimableByVault={claimableByVault}
-          loading={rewardsLoading}
-        />
+        {!isConnected && (
+          <div style={styles.notice}>
+            Connect your wallet to see personalized stats.
+          </div>
+        )}
+
+        <div style={styles.grid}>
+          <AccountWins address={address ?? undefined} />
+          <AccountTickets
+            address={address ?? undefined}
+            prefetchedVaults={vaults}
+            prefetchedTicketVaults={ticketVaults}
+            loadingOverride={vaultsLoading || ticketLoading}
+          />
+          <AccountRewards
+            address={address ?? undefined}
+            ticketVaults={ticketVaults}
+            promotionsByVault={promotionsByVault}
+            claimableByVault={claimableByVault}
+            loading={rewardsLoading}
+          />
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 

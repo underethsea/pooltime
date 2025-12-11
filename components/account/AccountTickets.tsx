@@ -4,7 +4,6 @@ import { useAccount } from "wagmi";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTicket } from "@fortawesome/free-solid-svg-icons";
-import LoadGrid from "../loadGrid";
 import IconDisplay from "../icons";
 import Image from "next/image";
 import { GetVaultBalances } from "../../utils/getVaultBalances";
@@ -156,8 +155,16 @@ const AccountTickets: React.FC<AccountTicketsProps> = ({
 
     if (loading) {
       return (
-        <div style={{ padding: "10px 0" }}>
-          <LoadGrid />
+        <div style={styles.skeletonContainer}>
+          {[1, 2, 3].map((i) => (
+            <div key={i} style={styles.skeletonRow}>
+              <div style={styles.skeletonLeft}>
+                <div style={styles.skeletonIcon}></div>
+                <div style={styles.skeletonText}></div>
+              </div>
+              <div style={styles.skeletonRight}></div>
+            </div>
+          ))}
         </div>
       );
     }
@@ -218,8 +225,16 @@ const AccountTickets: React.FC<AccountTicketsProps> = ({
         <span style={styles.caption}>Your current prize tickets by vault</span>
       </div>
       {loadingOverride ?? loading ? (
-        <div style={{ padding: "10px 0" }}>
-          <LoadGrid />
+        <div style={styles.skeletonContainer}>
+          {[1, 2, 3].map((i) => (
+            <div key={i} style={styles.skeletonRow}>
+              <div style={styles.skeletonLeft}>
+                <div style={styles.skeletonIcon}></div>
+                <div style={styles.skeletonText}></div>
+              </div>
+              <div style={styles.skeletonRight}></div>
+            </div>
+          ))}
         </div>
       ) : (
         renderBody()
@@ -293,6 +308,50 @@ const styles: any = {
   chainName: {
     color: "#7ca1c2",
     fontSize: "12px",
+  },
+  skeletonContainer: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+  },
+  skeletonRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#112538",
+    border: "1px solid #213349",
+    borderRadius: "10px",
+    padding: "10px 12px",
+  },
+  skeletonLeft: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    flex: 1,
+  },
+  skeletonIcon: {
+    width: "44px",
+    height: "44px",
+    borderRadius: "50%",
+    background: "linear-gradient(90deg, #2a4a5f 25%, #3a5a6f 50%, #2a4a5f 75%)",
+    backgroundSize: "200% 100%",
+    animation: "skeleton-loading 1.5s infinite",
+  },
+  skeletonText: {
+    width: "120px",
+    height: "16px",
+    borderRadius: "4px",
+    background: "linear-gradient(90deg, #2a4a5f 25%, #3a5a6f 50%, #2a4a5f 75%)",
+    backgroundSize: "200% 100%",
+    animation: "skeleton-loading 1.5s infinite",
+  },
+  skeletonRight: {
+    width: "80px",
+    height: "16px",
+    borderRadius: "4px",
+    background: "linear-gradient(90deg, #2a4a5f 25%, #3a5a6f 50%, #2a4a5f 75%)",
+    backgroundSize: "200% 100%",
+    animation: "skeleton-loading 1.5s infinite",
   },
 };
 

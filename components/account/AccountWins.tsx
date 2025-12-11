@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
-import LoadGrid from "../loadGrid";
 import { ADDRESS } from "../../constants";
 import { GetChainName, GetChainIcon } from "../../utils/getChain";
 import IconDisplay from "../icons";
@@ -131,8 +130,20 @@ const AccountWins: React.FC<AccountWinsProps> = ({ address: addressProp }) => {
 
     if (loading) {
       return (
-        <div style={{ padding: "10px 0" }}>
-          <LoadGrid />
+        <div style={styles.skeletonContainer}>
+          <div style={styles.skeletonSummary}>
+            <div style={styles.skeletonBar}></div>
+            <div style={styles.skeletonBar}></div>
+          </div>
+          {[1, 2, 3].map((i) => (
+            <div key={i} style={styles.skeletonRow}>
+              <div style={styles.skeletonLeft}>
+                <div style={styles.skeletonIcon}></div>
+                <div style={styles.skeletonText}></div>
+              </div>
+              <div style={styles.skeletonRight}></div>
+            </div>
+          ))}
         </div>
       );
     }
@@ -293,6 +304,66 @@ const styles: any = {
     color: "#8ea8c5",
     margin: "4px 0 0 0",
     fontSize: "12px",
+  },
+  skeletonContainer: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+  },
+  skeletonSummary: {
+    display: "flex",
+    gap: "20px",
+    padding: "12px",
+    backgroundColor: "#112538",
+    borderRadius: "10px",
+    marginBottom: "8px",
+  },
+  skeletonBar: {
+    width: "100px",
+    height: "16px",
+    borderRadius: "4px",
+    background: "linear-gradient(90deg, #2a4a5f 25%, #3a5a6f 50%, #2a4a5f 75%)",
+    backgroundSize: "200% 100%",
+    animation: "skeleton-loading 1.5s infinite",
+  },
+  skeletonRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#112538",
+    border: "1px solid #213349",
+    borderRadius: "10px",
+    padding: "10px 12px",
+  },
+  skeletonLeft: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    flex: 1,
+  },
+  skeletonIcon: {
+    width: "22px",
+    height: "22px",
+    borderRadius: "50%",
+    background: "linear-gradient(90deg, #2a4a5f 25%, #3a5a6f 50%, #2a4a5f 75%)",
+    backgroundSize: "200% 100%",
+    animation: "skeleton-loading 1.5s infinite",
+  },
+  skeletonText: {
+    width: "100px",
+    height: "14px",
+    borderRadius: "4px",
+    background: "linear-gradient(90deg, #2a4a5f 25%, #3a5a6f 50%, #2a4a5f 75%)",
+    backgroundSize: "200% 100%",
+    animation: "skeleton-loading 1.5s infinite",
+  },
+  skeletonRight: {
+    width: "60px",
+    height: "16px",
+    borderRadius: "4px",
+    background: "linear-gradient(90deg, #2a4a5f 25%, #3a5a6f 50%, #2a4a5f 75%)",
+    backgroundSize: "200% 100%",
+    animation: "skeleton-loading 1.5s infinite",
   },
 };
 
