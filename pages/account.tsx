@@ -280,28 +280,28 @@ const AccountPage: React.FC = () => {
           </p>
         </div>
 
-        {!isConnected && (
+        {!isConnected ? (
           <div style={styles.notice}>
             Connect your wallet to see personalized stats.
           </div>
+        ) : (
+          <div style={styles.grid}>
+            <AccountWins address={address ?? undefined} />
+            <AccountTickets
+              address={address ?? undefined}
+              prefetchedVaults={vaults}
+              prefetchedTicketVaults={ticketVaults}
+              loadingOverride={vaultsLoading || ticketLoading}
+            />
+            <AccountRewards
+              address={address ?? undefined}
+              ticketVaults={ticketVaults}
+              promotionsByVault={promotionsByVault}
+              claimableByVault={claimableByVault}
+              loading={rewardsLoading}
+            />
+          </div>
         )}
-
-        <div style={styles.grid}>
-          <AccountWins address={address ?? undefined} />
-          <AccountTickets
-            address={address ?? undefined}
-            prefetchedVaults={vaults}
-            prefetchedTicketVaults={ticketVaults}
-            loadingOverride={vaultsLoading || ticketLoading}
-          />
-          <AccountRewards
-            address={address ?? undefined}
-            ticketVaults={ticketVaults}
-            promotionsByVault={promotionsByVault}
-            claimableByVault={claimableByVault}
-            loading={rewardsLoading}
-          />
-        </div>
       </div>
     </Layout>
   );
