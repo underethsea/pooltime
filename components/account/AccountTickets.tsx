@@ -155,14 +155,15 @@ const AccountTickets: React.FC<AccountTicketsProps> = ({
 
     if (loading) {
       return (
-        <div style={styles.skeletonContainer}>
-          {[1, 2, 3].map((i) => (
-            <div key={i} style={styles.skeletonRow}>
-              <div style={styles.skeletonLeft}>
-                <div style={styles.skeletonIcon}></div>
-                <div style={styles.skeletonText}></div>
+        <div className="vault-table-body">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="vault-row" style={{ gridTemplateColumns: "1fr auto" }}>
+              <div className="vault-cell vault-left-align">
+                <div className="skeleton-item" style={{ width: '70%', height: '20px' }}></div>
               </div>
-              <div style={styles.skeletonRight}></div>
+              <div className="vault-cell vault-deposits-tvl">
+                <div className="skeleton-item" style={{ width: '100px', height: '20px', marginLeft: 'auto' }}></div>
+              </div>
             </div>
           ))}
         </div>
@@ -174,7 +175,7 @@ const AccountTickets: React.FC<AccountTicketsProps> = ({
     }
 
     return (
-      <div style={styles.list}>
+      <div className="vault-table-body">
         {ticketVaults.map((vault) => {
           const chainIcon = GetChainIcon(vault.c);
           return (
@@ -182,33 +183,37 @@ const AccountTickets: React.FC<AccountTicketsProps> = ({
             key={`${vault.vault}-${vault.c}`}
             href={`/vault?chain=${vault.c}&address=${vault.vault}`}
             style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}>
-            <div style={styles.row}>
-              <div style={styles.left}>
-                <div style={styles.iconStack}>
-                  {chainIcon && (
-                    <Image
-                      src={chainIcon}
-                      alt={GetChainName(vault.c)}
-                      width={20}
-                      height={20}
-                      style={{ borderRadius: "50%" }}
-                    />
-                  )}
-                  <IconDisplay name={vault.assetSymbol} size={22} />
-                </div>
-                <div style={styles.vaultName}>
-                  <span>{vault.name}</span>
+            <div className="vault-row" style={{ gridTemplateColumns: "1fr auto" }}>
+              <div className="vault-cell vault-left-align" style={styles.ticketCell}>
+                <div style={styles.left}>
+                  <div style={styles.iconStack}>
+                    {chainIcon && (
+                      <Image
+                        src={chainIcon}
+                        alt={GetChainName(vault.c)}
+                        width={20}
+                        height={20}
+                        style={{ borderRadius: "50%" }}
+                      />
+                    )}
+                    <IconDisplay name={vault.assetSymbol} size={22} />
+                  </div>
+                  <div style={styles.vaultName}>
+                    <span>{vault.name}</span>
+                  </div>
                 </div>
               </div>
-              <div style={styles.right}>
-                <FontAwesomeIcon
-                  icon={faTicket}
-                  size="sm"
-                  style={{ color: "#7ec9f6", marginRight: "6px" }}
-                />
-                {NumberWithCommas(
-                  CropDecimals(vault.formattedVaultBalance || "0")
-                )}
+              <div className="vault-cell vault-deposits-tvl" style={styles.ticketCell}>
+                <div style={styles.right}>
+                  <FontAwesomeIcon
+                    icon={faTicket}
+                    size="sm"
+                    style={{ color: "#7b68c4", marginRight: "6px" }}
+                  />
+                  {NumberWithCommas(
+                    CropDecimals(vault.formattedVaultBalance || "0")
+                  )}
+                </div>
               </div>
             </div>
           </Link>
@@ -225,14 +230,15 @@ const AccountTickets: React.FC<AccountTicketsProps> = ({
         <span style={styles.caption}>Your current prize tickets by vault</span>
       </div>
       {loadingOverride ?? loading ? (
-        <div style={styles.skeletonContainer}>
-          {[1, 2, 3].map((i) => (
-            <div key={i} style={styles.skeletonRow}>
-              <div style={styles.skeletonLeft}>
-                <div style={styles.skeletonIcon}></div>
-                <div style={styles.skeletonText}></div>
+        <div className="vault-table-body">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="vault-row" style={{ gridTemplateColumns: "1fr auto" }}>
+              <div className="vault-cell vault-left-align">
+                <div className="skeleton-item" style={{ width: '70%', height: '20px' }}></div>
               </div>
-              <div style={styles.skeletonRight}></div>
+              <div className="vault-cell vault-deposits-tvl">
+                <div className="skeleton-item" style={{ width: '100px', height: '20px', marginLeft: 'auto' }}></div>
+              </div>
             </div>
           ))}
         </div>
@@ -245,11 +251,11 @@ const AccountTickets: React.FC<AccountTicketsProps> = ({
 
 const styles: any = {
   card: {
-    backgroundColor: "#0b1a2a",
-    border: "1px solid #24364c",
+    backgroundColor: "#ffffff",
+    border: "1px solid #ebebeb",
     borderRadius: "12px",
     padding: "18px",
-    color: "#ffffff",
+    color: "#1a405d",
   },
   header: {
     display: "flex",
@@ -259,31 +265,22 @@ const styles: any = {
   },
   title: {
     margin: 0,
-    fontSize: "20px",
+    fontSize: "19px",
+    color: "#1a405d",
+    fontWeight: 600,
   },
   caption: {
-    color: "#96b0c8",
-    fontSize: "13px",
+    color: "#7b68c4",
+    fontSize: "14px",
   },
   bodyText: {
-    color: "#cdd7e4",
+    color: "#1a405d",
     margin: 0,
+    fontSize: "19px",
   },
-  list: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-  },
-  row: {
+  ticketCell: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#112538",
-    border: "1px solid #213349",
-    borderRadius: "10px",
-    padding: "10px 12px",
-    transition: "border-color 0.15s ease, transform 0.15s ease",
-    cursor: "pointer",
   },
   left: {
     display: "flex",
@@ -299,59 +296,18 @@ const styles: any = {
     display: "flex",
     alignItems: "center",
     fontWeight: 600,
+    color: "#1a405d",
+    fontSize: "19px",
   },
   vaultName: {
     display: "flex",
     flexDirection: "column",
-    fontSize: "14px",
+    fontSize: "19px",
+    color: "#1a405d",
   },
   chainName: {
-    color: "#7ca1c2",
-    fontSize: "12px",
-  },
-  skeletonContainer: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-  },
-  skeletonRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#112538",
-    border: "1px solid #213349",
-    borderRadius: "10px",
-    padding: "10px 12px",
-  },
-  skeletonLeft: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    flex: 1,
-  },
-  skeletonIcon: {
-    width: "44px",
-    height: "44px",
-    borderRadius: "50%",
-    background: "linear-gradient(90deg, #2a4a5f 25%, #3a5a6f 50%, #2a4a5f 75%)",
-    backgroundSize: "200% 100%",
-    animation: "skeleton-loading 1.5s infinite",
-  },
-  skeletonText: {
-    width: "120px",
-    height: "16px",
-    borderRadius: "4px",
-    background: "linear-gradient(90deg, #2a4a5f 25%, #3a5a6f 50%, #2a4a5f 75%)",
-    backgroundSize: "200% 100%",
-    animation: "skeleton-loading 1.5s infinite",
-  },
-  skeletonRight: {
-    width: "80px",
-    height: "16px",
-    borderRadius: "4px",
-    background: "linear-gradient(90deg, #2a4a5f 25%, #3a5a6f 50%, #2a4a5f 75%)",
-    backgroundSize: "200% 100%",
-    animation: "skeleton-loading 1.5s infinite",
+    color: "#7b68c4",
+    fontSize: "14px",
   },
 };
 

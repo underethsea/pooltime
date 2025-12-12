@@ -59,8 +59,22 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
   const [claimingId, setClaimingId] = useState<string | null>(null);
   const [batchClaimingChain, setBatchClaimingChain] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [minLoadingTimePassed, setMinLoadingTimePassed] = useState(false);
   
   const activeAddress = address || connectedAddress;
+
+  // Ensure skeleton shows for at least 2 seconds
+  useEffect(() => {
+    if (loading) {
+      setMinLoadingTimePassed(false);
+      const timer = setTimeout(() => {
+        setMinLoadingTimePassed(true);
+      }, 2000);
+      return () => clearTimeout(timer);
+    } else {
+      setMinLoadingTimePassed(true);
+    }
+  }, [loading]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -272,21 +286,17 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
       return <p style={styles.bodyText}>Connect a wallet to view rewards.</p>;
     }
 
-    if (loading) {
+    if (loading || !minLoadingTimePassed) {
       return (
-        <div style={styles.skeletonContainer}>
-          {[1, 2].map((i) => (
-            <div key={i} style={styles.skeletonSection}>
-              <div style={styles.skeletonHeader}></div>
-              {[1, 2].map((j) => (
-                <div key={j} style={styles.skeletonRow}>
-                  <div style={styles.skeletonLeft}>
-                    <div style={styles.skeletonIcon}></div>
-                    <div style={styles.skeletonText}></div>
-                  </div>
-                  <div style={styles.skeletonRight}></div>
-                </div>
-              ))}
+        <div className="vault-table-body">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="vault-row" style={{ gridTemplateColumns: "1fr auto" }}>
+              <div className="vault-cell vault-left-align">
+                <div className="skeleton-item" style={{ width: '70%', height: '20px' }}></div>
+              </div>
+              <div className="vault-cell vault-deposits-tvl">
+                <div className="skeleton-item" style={{ width: '100px', height: '20px', marginLeft: 'auto' }}></div>
+              </div>
             </div>
           ))}
         </div>
@@ -340,81 +350,87 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
                   </button>
                 )}
               </div>
+              <div className="vault-table-body">
             {group.vaults.map((vault: any) => (
               <div
                 key={`${vault.vault}-${vault.c}`}
-                style={styles.row}>
-                <div style={styles.left}>
-                  <IconDisplay name={vault.assetSymbol} size={22} />
-                  <div style={styles.vaultName}>
-                    <span>{vault.name}</span>
+                className="vault-row"
+                style={{ gridTemplateColumns: "1fr auto" }}>
+                <div className="vault-cell vault-left-align" style={styles.rewardCell}>
+                  <div style={styles.left}>
+                    <IconDisplay name={vault.assetSymbol} size={22} />
+                    <div style={styles.vaultName}>
+                      <span>{vault.name}</span>
+                    </div>
                   </div>
                 </div>
-                <div style={styles.claimables}>
-                  {vault.claims.map((reward: any, idx: number) => {
-                    const tokenMeta =
-                      tokenSymbolMap[reward.token.toLowerCase()] || {};
-                    const icon = tokenMeta.icon;
-                    const symbol =
-                      tokenMeta.symbol ||
-                      `${reward.token.slice(0, 4)}...${reward.token.slice(-4)}`;
-                    const claimKey = `${vault.vault}-${reward.promotionId}-${reward.token}`;
-                    const isClaiming = claimingId === claimKey;
-                    return (
-                      <div key={idx} style={{
-                        ...styles.claimCard,
-                        padding: isMobile ? "6px 8px" : "8px 10px",
-                      }}>
-                        <div style={{
-                          ...styles.claimLine,
-                          gap: isMobile ? "8px" : "12px",
+                <div className="vault-cell vault-deposits-tvl" style={styles.rewardCellRight}>
+                  <div style={styles.claimables}>
+                    {vault.claims.map((reward: any, idx: number) => {
+                      const tokenMeta =
+                        tokenSymbolMap[reward.token.toLowerCase()] || {};
+                      const icon = tokenMeta.icon;
+                      const symbol =
+                        tokenMeta.symbol ||
+                        `${reward.token.slice(0, 4)}...${reward.token.slice(-4)}`;
+                      const claimKey = `${vault.vault}-${reward.promotionId}-${reward.token}`;
+                      const isClaiming = claimingId === claimKey;
+                      return (
+                        <div key={idx} style={{
+                          ...styles.claimCard,
+                          padding: isMobile ? "10px 12px" : "12px 14px",
                         }}>
                           <div style={{
-                            ...styles.claimLeft,
-                            flexWrap: isMobile ? "nowrap" : "wrap",
-                            gap: isMobile ? "4px" : "8px",
+                            ...styles.claimLine,
+                            gap: isMobile ? "8px" : "12px",
                           }}>
-                            {icon && (
-                              <Image
-                                src={icon}
-                                alt={symbol}
-                                width={isMobile ? 12 : 16}
-                                height={isMobile ? 12 : 16}
-                                style={{ borderRadius: "4px", flexShrink: 0 }}
-                              />
-                            )}
-                            <span style={{
-                              ...styles.claimText,
-                              fontSize: isMobile ? "12px" : "inherit",
+                            <div style={{
+                              ...styles.claimLeft,
+                              flexWrap: isMobile ? "nowrap" : "wrap",
+                              gap: isMobile ? "4px" : "8px",
                             }}>
-                              {NumberWithCommas(CropDecimals(reward.amount))}
-                            </span>
+                              {icon && (
+                                <Image
+                                  src={icon}
+                                  alt={symbol}
+                                  width={isMobile ? 12 : 16}
+                                  height={isMobile ? 12 : 16}
+                                  style={{ borderRadius: "4px", flexShrink: 0 }}
+                                />
+                              )}
+                              <span style={{
+                                ...styles.claimText,
+                                fontSize: isMobile ? "14px" : "19px",
+                              }}>
+                                {NumberWithCommas(CropDecimals(reward.amount))}
+                              </span>
+                            </div>
+                            <button
+                              style={{
+                                ...styles.claimAction,
+                                cursor: isClaiming ? "wait" : "pointer",
+                                opacity: isClaiming ? 0.7 : 1,
+                                padding: isMobile ? "4px 8px" : "6px 10px",
+                                flexShrink: 0,
+                              }}
+                              disabled={isClaiming}
+                              onClick={() => handleClaim(reward, vault.vault)}
+                            >
+                              {chainIdConnected !== reward.chainId
+                                ? "Switch Chain"
+                                : isClaiming
+                                ? "Claiming..."
+                                : "Claim Now"}
+                            </button>
                           </div>
-                          <button
-                            style={{
-                              ...styles.claimAction,
-                              cursor: isClaiming ? "wait" : "pointer",
-                              opacity: isClaiming ? 0.7 : 1,
-                              padding: isMobile ? "4px 8px" : "6px 10px",
-                              fontSize: isMobile ? "11px" : "12px",
-                              flexShrink: 0,
-                            }}
-                            disabled={isClaiming}
-                            onClick={() => handleClaim(reward, vault.vault)}
-                          >
-                            {chainIdConnected !== reward.chainId
-                              ? "Switch Chain"
-                              : isClaiming
-                              ? "Claiming..."
-                              : "Claim Now"}
-                          </button>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             ))}
+              </div>
             </div>
           );
         })}
@@ -435,11 +451,11 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
 
 const styles: any = {
   card: {
-    backgroundColor: "#0b1a2a",
-    border: "1px solid #24364c",
+    backgroundColor: "#ffffff",
+    border: "1px solid #ebebeb",
     borderRadius: "12px",
     padding: "18px",
-    color: "#ffffff",
+    color: "#1a405d",
   },
   header: {
     display: "flex",
@@ -449,30 +465,33 @@ const styles: any = {
   },
   title: {
     margin: 0,
-    fontSize: "20px",
+    fontSize: "19px",
+    color: "#1a405d",
+    fontWeight: 600,
   },
   caption: {
-    color: "#96b0c8",
-    fontSize: "13px",
+    color: "#7b68c4",
+    fontSize: "14px",
   },
   bodyText: {
-    color: "#cdd7e4",
+    color: "#1a405d",
     margin: 0,
+    fontSize: "19px",
   },
   list: {
     display: "flex",
     flexDirection: "column",
     gap: "10px",
   },
-  row: {
+  rewardCell: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#112538",
-    border: "1px solid #213349",
-    borderRadius: "10px",
-    padding: "10px 12px",
-    cursor: "pointer",
+  },
+  rewardCellRight: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    width: "100%",
   },
   left: {
     display: "flex",
@@ -482,17 +501,21 @@ const styles: any = {
   vaultName: {
     display: "flex",
     flexDirection: "column",
-    fontSize: "14px",
+    fontSize: "19px",
+    color: "#1a405d",
   },
   chainName: {
-    color: "#7ca1c2",
-    fontSize: "12px",
+    color: "#7b68c4",
+    fontSize: "14px",
   },
   claimables: {
     display: "flex",
     flexDirection: "column",
     gap: "8px",
     alignItems: "flex-end",
+    width: "100%",
+    maxWidth: "100%",
+    minWidth: "250px",
   },
   chainSection: {
     display: "flex",
@@ -504,25 +527,28 @@ const styles: any = {
     alignItems: "center",
     gap: "8px",
     fontWeight: 700,
-    color: "#d6e7f5",
+    color: "#1a405d",
     padding: "4px 0",
+    fontSize: "19px",
   },
   claimCard: {
-    backgroundColor: "#112538",
-    border: "1px solid #213349",
+    backgroundColor: "#f7f7f7",
+    border: "1px solid #ebebeb",
     borderRadius: "10px",
-    padding: "8px 10px",
+    padding: "12px 14px",
     width: "100%",
+    maxWidth: "100%",
     display: "flex",
     flexDirection: "column",
     gap: "4px",
     alignItems: "stretch",
     cursor: "pointer",
+    boxSizing: "border-box",
   },
   claimLine: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "flex-end",
+    justifyContent: "space-between",
     gap: "12px",
     width: "100%",
   },
@@ -531,7 +557,8 @@ const styles: any = {
     alignItems: "center",
     gap: "8px",
     fontWeight: 600,
-    color: "#e8f4ff",
+    color: "#1a405d",
+    fontSize: "19px",
   },
   claimText: {
     display: "inline-flex",
@@ -539,91 +566,34 @@ const styles: any = {
     gap: "4px",
   },
   chainPill: {
-    backgroundColor: "#1c3550",
-    color: "#b7d3ef",
+    backgroundColor: "#f7f7f7",
+    color: "#7b68c4",
     padding: "4px 8px",
     borderRadius: "8px",
-    fontSize: "12px",
+    fontSize: "14px",
     letterSpacing: "0.01em",
   },
   claimAction: {
     padding: "6px 10px",
-    backgroundColor: "#1f4b6e",
-    color: "#e8f4ff",
+    backgroundColor: "#7b68c4",
+    color: "#ffffff",
     borderRadius: "8px",
-    fontSize: "12px",
+    fontSize: "14px",
     fontWeight: 600,
-    border: "1px solid #2f6b99",
+    border: "none",
     textDecoration: "none",
   },
   claimAllButton: {
     marginLeft: "auto",
-    padding: "6px 12px",
-    backgroundColor: "#2d5a7e",
-    color: "#e8f4ff",
+    marginRight: "34px",
+    padding: "6px 8px",
+    backgroundColor: "#7b68c4",
+    color: "#ffffff",
     borderRadius: "8px",
-    fontSize: "12px",
+    fontSize: "14px",
     fontWeight: 600,
-    border: "1px solid #3d6a9e",
+    border: "none",
     textDecoration: "none",
-  },
-  skeletonContainer: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-  },
-  skeletonSection: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-  },
-  skeletonHeader: {
-    width: "120px",
-    height: "20px",
-    borderRadius: "4px",
-    background: "linear-gradient(90deg, #2a4a5f 25%, #3a5a6f 50%, #2a4a5f 75%)",
-    backgroundSize: "200% 100%",
-    animation: "skeleton-loading 1.5s infinite",
-    marginBottom: "4px",
-  },
-  skeletonRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#112538",
-    border: "1px solid #213349",
-    borderRadius: "10px",
-    padding: "10px 12px",
-  },
-  skeletonLeft: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    flex: 1,
-  },
-  skeletonIcon: {
-    width: "22px",
-    height: "22px",
-    borderRadius: "50%",
-    background: "linear-gradient(90deg, #2a4a5f 25%, #3a5a6f 50%, #2a4a5f 75%)",
-    backgroundSize: "200% 100%",
-    animation: "skeleton-loading 1.5s infinite",
-  },
-  skeletonText: {
-    width: "150px",
-    height: "14px",
-    borderRadius: "4px",
-    background: "linear-gradient(90deg, #2a4a5f 25%, #3a5a6f 50%, #2a4a5f 75%)",
-    backgroundSize: "200% 100%",
-    animation: "skeleton-loading 1.5s infinite",
-  },
-  skeletonRight: {
-    width: "100px",
-    height: "14px",
-    borderRadius: "4px",
-    background: "linear-gradient(90deg, #2a4a5f 25%, #3a5a6f 50%, #2a4a5f 75%)",
-    backgroundSize: "200% 100%",
-    animation: "skeleton-loading 1.5s infinite",
   },
 };
 

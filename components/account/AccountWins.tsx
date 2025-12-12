@@ -21,12 +21,34 @@ interface AccountWinsProps {
   address?: string;
 }
 
+function getVaultName(vaultAddress: string, vaults: any[]) {
+  const vault = vaults.find(
+    (v) => v.vault.toLowerCase() === vaultAddress.toLowerCase()
+  );
+  return vault ? vault.name : "";
+}
+
 const AccountWins: React.FC<AccountWinsProps> = ({ address: addressProp }) => {
   const { address: connectedAddress } = useAccount();
   const address = addressProp || connectedAddress;
 
   const [wins, setWins] = useState<AggregateWin[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [vaults, setVaults] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchVaults = async () => {
+      try {
+        const response = await fetch("https://poolexplorer.xyz/vaults");
+        const data = await response.json();
+        setVaults(data);
+      } catch (error) {
+        console.error("Error fetching vault data:", error);
+      }
+    };
+
+    fetchVaults();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -130,18 +152,15 @@ const AccountWins: React.FC<AccountWinsProps> = ({ address: addressProp }) => {
 
     if (loading) {
       return (
-        <div style={styles.skeletonContainer}>
-          <div style={styles.skeletonSummary}>
-            <div style={styles.skeletonBar}></div>
-            <div style={styles.skeletonBar}></div>
-          </div>
-          {[1, 2, 3].map((i) => (
-            <div key={i} style={styles.skeletonRow}>
-              <div style={styles.skeletonLeft}>
-                <div style={styles.skeletonIcon}></div>
-                <div style={styles.skeletonText}></div>
+        <div className="vault-table-body">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="vault-row" style={{ gridTemplateColumns: "1fr auto" }}>
+              <div className="vault-cell vault-left-align">
+                <div className="skeleton-item" style={{ width: '70%', height: '20px' }}></div>
               </div>
-              <div style={styles.skeletonRight}></div>
+              <div className="vault-cell vault-deposits-tvl">
+                <div className="skeleton-item" style={{ width: '100px', height: '20px', marginLeft: 'auto' }}></div>
+              </div>
             </div>
           ))}
         </div>
@@ -152,6 +171,8 @@ const AccountWins: React.FC<AccountWinsProps> = ({ address: addressProp }) => {
       return <p style={styles.bodyText}>No wins yet.</p>;
     }
 
+    // Calculate total won properly with chainname for each win
+    const chainName = wins.length > 0 ? GetChainName(wins[0].network) : undefined;
     const totalAmountWon = wins.reduce(
       (acc, win) => acc + BigInt(win.totalPayout),
       BigInt(0)
@@ -159,40 +180,50 @@ const AccountWins: React.FC<AccountWinsProps> = ({ address: addressProp }) => {
 
     return (
       <div style={styles.list}>
-        <div style={styles.summary}>
-          <div style={styles.summaryRow}>
+        <div style={styles.summaryContainer}>
+          <div style={styles.summaryBox}>
             <span style={styles.summaryLabel}>Total wins</span>
             <span style={styles.summaryValue}>{wins.length}</span>
           </div>
-          <div style={styles.summaryRow}>
+          <div style={styles.summaryBox}>
             <span style={styles.summaryLabel}>Total won</span>
-            <span style={styles.summaryValue}>
+            <span style={styles.summaryValueTotal}>
               <PrizeValueIcon size={16} />
-              <PrizeValue amount={totalAmountWon} size={16} />
+              <PrizeValue amount={totalAmountWon} size={16} chainname={chainName} />
             </span>
           </div>
         </div>
-        {wins.slice(0, 10).map((win, idx) => (
-          <div key={idx} style={styles.row}>
-            <div style={styles.left}>
-              <IconDisplay
-                name={GetChainName(win.network)}
-                size={22}
-                fallbackSrc={GetChainIcon(win.network)}
-              />
-              <div style={styles.winMeta}>
-                <span style={styles.winChain}>{GetChainName(win.network)}</span>
-              <span style={styles.winTime}>
-                {timeAgo(getMidDrawTime(win.network, win.draw))}
-              </span>
+        <div className="vault-table-body">
+          {wins.slice(0, 10).map((win, idx) => {
+            const winChainName = GetChainName(win.network);
+            const vaultName = getVaultName(win.vault, vaults) || winChainName;
+            return (
+              <div key={idx} className="vault-row" style={styles.winRow}>
+                <div className="vault-cell vault-left-align" style={styles.winCell}>
+                  <div style={styles.winLeft}>
+                    <IconDisplay
+                      name={vaultName}
+                      size={22}
+                      fallbackSrc={GetChainIcon(win.network)}
+                    />
+                    <div style={styles.winMeta}>
+                      <span style={styles.winVault}>{vaultName}</span>
+                      <span style={styles.winTime}>
+                        {timeAgo(getMidDrawTime(win.network, win.draw))}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="vault-cell vault-deposits-tvl" style={styles.winCell}>
+                  <div style={styles.winRight}>
+                    <PrizeValueIcon size={18} chainname={winChainName} />
+                    <PrizeValue amount={BigInt(win.totalPayout)} size={18} chainname={winChainName} />
+                  </div>
+                </div>
               </div>
-            </div>
-            <div style={styles.right}>
-              <PrizeValueIcon size={18} />
-              <PrizeValue amount={BigInt(win.totalPayout)} size={18} />
-            </div>
-          </div>
-        ))}
+            );
+          })}
+        </div>
         {wins.length > 10 && (
           <p style={styles.moreText}>Showing latest 10 wins</p>
         )}
@@ -213,11 +244,11 @@ const AccountWins: React.FC<AccountWinsProps> = ({ address: addressProp }) => {
 
 const styles: any = {
   card: {
-    backgroundColor: "#0b1a2a",
-    border: "1px solid #24364c",
+    backgroundColor: "#ffffff",
+    border: "1px solid #ebebeb",
     borderRadius: "12px",
     padding: "18px",
-    color: "#ffffff",
+    color: "#1a405d",
   },
   header: {
     display: "flex",
@@ -227,56 +258,82 @@ const styles: any = {
   },
   title: {
     margin: 0,
-    fontSize: "20px",
+    fontSize: "19px",
+    color: "#1a405d",
+    fontWeight: 600,
   },
   caption: {
-    color: "#96b0c8",
-    fontSize: "13px",
+    color: "#7b68c4",
+    fontSize: "14px",
   },
   bodyText: {
-    color: "#cdd7e4",
+    color: "#1a405d",
     margin: 0,
+    fontSize: "19px",
   },
   list: {
     display: "flex",
     flexDirection: "column",
     gap: "10px",
   },
-  summary: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "8px",
-    backgroundColor: "#112538",
-    border: "1px solid #213349",
+  summaryContainer: {
+    display: "flex",
+    gap: "10px",
+    marginBottom: "10px",
+  },
+  summaryBox: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f7f7f7",
+    border: "1px solid #ebebeb",
     borderRadius: "10px",
-    padding: "10px 12px",
+    padding: "12px",
+    gap: "6px",
   },
   summaryRow: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    color: "#d3e4f2",
-    fontSize: "13px",
+    color: "#1a405d",
+    fontSize: "19px",
+  },
+  summaryRowTotal: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    color: "#1a405d",
+    fontSize: "19px",
+    paddingRight: "10px",
   },
   summaryLabel: {
-    color: "#8ea8c5",
+    color: "#7b68c4",
   },
   summaryValue: {
     display: "inline-flex",
     alignItems: "center",
     gap: "6px",
     fontWeight: 600,
+    color: "#1a405d",
   },
-  row: {
+  summaryValueTotal: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "6px",
+    fontWeight: 600,
+    color: "#1a405d",
+    paddingRight: "10px",
+  },
+  winRow: {
+    gridTemplateColumns: "1fr auto",
+  },
+  winCell: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#112538",
-    border: "1px solid #213349",
-    borderRadius: "10px",
-    padding: "10px 12px",
   },
-  left: {
+  winLeft: {
     display: "flex",
     alignItems: "center",
     gap: "10px",
@@ -284,86 +341,26 @@ const styles: any = {
   winMeta: {
     display: "flex",
     flexDirection: "column",
-    fontSize: "13px",
+    fontSize: "19px",
   },
-  winChain: {
-    color: "#d6e7f5",
+  winVault: {
+    color: "#1a405d",
     fontWeight: 600,
   },
   winTime: {
-    color: "#8ea8c5",
-    fontSize: "12px",
+    color: "#7b68c4",
+    fontSize: "14px",
   },
-  right: {
+  winRight: {
     display: "flex",
     alignItems: "center",
     gap: "6px",
     fontWeight: 600,
   },
   moreText: {
-    color: "#8ea8c5",
+    color: "#7b68c4",
     margin: "4px 0 0 0",
-    fontSize: "12px",
-  },
-  skeletonContainer: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-  },
-  skeletonSummary: {
-    display: "flex",
-    gap: "20px",
-    padding: "12px",
-    backgroundColor: "#112538",
-    borderRadius: "10px",
-    marginBottom: "8px",
-  },
-  skeletonBar: {
-    width: "100px",
-    height: "16px",
-    borderRadius: "4px",
-    background: "linear-gradient(90deg, #2a4a5f 25%, #3a5a6f 50%, #2a4a5f 75%)",
-    backgroundSize: "200% 100%",
-    animation: "skeleton-loading 1.5s infinite",
-  },
-  skeletonRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#112538",
-    border: "1px solid #213349",
-    borderRadius: "10px",
-    padding: "10px 12px",
-  },
-  skeletonLeft: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    flex: 1,
-  },
-  skeletonIcon: {
-    width: "22px",
-    height: "22px",
-    borderRadius: "50%",
-    background: "linear-gradient(90deg, #2a4a5f 25%, #3a5a6f 50%, #2a4a5f 75%)",
-    backgroundSize: "200% 100%",
-    animation: "skeleton-loading 1.5s infinite",
-  },
-  skeletonText: {
-    width: "100px",
-    height: "14px",
-    borderRadius: "4px",
-    background: "linear-gradient(90deg, #2a4a5f 25%, #3a5a6f 50%, #2a4a5f 75%)",
-    backgroundSize: "200% 100%",
-    animation: "skeleton-loading 1.5s infinite",
-  },
-  skeletonRight: {
-    width: "60px",
-    height: "16px",
-    borderRadius: "4px",
-    background: "linear-gradient(90deg, #2a4a5f 25%, #3a5a6f 50%, #2a4a5f 75%)",
-    backgroundSize: "200% 100%",
-    animation: "skeleton-loading 1.5s infinite",
+    fontSize: "14px",
   },
 };
 
