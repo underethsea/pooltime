@@ -355,12 +355,16 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
               <div
                 key={`${vault.vault}-${vault.c}`}
                 className="vault-row"
-                style={{ gridTemplateColumns: "1fr auto" }}>
+                style={{ gridTemplateColumns: "1fr auto", gap: "16px", alignItems: "center" }}>
                 <div className="vault-cell vault-left-align" style={styles.rewardCell}>
                   <div style={styles.left}>
                     <IconDisplay name={vault.assetSymbol} size={22} />
                     <div style={styles.vaultName}>
-                      <span>{vault.name}</span>
+                      <span style={{ 
+                        overflow: "hidden", 
+                        textOverflow: "ellipsis", 
+                        whiteSpace: "nowrap" 
+                      }}>{vault.name}</span>
                     </div>
                   </div>
                 </div>
@@ -486,6 +490,8 @@ const styles: any = {
   rewardCell: {
     display: "flex",
     alignItems: "center",
+    minWidth: 0,
+    overflow: "hidden",
   },
   rewardCellRight: {
     display: "flex",
@@ -497,12 +503,17 @@ const styles: any = {
     display: "flex",
     alignItems: "center",
     gap: "10px",
+    minWidth: 0,
+    flex: 1,
   },
   vaultName: {
     display: "flex",
     flexDirection: "column",
     fontSize: "19px",
     color: "#1a405d",
+    minWidth: 0,
+    flex: 1,
+    overflow: "hidden",
   },
   chainName: {
     color: "#7b68c4",
@@ -516,6 +527,7 @@ const styles: any = {
     width: "100%",
     maxWidth: "100%",
     minWidth: "250px",
+    flexShrink: 0,
   },
   chainSection: {
     display: "flex",
@@ -551,6 +563,7 @@ const styles: any = {
     justifyContent: "space-between",
     gap: "12px",
     width: "100%",
+    minWidth: 0,
   },
   claimLeft: {
     display: "flex",
@@ -559,6 +572,8 @@ const styles: any = {
     fontWeight: 600,
     color: "#1a405d",
     fontSize: "19px",
+    minWidth: 0,
+    flex: 1,
   },
   claimText: {
     display: "inline-flex",

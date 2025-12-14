@@ -15,7 +15,7 @@ import { WHITELIST_REWARDS } from "../constants/address";
 import Layout from "./index";
 
 const AccountPage: React.FC = () => {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, status } = useAccount();
   const { overview } = useOverview();
   const [vaults, setVaults] = useState<VaultData[]>([]);
   const [ticketVaults, setTicketVaults] = useState<VaultData[]>([]);
@@ -280,11 +280,15 @@ const AccountPage: React.FC = () => {
           </p>
         </div>
 
-        {!isConnected ? (
+        {status === "disconnected" ? (
           <div style={styles.notice}>
             Connect your wallet to see personalized stats.
           </div>
-        ) : (
+        ) : status === "connecting" || status === "reconnecting" ? (
+          <div style={styles.notice}>
+            Connecting to your wallet...
+          </div>
+        ) : isConnected && address ? (
           <div style={styles.grid}>
             <AccountWins address={address ?? undefined} />
             <AccountTickets
@@ -300,6 +304,10 @@ const AccountPage: React.FC = () => {
               claimableByVault={claimableByVault}
               loading={rewardsLoading}
             />
+          </div>
+        ) : (
+          <div style={styles.notice}>
+            Connect your wallet to see personalized stats.
           </div>
         )}
       </div>

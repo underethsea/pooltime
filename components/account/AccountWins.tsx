@@ -6,6 +6,7 @@ import IconDisplay from "../icons";
 import PrizeValue from "../prizeValue";
 import PrizeValueIcon from "../prizeValueIcon";
 import { timeAgo, getMidDrawTime } from "../winsListModalLeaderboard";
+import { useOverview } from "../contextOverview";
 
 interface AggregateWin {
   network: number;
@@ -31,10 +32,13 @@ function getVaultName(vaultAddress: string, vaults: any[]) {
 const AccountWins: React.FC<AccountWinsProps> = ({ address: addressProp }) => {
   const { address: connectedAddress } = useAccount();
   const address = addressProp || connectedAddress;
+  const { overview } = useOverview();
 
   const [wins, setWins] = useState<AggregateWin[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [vaults, setVaults] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const winsPerPage = 10;
 
   useEffect(() => {
     const fetchVaults = async () => {
@@ -125,6 +129,7 @@ const AccountWins: React.FC<AccountWinsProps> = ({ address: addressProp }) => {
 
         if (!cancelled) {
           setWins(flattenedWins);
+          setCurrentPage(1); // Reset to first page when wins change
         }
       } catch (error) {
         console.error("Error fetching wins:", error);
@@ -171,12 +176,47 @@ const AccountWins: React.FC<AccountWinsProps> = ({ address: addressProp }) => {
       return <p style={styles.bodyText}>No wins yet.</p>;
     }
 
-    // Calculate total won properly with chainname for each win
+    // Calculate total won properly with chainname for each win, converting non-WETH to ETH equivalent
+    const totalAmountWon = wins.reduce((acc: bigint, win: AggregateWin) => {
+      const chainName = GetChainName(win.network);
+      const prizeToken = ADDRESS[chainName]?.PRIZETOKEN || { SYMBOL: "weth" };
+      
+      let payout = BigInt(win.totalPayout);
+      
+      if (prizeToken.SYMBOL.toLowerCase() !== "weth" && overview?.prices?.geckos) {
+        const ethPrice = overview.prices.geckos["ethereum"] || 1;
+        const prizeTokenPrice = overview.prices.geckos[prizeToken.GECKO];
+        
+        if (prizeTokenPrice && ethPrice) {
+          // Convert non-WETH prize value to ETH equivalent
+          payout = (payout * BigInt(Math.floor((prizeTokenPrice / ethPrice) * 1e18))) / BigInt(1e18);
+        }
+      }
+
+      return acc + payout;
+    }, BigInt(0));
+    
     const chainName = wins.length > 0 ? GetChainName(wins[0].network) : undefined;
-    const totalAmountWon = wins.reduce(
-      (acc, win) => acc + BigInt(win.totalPayout),
-      BigInt(0)
-    );
+
+    // Pagination calculations
+    const totalPages = Math.ceil(wins.length / winsPerPage);
+    const startIndex = (currentPage - 1) * winsPerPage;
+    const endIndex = startIndex + winsPerPage;
+    const currentWins = wins.slice(startIndex, endIndex);
+    const startWin = wins.length > 0 ? startIndex + 1 : 0;
+    const endWin = Math.min(endIndex, wins.length);
+
+    const handlePreviousPage = () => {
+      if (currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      }
+    };
+
+    const handleNextPage = () => {
+      if (currentPage < totalPages) {
+        setCurrentPage(currentPage + 1);
+      }
+    };
 
     return (
       <div style={styles.list}>
@@ -194,7 +234,7 @@ const AccountWins: React.FC<AccountWinsProps> = ({ address: addressProp }) => {
           </div>
         </div>
         <div className="vault-table-body">
-          {wins.slice(0, 10).map((win, idx) => {
+          {currentWins.map((win, idx) => {
             const winChainName = GetChainName(win.network);
             const vaultName = getVaultName(win.vault, vaults) || winChainName;
             return (
@@ -224,8 +264,39 @@ const AccountWins: React.FC<AccountWinsProps> = ({ address: addressProp }) => {
             );
           })}
         </div>
-        {wins.length > 10 && (
-          <p style={styles.moreText}>Showing latest 10 wins</p>
+        {wins.length > winsPerPage && (
+          <div style={styles.paginationContainer}>
+            <div style={styles.paginationInfo}>
+              Showing {startWin}-{endWin} of {wins.length} wins
+            </div>
+            <div style={styles.paginationControls}>
+              <button
+                style={{
+                  ...styles.paginationButton,
+                  opacity: currentPage === 1 ? 0.5 : 1,
+                  cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                }}
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </button>
+              <span style={styles.pageInfo}>
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                style={{
+                  ...styles.paginationButton,
+                  opacity: currentPage === totalPages ? 0.5 : 1,
+                  cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+                }}
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </button>
+            </div>
+          </div>
         )}
       </div>
     );
@@ -361,6 +432,43 @@ const styles: any = {
     color: "#7b68c4",
     margin: "4px 0 0 0",
     fontSize: "14px",
+  },
+  paginationContainer: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+    marginTop: "10px",
+    paddingTop: "10px",
+    borderTop: "1px solid #ebebeb",
+  },
+  paginationInfo: {
+    color: "#7b68c4",
+    fontSize: "14px",
+    textAlign: "center",
+  },
+  paginationControls: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "12px",
+  },
+  paginationButton: {
+    padding: "6px 12px",
+    backgroundColor: "#7b68c4",
+    color: "#ffffff",
+    borderRadius: "8px",
+    fontSize: "14px",
+    fontWeight: 600,
+    border: "none",
+    cursor: "pointer",
+    transition: "opacity 0.2s",
+  },
+  pageInfo: {
+    color: "#1a405d",
+    fontSize: "14px",
+    fontWeight: 500,
+    minWidth: "80px",
+    textAlign: "center",
   },
 };
 
