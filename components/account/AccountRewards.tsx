@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   useAccount,
   useChainId,
@@ -18,6 +18,7 @@ import Image from "next/image";
 import { ADDRESS, ABI } from "../../constants";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useOverview } from "../contextOverview";
 
 type Promotion = {
   token: string;
@@ -60,6 +61,7 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
   const [batchClaimingChain, setBatchClaimingChain] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [minLoadingTimePassed, setMinLoadingTimePassed] = useState(false);
+  const { overview } = useOverview();
   
   const activeAddress = address || connectedAddress;
 
@@ -163,6 +165,22 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
       return acc;
     }, {})
   );
+
+  // Calculate total value of all claimable rewards
+  const totalClaimableValue = useMemo(() => {
+    if (!overview?.prices?.assets) return 0;
+    
+    let total = 0;
+    Object.values(claimableByVault).forEach((rewards) => {
+      rewards.forEach((reward) => {
+        const chainName = GetChainName(reward.chainId);
+        const tokenPrice = overview.prices.assets[chainName]?.[reward.token.toLowerCase()] || 0;
+        const amount = parseFloat(reward.amount) || 0;
+        total += amount * tokenPrice;
+      });
+    });
+    return total;
+  }, [claimableByVault, overview?.prices]);
 
   const handleClaim = (reward: any, vaultAddress: string) => {
     if (!activeAddress) return;
@@ -363,7 +381,9 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
                       <span style={{ 
                         overflow: "hidden", 
                         textOverflow: "ellipsis", 
-                        whiteSpace: "nowrap" 
+                        whiteSpace: "nowrap",
+                        display: "block",
+                        width: "100%"
                       }}>{vault.name}</span>
                     </div>
                   </div>
@@ -386,7 +406,7 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
                         }}>
                           <div style={{
                             ...styles.claimLine,
-                            gap: isMobile ? "8px" : "12px",
+                            gap: isMobile ? "10px" : "14px",
                           }}>
                             <div style={{
                               ...styles.claimLeft,
@@ -445,8 +465,26 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
   return (
     <div style={styles.card}>
       <div style={styles.header}>
-        <h2 style={styles.title}>Rewards</h2>
-        <span style={styles.caption}>Active incentives on your tickets</span>
+        <div style={styles.titleRow}>
+          <div>
+            <h2 style={styles.title}>Rewards</h2>
+            <span style={styles.caption}>Claim your bonus rewards</span>
+          </div>
+          {totalClaimableValue > 0 && (
+            <div style={{
+              ...styles.totalValue,
+              alignItems: isMobile ? "flex-start" : "flex-end",
+            }}>
+              <span style={styles.totalLabel}>Total Claimable:</span>
+              <span style={{
+                ...styles.totalAmount,
+                fontSize: isMobile ? "16px" : "20px",
+              }}>
+                ${NumberWithCommas(CropDecimals(totalClaimableValue.toFixed(2)))}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
       {renderBody()}
     </div>
@@ -466,6 +504,28 @@ const styles: any = {
     flexDirection: "column",
     gap: "4px",
     marginBottom: "12px",
+  },
+  titleRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: "16px",
+    flexWrap: "wrap",
+  },
+  totalValue: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-end",
+    gap: "2px",
+  },
+  totalLabel: {
+    fontSize: "12px",
+    color: "#7b68c4",
+  },
+  totalAmount: {
+    fontSize: "20px",
+    fontWeight: 700,
+    color: "#1a405d",
   },
   title: {
     margin: 0,
@@ -497,7 +557,9 @@ const styles: any = {
     display: "flex",
     alignItems: "center",
     justifyContent: "flex-end",
-    width: "100%",
+    width: "auto",
+    minWidth: "fit-content",
+    flexShrink: 0,
   },
   left: {
     display: "flex",
@@ -505,6 +567,7 @@ const styles: any = {
     gap: "10px",
     minWidth: 0,
     flex: 1,
+    overflow: "hidden",
   },
   vaultName: {
     display: "flex",
@@ -524,9 +587,9 @@ const styles: any = {
     flexDirection: "column",
     gap: "8px",
     alignItems: "flex-end",
-    width: "100%",
-    maxWidth: "100%",
-    minWidth: "250px",
+    width: "auto",
+    maxWidth: "none",
+    minWidth: "fit-content",
     flexShrink: 0,
   },
   chainSection: {
@@ -560,10 +623,9 @@ const styles: any = {
   claimLine: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     gap: "12px",
     width: "100%",
-    minWidth: 0,
   },
   claimLeft: {
     display: "flex",
@@ -572,13 +634,14 @@ const styles: any = {
     fontWeight: 600,
     color: "#1a405d",
     fontSize: "19px",
-    minWidth: 0,
-    flex: 1,
+    flexShrink: 0,
   },
   claimText: {
     display: "inline-flex",
     alignItems: "center",
     gap: "4px",
+    whiteSpace: "nowrap",
+    overflow: "visible",
   },
   chainPill: {
     backgroundColor: "#f7f7f7",

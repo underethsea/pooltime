@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { ethers } from "ethers";
 import { ABI, ADDRESS, PROVIDERS } from "../constants";
 import Layout from "./index";
@@ -32,6 +32,111 @@ interface ERC20Meta {
   symbol: string;
   decimals: number;
 }
+
+// Helper functions for formatting
+const formatAmount = (amount: ethers.BigNumber, decimals: number): string => {
+  return NumberWithCommas(CropDecimals(ethers.utils.formatUnits(amount, decimals)));
+};
+
+const formatUSD = (amount: number): string => {
+  return `$${NumberWithCommas(CropDecimals(amount.toFixed(2)))}`;
+};
+
+// Memoized row component to prevent unnecessary re-renders
+const LiquidationPairRow = React.memo(({ pair }: { pair: LiquidationPairData }) => {
+  const amountInTokens = pair.amountInRequired 
+    ? Number(ethers.utils.formatUnits(pair.amountInRequired, 18))
+    : 0;
+  const amountOutTokens = Number(ethers.utils.formatUnits(pair.maxOut, pair.decimals));
+  
+  const valueInUSD = amountInTokens * pair.tokenInPrice;
+  const valueOutUSD = amountOutTokens * pair.tokenOutPrice;
+
+  return (
+    <div 
+      style={{ 
+        display: "grid", 
+        gridTemplateColumns: "auto 2fr 1fr 1fr 1fr 1fr 1fr",
+        gap: "6px",
+        backgroundColor: "white",
+        borderRadius: "20px",
+        padding: "12px",
+        marginBottom: "16px",
+        boxShadow: "0 4px 6px rgba(0, 0, 0, .1)",
+        cursor: "pointer",
+        transition: "transform 0.2s ease, box-shadow 0.2s ease"
+      }}
+      onClick={() => window.open(`/liquidate?chain=${pair.chainId}&pair=${pair.liquidationPairAddress}`, '_blank')}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "translateY(-2px)";
+        e.currentTarget.style.boxShadow = "0 6px 12px rgba(0, 0, 0, .15)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow = "0 4px 6px rgba(0, 0, 0, .1)";
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", marginRight: "-8px", marginBottom: "10px" }}>
+        <ChainTag chainId={pair.chainId} horizontal={false} />
+      </div>
+      <div>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ width: "40px", display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
+            <IconDisplay name={pair.assetSymbol} size={20} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: "bold", color: "#173d5a", fontSize: "15px" }}>{pair.vaultName}</div>
+            <div style={{ fontSize: "14px", color: "#666" }}>
+              {pair.assetSymbol}
+            </div>
+            <div style={{ fontSize: "12px", color: "#888" }}>
+              <a 
+                href={`/liquidate?chain=${pair.chainId}&pair=${pair.liquidationPairAddress}`}
+                style={{ color: "#007bff", textDecoration: "none" }}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Liquidate →
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style={{ textAlign: "right", color: "#173d5a", fontSize: "15px", display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+        {formatAmount(pair.maxOut, pair.decimals)} {pair.assetSymbol}
+      </div>
+      <div style={{ textAlign: "right", color: "#173d5a", fontSize: "15px", display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+        {pair.amountInRequired ? (
+          <div>{formatAmount(pair.amountInRequired, 18)} PRIZE</div>
+        ) : (
+          <span style={{ color: "#999" }}>N/A</span>
+        )}
+      </div>
+      <div style={{ textAlign: "right", color: "#173d5a", fontSize: "15px", display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+        {formatUSD(valueOutUSD)}
+      </div>
+      <div style={{ textAlign: "right", color: "#173d5a", fontSize: "15px", display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+        {formatUSD(valueInUSD)}
+      </div>
+      <div style={{ 
+        textAlign: "right",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "flex-end"
+      }}>
+        <div style={{ 
+          color: pair.isProfitable ? "#28a745" : "#dc3545",
+          fontWeight: "bold",
+          fontSize: "15px"
+        }}>
+          {pair.profitability >= 0 ? "+" : ""}{formatUSD(pair.profitability)}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+LiquidationPairRow.displayName = 'LiquidationPairRow';
 
 const LiquidationPairsPage: React.FC = () => {
   const [pairsData, setPairsData] = useState<LiquidationPairData[]>([]);
@@ -71,8 +176,8 @@ const LiquidationPairsPage: React.FC = () => {
     return overviewFromContext.overview.prices.geckos[prizeTokenGecko] || 0;
   };
 
-  // Main function to fetch all liquidation pairs data
-  const fetchLiquidationPairsData = async () => {
+  // Main function to fetch all liquidation pairs data - memoized to prevent recreation
+  const fetchLiquidationPairsData = useCallback(async () => {
     console.log("🚀 Starting liquidation pairs data fetch...");
     setLoading(true);
     setError(null);
@@ -228,7 +333,7 @@ const LiquidationPairsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [overviewFromContext?.overview]);
 
   useEffect(() => {
     // Only fetch once when overview is available
@@ -236,15 +341,8 @@ const LiquidationPairsPage: React.FC = () => {
       hasFetched.current = true;
       fetchLiquidationPairsData();
     }
-  }, [overviewFromContext?.overview]);
+  }, [overviewFromContext?.overview, fetchLiquidationPairsData]);
 
-  const formatAmount = (amount: ethers.BigNumber, decimals: number): string => {
-    return NumberWithCommas(CropDecimals(ethers.utils.formatUnits(amount, decimals)));
-  };
-
-  const formatUSD = (amount: number): string => {
-    return `$${NumberWithCommas(CropDecimals(amount.toFixed(2)))}`;
-  };
 
   // Format pricing timestamp for display
   const pricingTimestamp = useMemo(() => {
@@ -370,99 +468,9 @@ const LiquidationPairsPage: React.FC = () => {
             </div>
             
             {/* Rows */}
-            {pairsData.map((pair, index) => {
-              const amountInTokens = pair.amountInRequired 
-                ? Number(ethers.utils.formatUnits(pair.amountInRequired, 18)) // Prize tokens are typically 18 decimals
-                : 0;
-              const amountOutTokens = Number(ethers.utils.formatUnits(pair.maxOut, pair.decimals));
-              
-              const valueInUSD = amountInTokens * pair.tokenInPrice;
-              const valueOutUSD = amountOutTokens * pair.tokenOutPrice;
-              
-              return (
-                <div 
-                  key={`${pair.chainName}-${pair.vaultAddress}`}
-                  style={{ 
-                    display: "grid", 
-                    gridTemplateColumns: "auto 2fr 1fr 1fr 1fr 1fr 1fr",
-                    gap: "6px",
-                    backgroundColor: "white",
-                    borderRadius: "20px",
-                    padding: "12px",
-                    marginBottom: "16px",
-                    boxShadow: "0 4px 6px rgba(0, 0, 0, .1)",
-                    cursor: "pointer",
-                    transition: "transform 0.2s ease, box-shadow 0.2s ease"
-                  }}
-                  onClick={() => window.open(`/liquidate?chain=${pair.chainId}&pair=${pair.liquidationPairAddress}`, '_blank')}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 6px 12px rgba(0, 0, 0, .15)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 4px 6px rgba(0, 0, 0, .1)";
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", marginRight: "-8px", marginBottom: "10px" }}>
-                    <ChainTag chainId={pair.chainId} horizontal={false} />
-                  </div>
-                  <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <div style={{ width: "40px", display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
-                        <IconDisplay name={pair.assetSymbol} size={20} />
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: "bold", color: "#173d5a", fontSize: "15px" }}>{pair.vaultName}</div>
-                        <div style={{ fontSize: "14px", color: "#666" }}>
-                          {pair.assetSymbol}
-                        </div>
-                        <div style={{ fontSize: "12px", color: "#888" }}>
-                          <a 
-                            href={`/liquidate?chain=${pair.chainId}&pair=${pair.liquidationPairAddress}`}
-                            style={{ color: "#007bff", textDecoration: "none" }}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Liquidate →
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ textAlign: "right", color: "#173d5a", fontSize: "15px", display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
-                    {formatAmount(pair.maxOut, pair.decimals)} {pair.assetSymbol}
-                  </div>
-                  <div style={{ textAlign: "right", color: "#173d5a", fontSize: "15px", display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
-                    {pair.amountInRequired ? (
-                      <div>{formatAmount(pair.amountInRequired, 18)} PRIZE</div>
-                    ) : (
-                      <span style={{ color: "#999" }}>N/A</span>
-                    )}
-                  </div>
-                  <div style={{ textAlign: "right", color: "#173d5a", fontSize: "15px", display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
-                    {formatUSD(valueOutUSD)}
-                  </div>
-                  <div style={{ textAlign: "right", color: "#173d5a", fontSize: "15px", display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
-                    {formatUSD(valueInUSD)}
-                  </div>
-                  <div style={{ 
-                    textAlign: "right",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "flex-end"
-                  }}>
-                    <div style={{ 
-                      color: pair.isProfitable ? "#28a745" : "#dc3545",
-                      fontWeight: "bold",
-                      fontSize: "15px"
-                    }}>
-                      {pair.profitability >= 0 ? "+" : ""}{formatUSD(pair.profitability)}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {pairsData.map((pair) => (
+              <LiquidationPairRow key={`${pair.chainName}-${pair.vaultAddress}`} pair={pair} />
+            ))}
           </div>
           
           {/* Mobile Layout */}
@@ -471,7 +479,8 @@ const LiquidationPairsPage: React.FC = () => {
             borderRadius: "12px", 
             padding: "15px"
           }}>
-            {pairsData.map((pair, index) => {
+            {pairsData.map((pair) => {
+              // Pre-calculate values to avoid recalculating on every render
               const amountInTokens = pair.amountInRequired 
                 ? Number(ethers.utils.formatUnits(pair.amountInRequired, 18))
                 : 0;

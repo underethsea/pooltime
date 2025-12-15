@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Column } from "react-table";
 import IconDisplay from "../icons";
 import { CropDecimals, NumberWithCommas } from "../../utils/tokenMaths";
@@ -119,7 +119,7 @@ export const getVaultColumns = (showStats: boolean): Column<VaultData>[] => [
     Header: "Vault",
     id: "vaults",
     accessor: "name",
-    Cell: ({ row }) => {
+    Cell: ({ row }: any) => {
       const { name, poolers, c, vaultAPR, apr } = row.original;
       return (
         <VaultRow
@@ -137,7 +137,7 @@ export const getVaultColumns = (showStats: boolean): Column<VaultData>[] => [
     Header: <div style={{ margin: "0px 0px 0px 30px" }}>Your Tokens</div>,
     id: "tokens",
     accessor: "apr",
-    Cell: ({ row }) => {
+    Cell: ({ row }: any) => {
       const { assetBalance, decimals, assetSymbol, status, formattedAssetBalance } = row.original;
       const assetBalanceDisplay =
         assetBalance && assetBalance.gt(0) && status !== 1 ? (

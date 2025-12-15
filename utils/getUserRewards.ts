@@ -53,20 +53,23 @@ export async function GetUsersAwards(
     vaultAddresses = vaults.map((vault: any) => vault.vault);
   }
 
-  const activePromotions = await GetActivePromotionsForVaults(
-    vaultAddresses,
-    false,
-    prices,
-    false,
-    chainName
-  );
-  const activeMetaPromotions = await GetActivePromotionsForVaults(
-    vaultAddresses,
-    false,
-    prices,
-    true,
-    chainName
-  );
+  // Fetch both regular and meta promotions in parallel
+  const [activePromotions, activeMetaPromotions] = await Promise.all([
+    GetActivePromotionsForVaults(
+      vaultAddresses,
+      false,
+      prices,
+      false,
+      chainName
+    ),
+    GetActivePromotionsForVaults(
+      vaultAddresses,
+      false,
+      prices,
+      true,
+      chainName
+    ),
+  ]);
 
   let completedEpochCalls = [];
   let activeEpochCalls = [];

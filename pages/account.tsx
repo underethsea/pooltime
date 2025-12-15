@@ -180,9 +180,17 @@ const AccountPage: React.FC = () => {
           }[]
         > = {};
 
-        // Fetch claimable rewards per chain for the user's ticketed vaults
+        // Fetch claimable rewards per chain for the user's ticketed vaults - PARALLELIZED
         const grouped = groupVaultsByChain(ticketVaults);
-        for (const { chainId, vaults: chainVaults } of grouped) {
+        const tokenSymbolMap = Object.values(WHITELIST_REWARDS)
+          .flat()
+          .reduce((acc: any, tokenObj: any) => {
+            acc[tokenObj.TOKEN.toLowerCase()] = tokenObj.SYMBOL;
+            return acc;
+          }, {});
+
+        // Process all chains in parallel instead of sequentially
+        const rewardPromises = grouped.map(async ({ chainId, vaults: chainVaults }) => {
           const chainName = GetChainName(chainId);
           const vaultAddrs = chainVaults.map((v) => v.vault);
           try {
@@ -193,60 +201,62 @@ const AccountPage: React.FC = () => {
               overview.prices,
               true
             );
-            const tokenSymbolMap = Object.values(WHITELIST_REWARDS)
-              .flat()
-              .reduce((acc: any, tokenObj: any) => {
-                acc[tokenObj.TOKEN.toLowerCase()] = tokenObj.SYMBOL;
-                return acc;
-              }, {});
-
-            rewards.completed.forEach((reward: any) => {
-              const tokenAddr = reward.token?.toLowerCase();
-              if (!tokenAddr) return;
-              let amountBN: any =
-                reward.totalRewards ?? reward.rewardAmount ?? 0;
-
-              // Handle rewardAmount arrays
-              if (Array.isArray(amountBN)) {
-                amountBN = amountBN.reduce((acc: any, val: any) => {
-                  try {
-                    return acc.add(val);
-                  } catch {
-                    return acc;
-                  }
-                }, ethers.BigNumber.from(0));
-              }
-
-              try {
-                amountBN = ethers.BigNumber.from(amountBN);
-              } catch {
-                amountBN = ethers.BigNumber.from(0);
-              }
-
-              const amountStr = ethers.utils.formatUnits(
-                amountBN,
-                reward.decimals ?? 18
-              );
-              if (parseFloat(amountStr) <= 0) return;
-              const vaultKey = reward.vault.toLowerCase();
-              if (!claimables[vaultKey]) claimables[vaultKey] = [];
-              claimables[vaultKey].push({
-                token: tokenAddr,
-                symbol:
-                  tokenSymbolMap[tokenAddr] ||
-                  `${tokenAddr.slice(0, 4)}...${tokenAddr.slice(-4)}`,
-                amount: amountStr,
-                decimals: reward.decimals ?? 18,
-                promotionId: reward.promotionId,
-                completedEpochs: reward.completedEpochs || [],
-                chainId,
-                meta: reward.meta,
-              });
-            });
+            return { chainId, rewards, chainVaults };
           } catch (err) {
             console.error("Failed to fetch user rewards for chain", chainName, err);
+            return { chainId, rewards: { completed: [] }, chainVaults };
           }
-        }
+        });
+
+        // Wait for all chains to complete in parallel
+        const rewardResults = await Promise.all(rewardPromises);
+
+        // Process results and build claimables
+        rewardResults.forEach(({ chainId, rewards, chainVaults }) => {
+          rewards.completed.forEach((reward: any) => {
+            const tokenAddr = reward.token?.toLowerCase();
+            if (!tokenAddr) return;
+            let amountBN: any =
+              reward.totalRewards ?? reward.rewardAmount ?? 0;
+
+            // Handle rewardAmount arrays
+            if (Array.isArray(amountBN)) {
+              amountBN = amountBN.reduce((acc: any, val: any) => {
+                try {
+                  return acc.add(val);
+                } catch {
+                  return acc;
+                }
+              }, ethers.BigNumber.from(0));
+            }
+
+            try {
+              amountBN = ethers.BigNumber.from(amountBN);
+            } catch {
+              amountBN = ethers.BigNumber.from(0);
+            }
+
+            const amountStr = ethers.utils.formatUnits(
+              amountBN,
+              reward.decimals ?? 18
+            );
+            if (parseFloat(amountStr) <= 0) return;
+            const vaultKey = reward.vault.toLowerCase();
+            if (!claimables[vaultKey]) claimables[vaultKey] = [];
+            claimables[vaultKey].push({
+              token: tokenAddr,
+              symbol:
+                tokenSymbolMap[tokenAddr] ||
+                `${tokenAddr.slice(0, 4)}...${tokenAddr.slice(-4)}`,
+              amount: amountStr,
+              decimals: reward.decimals ?? 18,
+              promotionId: reward.promotionId,
+              completedEpochs: reward.completedEpochs || [],
+              chainId,
+              meta: reward.meta,
+            });
+          });
+        });
 
         if (!cancelled) {
           setPromotionsByVault(promos || {});
@@ -276,7 +286,7 @@ const AccountPage: React.FC = () => {
         <div style={styles.pageHeader}>
           <h1 style={styles.title}>Account</h1>
           <p style={styles.subtitle}>
-            Track your wins, tickets, and upcoming rewards.
+            Track your wins, tickets, and rewards.
           </p>
         </div>
 

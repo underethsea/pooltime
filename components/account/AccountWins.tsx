@@ -123,8 +123,12 @@ const AccountWins: React.FC<AccountWinsProps> = ({ address: addressProp }) => {
             claim_time: new Date(win.claim_time).toISOString(),
           }))
           .sort(
-            (a: AggregateWin, b: AggregateWin) =>
-              new Date(b.claim_time).getTime() - new Date(a.claim_time).getTime()
+            (a: AggregateWin, b: AggregateWin) => {
+              // Sort by getMidDrawTime to match wins modal
+              const timeA = getMidDrawTime(a.network, a.draw).getTime();
+              const timeB = getMidDrawTime(b.network, b.draw).getTime();
+              return timeB - timeA;
+            }
           );
 
         if (!cancelled) {
@@ -203,8 +207,6 @@ const AccountWins: React.FC<AccountWinsProps> = ({ address: addressProp }) => {
     const startIndex = (currentPage - 1) * winsPerPage;
     const endIndex = startIndex + winsPerPage;
     const currentWins = wins.slice(startIndex, endIndex);
-    const startWin = wins.length > 0 ? startIndex + 1 : 0;
-    const endWin = Math.min(endIndex, wins.length);
 
     const handlePreviousPage = () => {
       if (currentPage > 1) {
@@ -266,36 +268,31 @@ const AccountWins: React.FC<AccountWinsProps> = ({ address: addressProp }) => {
         </div>
         {wins.length > winsPerPage && (
           <div style={styles.paginationContainer}>
-            <div style={styles.paginationInfo}>
-              Showing {startWin}-{endWin} of {wins.length} wins
-            </div>
-            <div style={styles.paginationControls}>
-              <button
-                style={{
-                  ...styles.paginationButton,
-                  opacity: currentPage === 1 ? 0.5 : 1,
-                  cursor: currentPage === 1 ? "not-allowed" : "pointer",
-                }}
-                onClick={handlePreviousPage}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </button>
-              <span style={styles.pageInfo}>
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                style={{
-                  ...styles.paginationButton,
-                  opacity: currentPage === totalPages ? 0.5 : 1,
-                  cursor: currentPage === totalPages ? "not-allowed" : "pointer",
-                }}
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </button>
-            </div>
+            <button
+              style={{
+                ...styles.paginationButton,
+                opacity: currentPage === 1 ? 0.5 : 1,
+                cursor: currentPage === 1 ? "not-allowed" : "pointer",
+              }}
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </button>
+            <span style={styles.pageInfo}>
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              style={{
+                ...styles.paginationButton,
+                opacity: currentPage === totalPages ? 0.5 : 1,
+                cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+              }}
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
           </div>
         )}
       </div>
@@ -306,7 +303,7 @@ const AccountWins: React.FC<AccountWinsProps> = ({ address: addressProp }) => {
     <div style={styles.card}>
       <div style={styles.header}>
         <h2 style={styles.title}>Wins</h2>
-        <span style={styles.caption}>Recent prizes you claimed</span>
+        <span style={styles.caption}>Your win history</span>
       </div>
       {renderBody()}
     </div>
@@ -435,22 +432,10 @@ const styles: any = {
   },
   paginationContainer: {
     display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-    marginTop: "10px",
-    paddingTop: "10px",
-    borderTop: "1px solid #ebebeb",
-  },
-  paginationInfo: {
-    color: "#7b68c4",
-    fontSize: "14px",
-    textAlign: "center",
-  },
-  paginationControls: {
-    display: "flex",
     alignItems: "center",
     justifyContent: "center",
     gap: "12px",
+    marginTop: "10px",
   },
   paginationButton: {
     padding: "6px 12px",
