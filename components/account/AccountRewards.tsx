@@ -45,6 +45,7 @@ interface AccountRewardsProps {
     }[]
   >;
   loading?: boolean;
+  canClaim?: boolean;
 }
 
 const AccountRewards: React.FC<AccountRewardsProps> = ({
@@ -53,6 +54,7 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
   promotionsByVault,
   claimableByVault = {},
   loading = false,
+  canClaim = true,
 }) => {
   const { address: connectedAddress } = useAccount();
   const chainIdConnected = useChainId();
@@ -183,10 +185,17 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
   }, [claimableByVault, overview?.prices]);
 
   const handleClaim = (reward: any, vaultAddress: string) => {
-    if (!activeAddress) return;
+    if (!activeAddress || !canClaim) return;
     const chainName = GetChainName(reward.chainId);
     const targetChainId = reward.chainId;
 
+    // If on wrong chain, switch chain first
+    if (chainIdConnected !== targetChainId) {
+      switchChain?.({ chainId: targetChainId });
+      return;
+    }
+
+    // Otherwise, proceed with claim
     const claimPayload = reward.meta
       ? {
           address: ADDRESS[chainName].METAREWARDS as any,
@@ -206,24 +215,15 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
           args: [activeAddress, reward.promotionId, reward.completedEpochs],
         };
 
-    const doClaim = () => {
-      setClaimingId(`${vaultAddress}-${reward.promotionId}-${reward.token}`);
-      claimWrite(claimPayload as any, {
-        onSettled: () => setClaimingId(null),
-        onError: () => setClaimingId(null),
-      });
-    };
-
-    if (chainIdConnected !== targetChainId) {
-      switchChain?.({ chainId: targetChainId });
-      return;
-    }
-
-    doClaim();
+    setClaimingId(`${vaultAddress}-${reward.promotionId}-${reward.token}`);
+    claimWrite(claimPayload as any, {
+      onSettled: () => setClaimingId(null),
+      onError: () => setClaimingId(null),
+    });
   };
 
   const handleBatchClaim = (chainId: number, chainName: string) => {
-    if (!activeAddress || !sendCalls) return;
+    if (!activeAddress || !sendCalls || !canClaim) return;
 
     if (!canBatchTransactions(chainId)) {
       toast("Batch transactions not supported by your wallet", {
@@ -350,7 +350,7 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
                   />
                 )}
                 <span>{group.chainName}</span>
-                {canBatchClaim && (
+                {canBatchClaim && canClaim && (
                   <button
                     style={{
                       ...styles.claimAllButton,
@@ -360,9 +360,7 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
                     disabled={isBatchClaiming}
                     onClick={() => handleBatchClaim(group.chainId, group.chainName)}
                   >
-                    {chainIdConnected !== group.chainId
-                      ? "Switch Chain"
-                      : isBatchClaiming
+                    {isBatchClaiming
                       ? "Claiming All..."
                       : `Claim All (${totalClaims})`}
                   </button>
@@ -401,52 +399,45 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
                       const isClaiming = claimingId === claimKey;
                       return (
                         <div key={idx} style={{
-                          ...styles.claimCard,
-                          padding: isMobile ? "10px 12px" : "12px 14px",
+                          ...styles.claimLine,
+                          gap: isMobile ? "10px" : "14px",
+                          marginBottom: idx < vault.claims.length - 1 ? "8px" : "0",
                         }}>
                           <div style={{
-                            ...styles.claimLine,
-                            gap: isMobile ? "10px" : "14px",
+                            ...styles.claimLeft,
+                            flexWrap: isMobile ? "nowrap" : "wrap",
+                            gap: isMobile ? "4px" : "8px",
                           }}>
-                            <div style={{
-                              ...styles.claimLeft,
-                              flexWrap: isMobile ? "nowrap" : "wrap",
-                              gap: isMobile ? "4px" : "8px",
+                            {icon && (
+                              <Image
+                                src={icon}
+                                alt={symbol}
+                                width={isMobile ? 12 : 16}
+                                height={isMobile ? 12 : 16}
+                                style={{ borderRadius: "4px", flexShrink: 0 }}
+                              />
+                            )}
+                            <span style={{
+                              ...styles.claimText,
+                              fontSize: isMobile ? "14px" : "19px",
                             }}>
-                              {icon && (
-                                <Image
-                                  src={icon}
-                                  alt={symbol}
-                                  width={isMobile ? 12 : 16}
-                                  height={isMobile ? 12 : 16}
-                                  style={{ borderRadius: "4px", flexShrink: 0 }}
-                                />
-                              )}
-                              <span style={{
-                                ...styles.claimText,
-                                fontSize: isMobile ? "14px" : "19px",
-                              }}>
-                                {NumberWithCommas(CropDecimals(reward.amount))}
-                              </span>
-                            </div>
-                            <button
-                              style={{
-                                ...styles.claimAction,
-                                cursor: isClaiming ? "wait" : "pointer",
-                                opacity: isClaiming ? 0.7 : 1,
-                                padding: isMobile ? "4px 8px" : "6px 10px",
-                                flexShrink: 0,
-                              }}
-                              disabled={isClaiming}
-                              onClick={() => handleClaim(reward, vault.vault)}
-                            >
-                              {chainIdConnected !== reward.chainId
-                                ? "Switch Chain"
-                                : isClaiming
-                                ? "Claiming..."
-                                : "Claim Now"}
-                            </button>
+                              {NumberWithCommas(CropDecimals(reward.amount))}
+                            </span>
                           </div>
+                          <button
+                            style={{
+                              ...styles.claimAction,
+                              cursor: isClaiming || !canClaim ? "not-allowed" : "pointer",
+                              opacity: isClaiming || !canClaim ? 0.5 : 1,
+                              padding: isMobile ? "4px 8px" : "6px 10px",
+                              flexShrink: 0,
+                            }}
+                            disabled={isClaiming || !canClaim}
+                            onClick={() => handleClaim(reward, vault.vault)}
+                            title={!canClaim ? "Connect with this address to claim" : undefined}
+                          >
+                            {isClaiming ? "Claiming..." : "Claim"}
+                          </button>
                         </div>
                       );
                     })}
@@ -605,20 +596,6 @@ const styles: any = {
     color: "#1a405d",
     padding: "4px 0",
     fontSize: "19px",
-  },
-  claimCard: {
-    backgroundColor: "#f7f7f7",
-    border: "1px solid #ebebeb",
-    borderRadius: "10px",
-    padding: "12px 14px",
-    width: "100%",
-    maxWidth: "100%",
-    display: "flex",
-    flexDirection: "column",
-    gap: "4px",
-    alignItems: "stretch",
-    cursor: "pointer",
-    boxSizing: "border-box",
   },
   claimLine: {
     display: "flex",

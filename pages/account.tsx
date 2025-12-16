@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { useAccount } from "wagmi";
+import { useRouter } from "next/router";
 import AccountWins from "../components/account/AccountWins";
 import AccountTickets from "../components/account/AccountTickets";
 import AccountRewards from "../components/account/AccountRewards";
@@ -15,7 +16,18 @@ import { WHITELIST_REWARDS } from "../constants/address";
 import Layout from "./index";
 
 const AccountPage: React.FC = () => {
-  const { address, isConnected, status } = useAccount();
+  const router = useRouter();
+  const { address: connectedAddress, isConnected, status } = useAccount();
+  
+  // Get address from URL or use connected address
+  const urlAddress = router.isReady && router.query.address 
+    ? (Array.isArray(router.query.address) ? router.query.address[0] : router.query.address)
+    : undefined;
+  
+  // Validate URL address if provided
+  const isValidUrlAddress = urlAddress && ethers.utils.isAddress(urlAddress);
+  const displayAddress = isValidUrlAddress ? urlAddress.toLowerCase() : connectedAddress?.toLowerCase();
+  const isOwnAccount = !isValidUrlAddress || (connectedAddress?.toLowerCase() === urlAddress?.toLowerCase());
   const { overview } = useOverview();
   const [vaults, setVaults] = useState<VaultData[]>([]);
   const [ticketVaults, setTicketVaults] = useState<VaultData[]>([]);
@@ -67,11 +79,11 @@ const AccountPage: React.FC = () => {
     };
   }, []);
 
-  // Fetch balances for the connected address to determine ticket holdings
+  // Fetch balances for the display address to determine ticket holdings
   useEffect(() => {
     let cancelled = false;
     const loadBalances = async () => {
-      if (!address || vaults.length === 0) {
+      if (!displayAddress || vaults.length === 0) {
         setTicketVaults([]);
         setTicketLoading(false);
         return;
@@ -85,7 +97,7 @@ const AccountPage: React.FC = () => {
             const vaultAddresses = chainVaults.map((vault) => vault.vault);
             const assetAddresses = chainVaults.map((vault) => vault.asset);
             const balances = await GetVaultBalances(
-              address,
+              displayAddress,
               vaultAddresses,
               assetAddresses,
               GetChainName(chainId)
@@ -138,14 +150,14 @@ const AccountPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [address, vaults]);
+  }, [displayAddress, vaults]);
 
   // Fetch active promotions only for vaults the user holds tickets in
   useEffect(() => {
     let cancelled = false;
     const fetchPromotions = async () => {
       if (
-        !address ||
+        !displayAddress ||
         ticketVaults.length === 0 ||
         !overview?.prices
       ) {
@@ -196,7 +208,7 @@ const AccountPage: React.FC = () => {
           try {
             const rewards = await GetUsersAwards(
               chainName,
-              address,
+              displayAddress,
               vaultAddrs,
               overview.prices,
               true
@@ -278,7 +290,7 @@ const AccountPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [address, ticketVaults, overview?.prices]);
+  }, [displayAddress, ticketVaults, overview?.prices]);
 
   return (
     <Layout>
@@ -290,34 +302,43 @@ const AccountPage: React.FC = () => {
           </p>
         </div>
 
-        {status === "disconnected" ? (
-          <div style={styles.notice}>
-            Connect your wallet to see personalized stats.
+        {/* Banner for viewing someone else's account */}
+        {isValidUrlAddress && !isOwnAccount && (
+          <div style={styles.viewingOtherAccountBanner}>
+            <span style={styles.bannerIcon}>👁️</span>
+            <span style={styles.bannerText}>
+              Viewing another account. Connect with this address to claim rewards.
+            </span>
           </div>
-        ) : status === "connecting" || status === "reconnecting" ? (
+        )}
+
+        {!displayAddress ? (
           <div style={styles.notice}>
-            Connecting to your wallet...
+            {status === "disconnected" ? (
+              "Connect your wallet or enter an address in the URL to view account stats."
+            ) : status === "connecting" || status === "reconnecting" ? (
+              "Connecting to your wallet..."
+            ) : (
+              "Connect your wallet or enter an address in the URL to view account stats."
+            )}
           </div>
-        ) : isConnected && address ? (
+        ) : (
           <div style={styles.grid}>
-            <AccountWins address={address ?? undefined} />
+            <AccountWins address={displayAddress} />
             <AccountTickets
-              address={address ?? undefined}
+              address={displayAddress}
               prefetchedVaults={vaults}
               prefetchedTicketVaults={ticketVaults}
               loadingOverride={vaultsLoading || ticketLoading}
             />
             <AccountRewards
-              address={address ?? undefined}
+              address={displayAddress}
               ticketVaults={ticketVaults}
               promotionsByVault={promotionsByVault}
               claimableByVault={claimableByVault}
               loading={rewardsLoading}
+              canClaim={isOwnAccount && isConnected}
             />
-          </div>
-        ) : (
-          <div style={styles.notice}>
-            Connect your wallet to see personalized stats.
           </div>
         )}
       </div>
@@ -378,6 +399,25 @@ const styles: any = {
   bodyText: {
     color: "#cdd7e4",
     margin: 0,
+  },
+  viewingOtherAccountBanner: {
+    backgroundColor: "#1a3a52",
+    border: "1px solid #3d6b8f",
+    borderRadius: "12px",
+    padding: "12px 16px",
+    marginBottom: "16px",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    color: "#cdd7e4",
+  },
+  bannerIcon: {
+    fontSize: "18px",
+    flexShrink: 0,
+  },
+  bannerText: {
+    fontSize: "14px",
+    lineHeight: "1.4",
   },
 };
 
