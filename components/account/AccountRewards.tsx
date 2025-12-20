@@ -46,6 +46,8 @@ interface AccountRewardsProps {
   >;
   loading?: boolean;
   canClaim?: boolean;
+  isModal?: boolean;
+  isMobile?: boolean;
 }
 
 const AccountRewards: React.FC<AccountRewardsProps> = ({
@@ -55,6 +57,8 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
   claimableByVault = {},
   loading = false,
   canClaim = true,
+  isModal = false,
+  isMobile: isMobileProp,
 }) => {
   const { address: connectedAddress } = useAccount();
   const chainIdConnected = useChainId();
@@ -66,6 +70,9 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
   const { overview } = useOverview();
   
   const activeAddress = address || connectedAddress;
+  
+  // Use prop if provided, otherwise use internal state
+  const mobileState = isMobileProp !== undefined ? isMobileProp : isMobile;
 
   // Ensure skeleton shows for at least 2 seconds
   useEffect(() => {
@@ -81,13 +88,15 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
   }, [loading]);
 
   useEffect(() => {
+    if (isMobileProp === undefined) {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
     };
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
-  }, []);
+    }
+  }, [isMobileProp]);
 
   const { data: capabilities } = useCapabilities({
     account: activeAddress as `0x${string}` | undefined,
@@ -215,11 +224,11 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
           args: [activeAddress, reward.promotionId, reward.completedEpochs],
         };
 
-    setClaimingId(`${vaultAddress}-${reward.promotionId}-${reward.token}`);
-    claimWrite(claimPayload as any, {
-      onSettled: () => setClaimingId(null),
-      onError: () => setClaimingId(null),
-    });
+      setClaimingId(`${vaultAddress}-${reward.promotionId}-${reward.token}`);
+      claimWrite(claimPayload as any, {
+        onSettled: () => setClaimingId(null),
+        onError: () => setClaimingId(null),
+      });
   };
 
   const handleBatchClaim = (chainId: number, chainName: string) => {
@@ -301,14 +310,23 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
 
   const renderBody = () => {
     if (!activeAddress) {
-      return <p style={styles.bodyText}>Connect a wallet to view rewards.</p>;
+      return <p style={{
+        ...styles.bodyText,
+        ...(isModal ? styles.bodyTextModal : {}),
+      }}>Connect a wallet to view rewards.</p>;
     }
 
     if (loading || !minLoadingTimePassed) {
       return (
         <div className="vault-table-body">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="vault-row" style={{ gridTemplateColumns: "1fr auto" }}>
+            <div 
+              key={i} 
+              className="vault-row" 
+              style={{ 
+                gridTemplateColumns: "1fr auto",
+                ...(isModal ? { backgroundColor: "transparent", boxShadow: "none", padding: "8px 0" } : {})
+              }}>
               <div className="vault-cell vault-left-align">
                 <div className="skeleton-item" style={{ width: '70%', height: '20px' }}></div>
               </div>
@@ -323,7 +341,10 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
 
     if (chainGroups.length === 0) {
       return (
-        <p style={styles.bodyText}>No active rewards on your positions yet.</p>
+        <p style={{
+          ...styles.bodyText,
+          ...(isModal ? styles.bodyTextModal : {}),
+        }}>No active rewards on your positions yet.</p>
       );
     }
 
@@ -339,7 +360,10 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
 
           return (
             <div key={group.chainId} style={styles.chainSection}>
-              <div style={styles.chainHeader}>
+              <div style={{
+                ...styles.chainHeader,
+                ...(isModal ? styles.chainHeaderModal : {}),
+              }}>
                 {group.chainIcon && (
                   <Image
                     src={group.chainIcon}
@@ -371,11 +395,19 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
               <div
                 key={`${vault.vault}-${vault.c}`}
                 className="vault-row"
-                style={{ gridTemplateColumns: "1fr auto", gap: "16px", alignItems: "center" }}>
+                style={{ 
+                  gridTemplateColumns: "1fr auto", 
+                  gap: mobileState ? "12px" : "16px", 
+                  alignItems: "center",
+                  ...(isModal ? { backgroundColor: "transparent", boxShadow: "none", padding: mobileState ? "12px 0" : "8px 0" } : {})
+                }}>
                 <div className="vault-cell vault-left-align" style={styles.rewardCell}>
                   <div style={styles.left}>
-                    <IconDisplay name={vault.assetSymbol} size={22} />
-                    <div style={styles.vaultName}>
+                    <IconDisplay name={vault.assetSymbol} size={mobileState ? 18 : 22} />
+                    <div style={{
+                      ...styles.vaultName,
+                      ...(isModal ? styles.vaultNameModal : {}),
+                    }}>
                       <span style={{ 
                         overflow: "hidden", 
                         textOverflow: "ellipsis", 
@@ -400,36 +432,38 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
                       return (
                         <div key={idx} style={{
                           ...styles.claimLine,
-                          gap: isMobile ? "10px" : "14px",
+                          ...(isModal ? styles.claimLineModal : {}),
+                          gap: mobileState ? "8px" : "14px",
                           marginBottom: idx < vault.claims.length - 1 ? "8px" : "0",
                         }}>
                           <div style={{
                             ...styles.claimLeft,
-                            flexWrap: isMobile ? "nowrap" : "wrap",
-                            gap: isMobile ? "4px" : "8px",
+                            flexWrap: "nowrap",
+                            gap: mobileState ? "4px" : "8px",
                           }}>
                             {icon && (
                               <Image
                                 src={icon}
                                 alt={symbol}
-                                width={isMobile ? 12 : 16}
-                                height={isMobile ? 12 : 16}
+                                width={mobileState ? 14 : 16}
+                                height={mobileState ? 14 : 16}
                                 style={{ borderRadius: "4px", flexShrink: 0 }}
                               />
                             )}
-                            <span style={{
-                              ...styles.claimText,
-                              fontSize: isMobile ? "14px" : "19px",
-                            }}>
-                              {NumberWithCommas(CropDecimals(reward.amount))}
-                            </span>
+                              <span style={{
+                                ...styles.claimText,
+                                fontSize: mobileState ? "14px" : "19px",
+                                ...(isModal ? styles.claimTextModal : {}),
+                              }}>
+                                {NumberWithCommas(CropDecimals(reward.amount))}
+                              </span>
                           </div>
                           <button
                             style={{
                               ...styles.claimAction,
                               cursor: isClaiming || !canClaim ? "not-allowed" : "pointer",
                               opacity: isClaiming || !canClaim ? 0.5 : 1,
-                              padding: isMobile ? "4px 8px" : "6px 10px",
+                              padding: mobileState ? "4px 8px" : "6px 10px",
                               flexShrink: 0,
                             }}
                             disabled={isClaiming || !canClaim}
@@ -454,22 +488,47 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
   };
 
   return (
-    <div style={styles.card}>
-      <div style={styles.header}>
-        <div style={styles.titleRow}>
+    <div style={{
+      ...styles.card,
+      ...(isModal ? styles.cardModal : {}),
+    }}>
+      <div style={{
+        ...styles.header,
+        ...(isModal && mobileState ? styles.headerModalMobile : {}),
+      }}>
+        <div style={{
+          ...styles.titleRow,
+              ...(isModal && mobileState ? styles.titleRowModalMobile : {}),
+        }}>
           <div>
-            <h2 style={styles.title}>Rewards</h2>
-            <span style={styles.caption}>Claim your bonus rewards</span>
+            <h2 style={{
+              ...styles.title,
+              ...(isModal ? styles.titleModal : {}),
+              ...(isModal && mobileState ? styles.titleModalMobile : {}),
+            }}>Rewards</h2>
+            {!mobileState && (
+              <span style={{
+                ...styles.caption,
+                ...(isModal ? styles.captionModal : {}),
+              }}></span>
+            )}
           </div>
           {totalClaimableValue > 0 && (
             <div style={{
               ...styles.totalValue,
-              alignItems: isMobile ? "flex-start" : "flex-end",
+              alignItems: mobileState ? "flex-start" : "flex-end",
+              ...(isModal && mobileState ? styles.totalValueModalMobile : {}),
             }}>
-              <span style={styles.totalLabel}>Total Claimable:</span>
+              <span style={{
+                ...styles.totalLabel,
+                ...(isModal ? styles.totalLabelModal : {}),
+                ...(isModal && mobileState ? styles.totalLabelModalMobile : {}),
+              }}>Total Claimable:</span>
               <span style={{
                 ...styles.totalAmount,
                 fontSize: isMobile ? "16px" : "20px",
+                ...(isModal ? styles.totalAmountModal : {}),
+                ...(isModal && isMobile ? styles.totalAmountModalMobile : {}),
               }}>
                 ${NumberWithCommas(CropDecimals(totalClaimableValue.toFixed(2)))}
               </span>
@@ -640,7 +699,7 @@ const styles: any = {
   },
   claimAllButton: {
     marginLeft: "auto",
-    marginRight: "34px",
+    marginRight: "0px",
     padding: "6px 8px",
     backgroundColor: "#7b68c4",
     color: "#ffffff",
@@ -649,6 +708,89 @@ const styles: any = {
     fontWeight: 600,
     border: "none",
     textDecoration: "none",
+  },
+  cardModal: {
+    backgroundColor: "transparent",
+    border: "none",
+    padding: "0",
+  },
+  claimLineModal: {
+    backgroundColor: "transparent",
+  },
+  titleModal: {
+    color: "white",
+    fontSize: "23px",
+  },
+  captionModal: {
+    color: "white",
+  },
+  totalLabelModal: {
+    color: "white",
+  },
+  totalAmountModal: {
+    color: "white",
+  },
+  bodyTextModal: {
+    color: "white",
+  },
+  vaultNameModal: {
+    color: "white",
+  },
+  chainHeaderModal: {
+    color: "white",
+  },
+  claimTextModal: {
+    color: "white",
+  },
+  headerModalMobile: {
+    paddingTop: "0",
+    marginBottom: "16px",
+  },
+  titleRowModalMobile: {
+    flexDirection: "column",
+    gap: "12px",
+    alignItems: "flex-start",
+  },
+  titleModalMobile: {
+    fontSize: "20px",
+    marginBottom: "4px",
+  },
+  totalValueModalMobile: {
+    alignItems: "flex-start",
+    width: "100%",
+  },
+  totalLabelModalMobile: {
+    fontSize: "14px",
+  },
+  totalAmountModalMobile: {
+    fontSize: "18px",
+  },
+  rewardCellModalMobile: {
+    width: "100%",
+  },
+  rewardCellRightModalMobile: {
+    width: "100%",
+    justifyContent: "flex-start",
+  },
+  claimablesModalMobile: {
+    width: "100%",
+    alignItems: "flex-start",
+  },
+  claimLineModalMobile: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+    width: "100%",
+    gap: "8px",
+  },
+  claimLeftModalMobile: {
+    width: "100%",
+  },
+  claimActionModalMobile: {
+    width: "100%",
+    justifyContent: "center",
+  },
+  vaultNameModalMobile: {
+    fontSize: "16px",
   },
 };
 

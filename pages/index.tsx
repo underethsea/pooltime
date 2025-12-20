@@ -8,6 +8,7 @@ import { useRouter } from "next/router";
 import AllVaults from "./allvaults";
 import Image from "next/image";
 import Wins from "../components/wins";
+import RewardsButton from "../components/rewardsButton";
 import { useAccount } from "wagmi";
 
 type LayoutProps = {
@@ -46,7 +47,10 @@ const Layout = ({ children }: LayoutProps) => {
 
           <span className="hidden-mobile"><CurrencyToggle/> </span>
             <MyConnect connectText="CONNECT"/>  </div>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0" }}>
             {address && <Wins addressProp={address} />}
+              {address && <RewardsButton address={address} />}
+            </div>
 </div>
         
           <div className="hidden-desktop mobile-top-spacer"></div>

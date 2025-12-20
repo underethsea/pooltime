@@ -37,7 +37,7 @@ export const Menu = () => {
     {
       label: "Account",
       path: "/account",
-      show: true,
+      show: false,
     },
     {
       label: "Winners",
