@@ -277,7 +277,7 @@ background-color: #c2baf2;
   }
 
   .vault-row {
-    /* display: flex; */
+    display: flex;
     flex-direction: column;
     gap: 8px;
     background-color: #ffffff;
