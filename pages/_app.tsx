@@ -1,6 +1,7 @@
 import "@rainbow-me/rainbowkit/styles.css";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { OverviewProvider } from "../components/contextOverview";
+import { RewardsProvider } from "../components/contextRewards";
 import "../styles/globals.css";
 import "../styles/table.css";
 import type { AppProps } from "next/app";
@@ -115,13 +116,15 @@ const queryClient = new QueryClient();
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <OverviewProvider>
-      <WagmiProvider config={config}>
-        <QueryClientProvider client={queryClient}>
-          <RainbowKitProvider>
-            <Component {...pageProps} />
-          </RainbowKitProvider>
-        </QueryClientProvider>
-      </WagmiProvider>
+      <RewardsProvider>
+        <WagmiProvider config={config}>
+          <QueryClientProvider client={queryClient}>
+            <RainbowKitProvider>
+              <Component {...pageProps} />
+            </RainbowKitProvider>
+          </QueryClientProvider>
+        </WagmiProvider>
+      </RewardsProvider>
     </OverviewProvider>
   );
 }

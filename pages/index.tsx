@@ -1,7 +1,7 @@
 import Head from "next/head";
 
 import { Menu } from "./menu";
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { MyConnect } from "../components/connectButton";
 import CurrencyToggle from "../components/currencyToggle";
 import { useRouter } from "next/router";
@@ -19,6 +19,18 @@ const Layout = ({ children }: LayoutProps) => {
   const router = useRouter();
   const {address} = useAccount()
   const isHomePage = router.pathname === "/"; // Check if the current route is the homepage
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth <= 500);
+    };
+    checkIsMobile();
+    window.addEventListener("resize", checkIsMobile);
+    return () => {
+      window.removeEventListener("resize", checkIsMobile);
+    };
+  }, []);
 
   return (
     <div
@@ -47,7 +59,12 @@ const Layout = ({ children }: LayoutProps) => {
 
           <span className="hidden-mobile"><CurrencyToggle/> </span>
             <MyConnect connectText="CONNECT"/>  </div>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0" }}>
+            <div style={{ 
+              display: "flex", 
+              flexDirection: isMobile ? "row-reverse" : "column", 
+              alignItems: "flex-end", 
+              gap: isMobile ? "8px" : "0" 
+            }}>
             {address && <Wins addressProp={address} />}
               {address && <RewardsButton address={address} />}
             </div>

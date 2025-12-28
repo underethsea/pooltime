@@ -19,6 +19,7 @@ import { ADDRESS, ABI } from "../../constants";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useOverview } from "../contextOverview";
+import { useRewards } from "../contextRewards";
 
 type Promotion = {
   token: string;
@@ -65,9 +66,12 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
   const { switchChain } = useSwitchChain();
   const [claimingId, setClaimingId] = useState<string | null>(null);
   const [batchClaimingChain, setBatchClaimingChain] = useState<number | null>(null);
+  const [pendingClaim, setPendingClaim] = useState<{ reward: any; vaultAddress: string; targetChainId: number } | null>(null);
+  const [pendingBatchClaim, setPendingBatchClaim] = useState<{ chainId: number; chainName: string } | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [minLoadingTimePassed, setMinLoadingTimePassed] = useState(false);
   const { overview } = useOverview();
+  const { invalidateRewards } = useRewards();
   
   const activeAddress = address || connectedAddress;
   
@@ -138,13 +142,19 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
         position: toast.POSITION.BOTTOM_LEFT,
       });
       setBatchClaimingChain(null);
+      setPendingBatchClaim(null);
+      // Invalidate cache to refresh rewards
+      if (activeAddress) {
+        invalidateRewards(activeAddress);
+      }
     } else if (callStatusData?.status === "failure") {
       toast("Batch claim failed", {
         position: toast.POSITION.BOTTOM_LEFT,
       });
       setBatchClaimingChain(null);
+      setPendingBatchClaim(null);
     }
-  }, [callStatusData]);
+  }, [callStatusData, activeAddress, invalidateRewards]);
 
   // Map token address to symbol when possible
   const tokenSymbolMap: Record<string, { symbol: string; icon?: string }> = Object.values(
@@ -193,18 +203,10 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
     return total;
   }, [claimableByVault, overview?.prices]);
 
-  const handleClaim = (reward: any, vaultAddress: string) => {
+  const executeClaim = (reward: any, vaultAddress: string) => {
     if (!activeAddress || !canClaim) return;
     const chainName = GetChainName(reward.chainId);
-    const targetChainId = reward.chainId;
-
-    // If on wrong chain, switch chain first
-    if (chainIdConnected !== targetChainId) {
-      switchChain?.({ chainId: targetChainId });
-      return;
-    }
-
-    // Otherwise, proceed with claim
+    
     const claimPayload = reward.meta
       ? {
           address: ADDRESS[chainName].METAREWARDS as any,
@@ -226,25 +228,40 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
 
       setClaimingId(`${vaultAddress}-${reward.promotionId}-${reward.token}`);
       claimWrite(claimPayload as any, {
-        onSettled: () => setClaimingId(null),
-        onError: () => setClaimingId(null),
+        onSuccess: () => {
+          // Invalidate cache to refresh rewards after successful claim
+          if (activeAddress) {
+            invalidateRewards(activeAddress);
+          }
+        },
+        onSettled: () => {
+          setClaimingId(null);
+          setPendingClaim(null);
+        },
+        onError: () => {
+          setClaimingId(null);
+          setPendingClaim(null);
+        },
       });
   };
 
-  const handleBatchClaim = (chainId: number, chainName: string) => {
+  const handleClaim = (reward: any, vaultAddress: string) => {
+    if (!activeAddress || !canClaim) return;
+    const targetChainId = reward.chainId;
+
+    // If on wrong chain, switch chain first and store pending claim
+    if (chainIdConnected !== targetChainId) {
+      setPendingClaim({ reward, vaultAddress, targetChainId });
+      switchChain?.({ chainId: targetChainId });
+      return;
+    }
+
+    // Otherwise, proceed with claim immediately
+    executeClaim(reward, vaultAddress);
+  };
+
+  const executeBatchClaim = (chainId: number, chainName: string) => {
     if (!activeAddress || !sendCalls || !canClaim) return;
-
-    if (!canBatchTransactions(chainId)) {
-      toast("Batch transactions not supported by your wallet", {
-        position: toast.POSITION.BOTTOM_LEFT,
-      });
-      return;
-    }
-
-    if (chainIdConnected !== chainId) {
-      switchChain?.({ chainId });
-      return;
-    }
 
     // Collect all claims for this chain
     const allClaims: Array<{ reward: any; vaultAddress: string }> = [];
@@ -305,8 +322,44 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
         position: toast.POSITION.BOTTOM_LEFT,
       });
       setBatchClaimingChain(null);
+      setPendingBatchClaim(null);
     }
   };
+
+  const handleBatchClaim = (chainId: number, chainName: string) => {
+    if (!activeAddress || !sendCalls || !canClaim) return;
+
+    if (!canBatchTransactions(chainId)) {
+      toast("Batch transactions not supported by your wallet", {
+        position: toast.POSITION.BOTTOM_LEFT,
+      });
+      return;
+    }
+
+    if (chainIdConnected !== chainId) {
+      setPendingBatchClaim({ chainId, chainName });
+      switchChain?.({ chainId });
+      return;
+    }
+
+    executeBatchClaim(chainId, chainName);
+  };
+
+  // Auto-execute pending claim after chain switch
+  useEffect(() => {
+    if (pendingClaim && chainIdConnected === pendingClaim.targetChainId && !claimingId) {
+      // Chain has switched, execute the claim
+      executeClaim(pendingClaim.reward, pendingClaim.vaultAddress);
+    }
+  }, [chainIdConnected, pendingClaim, claimingId]);
+
+  // Auto-execute pending batch claim after chain switch
+  useEffect(() => {
+    if (pendingBatchClaim && chainIdConnected === pendingBatchClaim.chainId && !batchClaimingChain) {
+      // Chain has switched, execute the batch claim
+      executeBatchClaim(pendingBatchClaim.chainId, pendingBatchClaim.chainName);
+    }
+  }, [chainIdConnected, pendingBatchClaim, batchClaimingChain]);
 
   const renderBody = () => {
     if (!activeAddress) {
@@ -318,23 +371,10 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
 
     if (loading || !minLoadingTimePassed) {
       return (
-        <div className="vault-table-body">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div 
-              key={i} 
-              className="vault-row" 
-              style={{ 
-                gridTemplateColumns: "1fr auto",
-                ...(isModal ? { backgroundColor: "transparent", boxShadow: "none", padding: "8px 0" } : {})
-              }}>
-              <div className="vault-cell vault-left-align">
-                <div className="skeleton-item" style={{ width: '70%', height: '20px' }}></div>
-              </div>
-              <div className="vault-cell vault-deposits-tvl">
-                <div className="skeleton-item" style={{ width: '100px', height: '20px', marginLeft: 'auto' }}></div>
-              </div>
-            </div>
-          ))}
+        <div style={{ width: '100%', padding: isModal ? '0' : '8px 0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div className="skeleton-item" style={{ width: '100%', height: '20px' }}></div>
+          <div className="skeleton-item" style={{ width: '100%', height: '20px' }}></div>
+          <div className="skeleton-item" style={{ width: '100%', height: '20px' }}></div>
         </div>
       );
     }
