@@ -165,11 +165,7 @@ export const RewardsProvider: React.FC<RewardsProviderProps> = ({ children }) =>
             lastUpdated: Date.now(),
           },
         }));
-        setFetchingAddresses(prev => {
-          const next = new Set(prev);
-          next.delete(address);
-          return next;
-        });
+        fetchingAddressesRef.current.delete(address);
         return;
       }
 
