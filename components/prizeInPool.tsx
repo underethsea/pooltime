@@ -28,7 +28,11 @@ interface PrizeData {
   };
 }
 
-const PrizeInPool: React.FC = () => {
+interface PrizeInPoolProps {
+  compactSize?: boolean;
+}
+
+const PrizeInPool: React.FC<PrizeInPoolProps> = ({ compactSize = false }) => {
   const [prizes, setPrizes] = useState<PrizeData>({});
   const [totalPrize, setTotalPrize] = useState<number>(0);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -110,7 +114,7 @@ const PrizeInPool: React.FC = () => {
   return (
     <>
       {totalPrizeInDollars > 0 && (
-        <div style={{ fontSize: "22px", display: "inline-block" }}>
+        <div style={{ fontSize: compactSize ? "19px" : "22px", display: "inline-block" }}>
           <span
             onClick={toggleModal}
             className="prize-box"
@@ -131,10 +135,10 @@ const PrizeInPool: React.FC = () => {
                 textShadow: isMobile ? "none" : "0 0 5px #a3a7ea",
               }}
             >
-              <PrizeValueIcon size={22} />
+              <PrizeValueIcon size={compactSize ? 15 : 22} />
               <PrizeValue
                 amount={BigInt(totalPrize * 1e18)}
-                size={isMobile ? 24 : 30}
+                size={isMobile ? 24 : compactSize ? 19 : 30}
                 rounded={true}
               />
               <span className="hidden-mobile" style={{ marginLeft: '8px' }}>

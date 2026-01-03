@@ -43,7 +43,9 @@ const RewardsButton: React.FC<RewardsButtonProps> = ({ address }) => {
     return total;
   }, [claimableByVault, overview?.prices]);
 
-  if (isLoading || totalClaimableValue <= 0) {
+  // Don't hide the button/modal if modal is already open, even if loading or value is 0
+  // This prevents the glitch where clicking causes it to disappear briefly
+  if ((isLoading || totalClaimableValue <= 0) && !showModal) {
     return null;
   }
 
@@ -55,7 +57,9 @@ const RewardsButton: React.FC<RewardsButtonProps> = ({ address }) => {
         onClick={() => setShowModal(true)}
       >
         &nbsp;REWARDS&nbsp;
-        ${NumberWithCommas(CropDecimals(totalClaimableValue.toFixed(2)))}
+        {totalClaimableValue > 0 && (
+          <>${NumberWithCommas(CropDecimals(totalClaimableValue.toFixed(2)))}</>
+        )}
       </div>
       {showModal && (
         <RewardsModal address={address} onClose={() => setShowModal(false)} />

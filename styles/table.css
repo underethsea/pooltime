@@ -341,7 +341,7 @@ background-color: #c2baf2;
 
 .token-cell {
   display: flex;
-  justify-content: space-between; /* Space items evenly */
+  justify-content: flex-end; /* Right align items */
   align-items: center;
 
   @media (max-width: 501px) {
@@ -388,6 +388,7 @@ background-color: #c2baf2;
 .token-container-outer {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   width: 100%;
   gap: 2px; 
 }

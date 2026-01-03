@@ -1003,7 +1003,7 @@ function AllVaults() {
             <div
               style={{
                 display: "flex",
-                alignItems: "flex-end",
+                alignItems: "center",
                 justifyContent: "space-between",
                 width: "100%",
               }}>
@@ -1052,61 +1052,33 @@ function AllVaults() {
                 </div>
               </div>
 
-              {!showStats && (
                 <div
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: "1rem",
-                    paddingBottom: "8px",
+                    gap: "0rem",
                   }}>
-                  <PrizeInPool />
-                  {tvl && !showStats && (
-                    <div className="more">
-                      <span
-                        style={{ cursor: "pointer" }}
-                        onClick={() => {
-                          setShowStats(true);
-                        }}>
-                        <a className="custom-link">+nerd data</a>
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-            {showStats && (
+                  <PrizeInPool compactSize={showStats} />
+                {showStats && tvl && parseInt(tvl.totalTVL.toString()) > 0 ? (
               <div
-                className="tvl"
                 style={{
-                  textAlign: "left",
-                  marginTop: "10px",
-                  color: "white",
-                  borderRadius: "10px",
-                  padding: "5px 8px 5px 8px",
-                  display: "flex",
+                      fontSize: "19px",
+                      display: "inline-flex",
                   alignItems: "center",
-                  gap: "2rem",
-                }}>
-                <PrizeInPool />
-                {tvl && parseInt(tvl.totalTVL.toString()) > 0 ? (
-                  <>
-                    <div
-                      style={{
-                        fontSize: "22px",
-                        display: "inline-block",
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                      color: "white",
                       }}
                       onClick={() => {
                         setShowStats(false);
                       }}>
-                      TVL&nbsp;&nbsp;
-                      <PrizeValueIcon size={22} />
-                      {/* desktop tvl */}
+                    TVL&nbsp;&nbsp;
+                    <PrizeValueIcon size={19} />
                       <PrizeValue
                         amount={BigInt(
                           Math.round(Number(tvl.totalTVL))
                         )}
-                        size={22}
+                      size={19}
                         rounded={false}
                       />
                       <span
@@ -1116,24 +1088,32 @@ function AllVaults() {
                         }}
                         style={{
                           cursor: "pointer",
-                          marginLeft: "8px",
+                        marginLeft: "4px",
                         }}>
                         <FontAwesomeIcon
                           icon={faCircleInfo}
                           style={{
                             color: "#ebeeef",
-                            height: "16px",
+                          height: "14px",
                           }}
                         />
                       </span>
                     </div>
-                    &nbsp;
-                  </>
                 ) : (
-                  <span style={{ width: "140px" }}></span>
-                )}
+                  tvl && !showStats && (
+                    <div className="more">
+                      <span
+                        style={{ cursor: "pointer" }}
+                        onClick={() => {
+                          setShowStats(true);
+                        }}>
+                        <a className="custom-link">+nerd data</a>
+                      </span>
               </div>
+                  )
             )}
+              </div>
+            </div>
           </div>
 
           <div className="hidden-desktop-vault-header">

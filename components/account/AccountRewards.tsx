@@ -458,8 +458,14 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
                     </div>
                   </div>
                 </div>
-                <div className="vault-cell vault-deposits-tvl" style={styles.rewardCellRight}>
-                  <div style={styles.claimables}>
+                <div className="vault-cell vault-deposits-tvl" style={{
+                  ...styles.rewardCellRight,
+                  ...(mobileState && isModal ? styles.rewardCellRightModalMobile : {}),
+                }}>
+                  <div style={{
+                    ...styles.claimables,
+                    ...(mobileState && isModal ? styles.claimablesModalMobile : {}),
+                  }}>
                     {vault.claims.map((reward: any, idx: number) => {
                       const tokenMeta =
                         tokenSymbolMap[reward.token.toLowerCase()] || {};
@@ -473,6 +479,7 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
                         <div key={idx} style={{
                           ...styles.claimLine,
                           ...(isModal ? styles.claimLineModal : {}),
+                          ...(mobileState && isModal ? styles.claimLineModalMobile : {}),
                           gap: mobileState ? "8px" : "14px",
                           marginBottom: idx < vault.claims.length - 1 ? "8px" : "0",
                         }}>
@@ -480,6 +487,7 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
                             ...styles.claimLeft,
                             flexWrap: "nowrap",
                             gap: mobileState ? "4px" : "8px",
+                            ...(mobileState && isModal ? styles.claimLeftModalMobile : {}),
                           }}>
                             {icon && (
                               <Image
@@ -505,6 +513,7 @@ const AccountRewards: React.FC<AccountRewardsProps> = ({
                               opacity: isClaiming || !canClaim ? 0.5 : 1,
                               padding: mobileState ? "4px 8px" : "6px 10px",
                               flexShrink: 0,
+                              ...(mobileState && isModal ? styles.claimActionModalMobile : {}),
                             }}
                             disabled={isClaiming || !canClaim}
                             onClick={() => handleClaim(reward, vault.vault)}
@@ -810,24 +819,26 @@ const styles: any = {
   },
   rewardCellRightModalMobile: {
     width: "100%",
-    justifyContent: "flex-start",
+    justifyContent: "flex-end",
+    display: "flex",
   },
   claimablesModalMobile: {
     width: "100%",
-    alignItems: "flex-start",
+    alignItems: "flex-end",
+    display: "flex",
+    flexDirection: "column",
   },
   claimLineModalMobile: {
-    flexDirection: "column",
-    alignItems: "flex-start",
+    justifyContent: "flex-end",
     width: "100%",
     gap: "8px",
+    display: "flex",
   },
   claimLeftModalMobile: {
-    width: "100%",
+    marginLeft: 0,
   },
   claimActionModalMobile: {
-    width: "100%",
-    justifyContent: "center",
+    flexShrink: 0,
   },
   vaultNameModalMobile: {
     fontSize: "16px",

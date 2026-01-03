@@ -143,14 +143,14 @@ export const getVaultColumns = (showStats: boolean): Column<VaultData>[] => [
         assetBalance && assetBalance.gt(0) && status !== 1 ? (
           <div className="token-container-outer">
             <span className="hidden-mobile">
-              <div className="token-container">
-                <div className="token-icon-box">
+              <div className="token-container" style={{ justifyContent: "flex-end", gap: "8px" }}>
+                <div className="token-icon-box" style={{ justifyContent: "flex-end" }}>
                   <IconDisplay name={assetSymbol} size={20} />
                   {NumberWithCommas(
                     CropDecimals(formattedAssetBalance as string)
                   )}
                 </div>
-                &nbsp;<div className="animated deposit-button">DEPOSIT</div>
+                <div className="animated deposit-button">DEPOSIT</div>
               </div>
             </span>
             <span className="hidden-desktop">
