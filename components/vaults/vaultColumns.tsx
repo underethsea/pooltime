@@ -189,7 +189,7 @@ export const getVaultColumns = (showStats: boolean): Column<VaultData>[] => [
     },
   },
   {
-    Header: <div style={{ margin: "0px 0px 0px 30px" }}>Your Tickets</div>,
+    Header: <div className={`tickets-header ${showStats ? 'tickets-header-nerd-data' : ''}`} style={{ margin: showStats ? "0px 0px 0px 60px" : "0px 0px 0px 30px" }}>Your Tickets</div>,
     id: "tickets",
     accessor: (row) =>
       row.vaultBalance?.gt(0) ? row.formattedVaultBalance : 0,
@@ -201,7 +201,7 @@ export const getVaultColumns = (showStats: boolean): Column<VaultData>[] => [
               Your Tickets
               <br />
             </span>
-            <div style={{ display: "flex" }} className="tickets-container">
+            <div style={{ display: "flex" }} className={`tickets-container ${showStats ? 'tickets-container-nerd-data' : ''}`}>
               <span className="column-tickets" style={{ textAlign: "right" }}>
                 <FontAwesomeIcon
                   icon={faTicket}

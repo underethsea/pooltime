@@ -125,6 +125,8 @@ const VaultTableRow = React.memo(({ row, showStats }: { row: any; showStats: boo
                     ? "vault-deposits-tvl"
                     : cell.column.id === "yieldAndVaultAPR"
                     ? "vault-yield-tvl"
+                    : cell.column.id === "tickets" && showStats
+                    ? "vault-tickets-spaced"
                     : "vault-left-align"
                 }`}>
                 {cell.column.id === "contributed7d" ? (
@@ -991,7 +993,7 @@ function AllVaults() {
             alt="pool party"
           />
           &nbsp;&nbsp;
-          <h1 style={{ margin: "0 0 0 10px", lineHeight: "120px" }}>
+          <h1 style={{ margin: "0 0 0 10px", lineHeight: "120px", fontFamily: "Poppins, sans-serif" }}>
             POOLTIME
           </h1>
         </div>
@@ -1246,6 +1248,8 @@ function AllVaults() {
                             ? "vault-yield-tvl"
                             : column.id === "vaults"
                             ? "vaults-header"
+                            : column.id === "tickets" && showStats
+                            ? "vault-tickets-header-spaced"
                             : "vault-left-align"
                         }`}>
                         {(column.id === "tokens" &&

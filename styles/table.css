@@ -227,6 +227,21 @@ background-color: #c2baf2;
   text-align: left;
 }
 
+.vault-tickets-spaced {
+  margin-left: 20px;
+}
+
+.vault-tickets-header-spaced .tickets-header {
+  margin-left: 50px !important;
+}
+
+@media (min-width: 768px) {
+  .tickets-header-nerd-data {
+    margin-left: 60px !important;
+    margin-right: 0px !important;
+  }
+}
+
 .vault-yield-tvl {
   text-align: right;
   margin-right:14px;
