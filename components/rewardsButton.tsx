@@ -43,9 +43,10 @@ const RewardsButton: React.FC<RewardsButtonProps> = ({ address }) => {
     return total;
   }, [claimableByVault, overview?.prices]);
 
-  // Don't hide the button/modal if modal is already open, even if loading or value is 0
-  // This prevents the glitch where clicking causes it to disappear briefly
-  if ((isLoading || totalClaimableValue <= 0) && !showModal) {
+  // Always show the button - users should be able to check rewards even if loading or value is 0
+  // Only hide if we have confirmed there are no rewards AND we're not loading AND modal is not open
+  const hasNoRewards = !isLoading && totalClaimableValue <= 0 && Object.keys(claimableByVault).length === 0;
+  if (hasNoRewards && !showModal) {
     return null;
   }
 
