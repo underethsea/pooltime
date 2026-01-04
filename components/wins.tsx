@@ -274,6 +274,7 @@ const {overview} = useOverview()
 
   const totalWins = wins.length;
   let winsText = totalWins === 1 ? "WON " : `${totalWins} WINS `;
+  let winsTextMobile = "WINS ";
 
   return (
     <>
@@ -288,7 +289,8 @@ const {overview} = useOverview()
     style={{ width: "fit-content", padding: "5px 10px", display: "flex", alignItems: "center" }}
     onClick={() => setShowAllWinsModal(true)}
   >
-    &nbsp;{winsText}&nbsp;
+    <span className="hidden-desktop">&nbsp;{winsTextMobile}&nbsp;</span>
+    <span className="hidden-mobile">&nbsp;{winsText}&nbsp;</span>
     {Number(totalAmountWon) > 0 && (
       <>
        

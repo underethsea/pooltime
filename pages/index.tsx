@@ -1,13 +1,14 @@
 import Head from "next/head";
 
 import { Menu } from "./menu";
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { MyConnect } from "../components/connectButton";
 import CurrencyToggle from "../components/currencyToggle";
 import { useRouter } from "next/router";
 import AllVaults from "./allvaults";
 import Image from "next/image";
 import Wins from "../components/wins";
+import RewardsButton from "../components/rewardsButton";
 import { useAccount } from "wagmi";
 
 type LayoutProps = {
@@ -18,6 +19,18 @@ const Layout = ({ children }: LayoutProps) => {
   const router = useRouter();
   const {address} = useAccount()
   const isHomePage = router.pathname === "/"; // Check if the current route is the homepage
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth <= 500);
+    };
+    checkIsMobile();
+    window.addEventListener("resize", checkIsMobile);
+    return () => {
+      window.removeEventListener("resize", checkIsMobile);
+    };
+  }, []);
 
   return (
     <div
@@ -36,6 +49,9 @@ const Layout = ({ children }: LayoutProps) => {
         <title>PoolTogether PoolTime.App</title>
         <meta content="Your all-in-one front end for PoolTogether V5." name="description" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@900&display=swap" rel="stylesheet" />
       </Head>
       <div style={{ marginTop: "12px" }}>
         <main>
@@ -46,7 +62,15 @@ const Layout = ({ children }: LayoutProps) => {
 
           <span className="hidden-mobile"><CurrencyToggle/> </span>
             <MyConnect connectText="CONNECT"/>  </div>
+            <div style={{ 
+              display: "flex", 
+              flexDirection: isMobile ? "row-reverse" : "column", 
+              alignItems: "flex-end", 
+              gap: isMobile ? "6px" : "0" 
+            }}>
             {address && <Wins addressProp={address} />}
+              {address && <RewardsButton address={address} />}
+            </div>
 </div>
         
           <div className="hidden-desktop mobile-top-spacer"></div>

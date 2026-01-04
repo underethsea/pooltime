@@ -23,9 +23,10 @@ interface AggregateWin {
 
 interface WinsModalProps {
   showModal: boolean;
-  onClose: () => void;
+  onClose?: () => void;
   wins: AggregateWin[];
   address: string;
+  inline?: boolean;
 }
 
 const calculateTotalAmountWon = (flatWins: any, overview: any) => {
@@ -51,7 +52,7 @@ const calculateTotalAmountWon = (flatWins: any, overview: any) => {
     .toString();
 };
 
-function timeAgo(date: Date) {
+export function timeAgo(date: Date) {
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
   const diffInMinutes = Math.floor(diffInSeconds / 60);
@@ -80,7 +81,7 @@ function timeAgo(date: Date) {
   }
 }
 
-function getMidDrawTime(chainId: number, drawId: number) {
+export function getMidDrawTime(chainId: number, drawId: number) {
   if (!ADDRESS[GetChainName(chainId)]) {
     throw new Error(`Unsupported chainId: ${chainId}`);
   }
@@ -105,6 +106,7 @@ const WinsListModal: React.FC<WinsModalProps> = ({
   onClose,
   wins,
   address,
+  inline = false,
 }) => {
   const [vaults, setVaults] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -151,12 +153,25 @@ const WinsListModal: React.FC<WinsModalProps> = ({
     ? { ...styles.modalContent, ...styles.modalContentMobile }
     : styles.modalContent;
 
-  return showModal ? (
-    <div style={styles.modalOverlay} onClick={onClose}>
-      <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} style={styles.closeButton}>
+  if (!showModal) {
+    return null;
+  }
+
+  const handleClose = onClose || (() => {});
+
+  const content = (
+    <div
+      style={modalContentStyle}
+      onClick={(e) => {
+        if (!inline) {
+          e.stopPropagation();
+        }
+      }}>
+      {!inline && (
+        <button onClick={handleClose} style={styles.closeButton}>
           &times;
         </button>
+      )}
       <div style={{ backgroundColor: "#030526" }}>
         <center>
           {!loading ? (
@@ -168,8 +183,7 @@ const WinsListModal: React.FC<WinsModalProps> = ({
                       display: "inline-block",
                       verticalAlign: "middle",
                       lineHeight: "1",
-                    }}
-                  >
+                    }}>
                     <Image
                       src="/images/pttrophy.svg"
                       width={26}
@@ -183,13 +197,22 @@ const WinsListModal: React.FC<WinsModalProps> = ({
                   <div style={styles.prizeContainer}>
                     <PrizeValueIcon size={26} />
                     <PrizeValue
-                      amount={calculateTotalAmountWon(sortedWins,overview)}
+                      amount={calculateTotalAmountWon(sortedWins, overview)}
                       size={28}
                     />
                   </div>
                 </h2>
-    
-                <h5 style={{ marginTop: "5px", color: "#ffffff", wordWrap: "break-word", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+
+                <h5
+                  style={{
+                    marginTop: "5px",
+                    color: "#ffffff",
+                    wordWrap: "break-word",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                  }}>
                   {address &&
                     `${address.slice(0, 6)}...${address.slice(
                       address.length - 4
@@ -199,8 +222,7 @@ const WinsListModal: React.FC<WinsModalProps> = ({
                       href={`https://debank.com/profile/${address}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ display: "inline-flex" }}
-                    >
+                      style={{ display: "inline-flex" }}>
                       <Image
                         src="/images/debank.png"
                         width={16}
@@ -230,23 +252,40 @@ const WinsListModal: React.FC<WinsModalProps> = ({
                         {timeAgo(getMidDrawTime(win.network, win.draw))}
                       </div>
                       <div style={styles.cellRightAlign}>
-                        <PrizeValueIcon size={19}  chainname={GetChainName(win.network)}/>
-                        <PrizeValue amount={BigInt(win.totalPayout)} size={19}  chainname={GetChainName(win.network)}/>
+                        <PrizeValueIcon
+                          size={19}
+                          chainname={GetChainName(win.network)}
+                        />
+                        <PrizeValue
+                          amount={BigInt(win.totalPayout)}
+                          size={19}
+                          chainname={GetChainName(win.network)}
+                        />
                       </div>
                     </div>
                   ))}
                   {/* {sortedWins.length > 12 && "and more..."} */}
                 </div>
               </>
-            ) : (<></>
+            ) : (
+              <></>
               // <h2 style={{ color: "#ffffff" }}>NO WINS</h2>
             )
           ) : null}
         </center>
       </div>
-        </div>
-      </div>
-  ) : null;  
+    </div>
+  );
+
+  if (inline) {
+    return <div style={styles.inlineContainer}>{content}</div>;
+  }
+
+  return (
+    <div style={styles.modalOverlay} onClick={handleClose}>
+      {content}
+    </div>
+  );
 };
 
 export default WinsListModal;
@@ -260,6 +299,11 @@ const styles: any = {
     prizeContainer: {
       flexDirection: "column",
     },
+  },
+  inlineContainer: {
+    width: "100%",
+    maxWidth: "620px",
+    margin: "0 auto",
   },
   row: {
     display: "grid",

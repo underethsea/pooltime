@@ -227,6 +227,21 @@ background-color: #c2baf2;
   text-align: left;
 }
 
+.vault-tickets-spaced {
+  margin-left: 20px;
+}
+
+.vault-tickets-header-spaced .tickets-header {
+  margin-left: 50px !important;
+}
+
+@media (min-width: 768px) {
+  .tickets-header-nerd-data {
+    margin-left: 60px !important;
+    margin-right: 0px !important;
+  }
+}
+
 .vault-yield-tvl {
   text-align: right;
   margin-right:14px;
@@ -341,12 +356,12 @@ background-color: #c2baf2;
 
 .token-cell {
   display: flex;
-  justify-content: space-between; /* Space items evenly */
+  justify-content: space-between; /* Space items evenly on desktop */
   align-items: center;
 
   @media (max-width: 501px) {
     display: flex;
-  justify-content: flex-end; /* Align all items to the right */
+  justify-content: flex-end; /* Align all items to the right on mobile */
   align-items: center;       /* Align items vertically in the center */
   width: 100%;               /* Ensure the container takes full width */
   text-align: right;         /* Align text to the right */
@@ -393,7 +408,8 @@ background-color: #c2baf2;
 }
 @media (max-width: 501px) {
   .token-container-outer {
-    margin-top: 10px; 
+    margin-top: 10px;
+    justify-content: flex-end; /* Right align on mobile only */
   }
 }
 

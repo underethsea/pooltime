@@ -37,7 +37,7 @@ body {
   color: black;
   font-size: 18px;
   font-weight: 420;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
   background-color: #7b68c4;
   color: white;
   border-radius: 14px;
@@ -3243,6 +3243,12 @@ padding:15px;
   align-items: center;
   margin-right: 30px;
 
+}
+
+@media (min-width: 768px) {
+  .tickets-container-nerd-data {
+    margin-right: 0px !important;
+  }
 }
 
 @media screen and (max-width: 500px) {

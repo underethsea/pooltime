@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import LoadGrid from "../components/loadGrid";
 import TableSkeleton from "../components/tableSkeleton";
 import { vaultsAPIFormatted } from "../utils/vaultsFromConstantsAdapter";
@@ -11,6 +11,7 @@ import { Multicall } from "../utils/multicall";
 import { CropDecimals, NumberWithCommas } from "../utils/tokenMaths";
 import { getVaultColumns } from "../components/vaults/vaultColumns";
 import { useOverview } from "../components/contextOverview";
+import { debounce } from "../utils/debounce";
 // import VaultModal from "../components/vaultModal.tsx.OLD";
 // import Layout from ".";
 import Image from "next/image";
@@ -96,6 +97,78 @@ const hasTickets = (vaults: VaultData[]) => {
     (vault) => vault.vaultBalance && !vault.vaultBalance.isZero()
   );
 };
+
+// Memoized table row component to prevent unnecessary re-renders
+const VaultTableRow = React.memo(({ row, showStats }: { row: any; showStats: boolean }) => {
+  return (
+    <Link
+      href={`/vault?chain=${row.original.c}&address=${row.original.vault}`}
+      style={{ textDecoration: "none", color: "inherit" }}>
+      <div
+        className={`vault-row ${
+          !showStats ? "vault-row-tvl-hidden" : ""
+        }`}>
+        {row.cells.map((cell: any, index: number) => {
+          if (
+            cell.column.id === "depositsAndTVL" &&
+            !showStats
+          ) {
+            return null;
+          } else {
+            return (
+              <div
+                {...cell.getCellProps()}
+                data-label={`${cell.column.Header} `}
+                key={`${row.original.vault}-${cell.column.id}`}
+                className={`vault-cell ${
+                  cell.column.id === "depositsAndTVL"
+                    ? "vault-deposits-tvl"
+                    : cell.column.id === "yieldAndVaultAPR"
+                    ? "vault-yield-tvl"
+                    : cell.column.id === "tickets" && showStats
+                    ? "vault-tickets-spaced"
+                    : "vault-left-align"
+                }`}>
+                {cell.column.id === "contributed7d" ? (
+                  <>
+                    {parseFloat(cell.value) > 0 ? (
+                      <>
+                        <PrizeIcon size={17} />
+                        &nbsp;
+                        {NumberWithCommas(
+                          CropDecimals(cell.value)
+                        )}
+                      </>
+                    ) : null}
+                    {index === 0 && (
+                      <span className="vault-hidden-mobile">
+                        <FontAwesomeIcon
+                          icon={faSquareArrowUpRight}
+                          size="sm"
+                          style={{
+                            color: "#1a4160",
+                            height: "15px",
+                            paddingLeft: "9px",
+                          }}
+                        />
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span style={{ width: "100%" }}>
+                    {cell.render("Cell")}
+                  </span>
+                )}
+              </div>
+            );
+          }
+        })}
+      </div>
+    </Link>
+  );
+});
+
+VaultTableRow.displayName = 'VaultTableRow';
 
 const VaultYieldTooltip: React.FC<YieldTooltipProps> = ({
   vaultAPR,
@@ -201,6 +274,36 @@ function AllVaults() {
 
 
   const { address } = useAccount();
+  
+  // Memoize the filter function to avoid recreating it on every render
+  const filterVaultsByChainAndSearch = useCallback((
+    vaults: any,
+    activeChains: any,
+    searchInput: string,
+    przPOOLActive: boolean
+  ) => {
+    if (przPOOLActive) {
+      // Only show vaults with "pool" in the name if the przPOOL toggle is active
+      return vaults.filter(
+        (vault: any) =>
+          vault.name.toLowerCase().includes("pool") &&
+          !vault.name.toLowerCase().startsWith("pooltogether")
+      );
+    }
+
+    // Otherwise, apply normal chain and search filters
+    const activeChainIds = activeChains
+      .filter((chain: any) => chain.active)
+      .map((chain: any) => chain.chainId);
+
+    const searchLower = searchInput.toLowerCase();
+    return vaults.filter(
+      (vault: any) =>
+        activeChainIds.includes(vault.c) &&
+        vault.name.toLowerCase().includes(searchLower)
+    );
+  }, []);
+
   const toggleChain = (chainId: number) => {
     if (showPrzPOOLVaults) {
       // If przPOOL toggle is active, turn it off and re-enable all chains first
@@ -212,7 +315,8 @@ function AllVaults() {
       const filtered = filterVaultsByChainAndSearch(
         allVaults,
         updatedChains,
-        searchInput
+        searchInput,
+        false
       );
       setFilteredVaults(filtered);
     } else {
@@ -230,7 +334,8 @@ function AllVaults() {
         const filtered = filterVaultsByChainAndSearch(
           allVaults,
           updatedChains,
-          searchInput
+          searchInput,
+          false
         );
         setFilteredVaults(filtered);
       } else {
@@ -244,7 +349,8 @@ function AllVaults() {
         const filtered = filterVaultsByChainAndSearch(
           allVaults,
           updatedChains,
-          searchInput
+          searchInput,
+          false
         );
         setFilteredVaults(filtered);
       }
@@ -298,52 +404,32 @@ function AllVaults() {
   //       vault.name.toLowerCase().includes(searchInput.toLowerCase())
   //   );
   // };
-  const togglePrzPOOLVaults = () => {
+  const togglePrzPOOLVaults = useCallback(() => {
     if (!showPrzPOOLVaults) {
       // Disable all chain toggles and show only "pool" vaults
-      setChains(chains.map((chain) => ({ ...chain, active: false })));
-      const filtered = allVaults.filter((vault) =>
-        vault.name.toLowerCase().includes("pool")
+      const updatedChains = chains.map((chain) => ({ ...chain, active: false }));
+      setChains(updatedChains);
+      const filtered = filterVaultsByChainAndSearch(
+        allVaults,
+        updatedChains,
+        searchInput,
+        true
       );
       setFilteredVaults(filtered);
     } else {
       // Re-enable all chain toggles
-      setChains(chains.map((chain) => ({ ...chain, active: true })));
+      const updatedChains = chains.map((chain) => ({ ...chain, active: true }));
+      setChains(updatedChains);
       const filtered = filterVaultsByChainAndSearch(
         allVaults,
-        chains,
-        searchInput
+        updatedChains,
+        searchInput,
+        false
       );
       setFilteredVaults(filtered);
     }
     setShowPrzPOOLVaults(!showPrzPOOLVaults);
-  };
-
-  const filterVaultsByChainAndSearch = (
-    vaults: any,
-    activeChains: any,
-    searchInput: string
-  ) => {
-    if (showPrzPOOLVaults) {
-      // Only show vaults with "pool" in the name if the przPOOL toggle is active
-      return vaults.filter(
-        (vault: any) =>
-          vault.name.toLowerCase().includes("pool") &&
-          !vault.name.toLowerCase().startsWith("pooltogether")
-      );
-    }
-
-    // Otherwise, apply normal chain and search filters
-    const activeChainIds = activeChains
-      .filter((chain: any) => chain.active)
-      .map((chain: any) => chain.chainId);
-
-    return vaults.filter(
-      (vault: any) =>
-        activeChainIds.includes(vault.c) &&
-        vault.name.toLowerCase().includes(searchInput.toLowerCase())
-    );
-  };
+  }, [showPrzPOOLVaults, chains, allVaults, searchInput, filterVaultsByChainAndSearch]);
 
   const depositsTVLHeader = useMemo(() => {
     return (
@@ -355,8 +441,12 @@ function AllVaults() {
   }, []);
   const columns = useMemo(() => getVaultColumns(showStats), [showStats]);
 
+  // Memoize table instance to prevent unnecessary recalculations
   const tableInstance = useTable<VaultData>(
-    { columns, data: filteredVaults },
+    { 
+      columns, 
+      data: filteredVaults,
+    },
     useGlobalFilter,
     useSortBy
   );
@@ -762,10 +852,11 @@ function AllVaults() {
     const filtered = filterVaultsByChainAndSearch(
       allVaults,
       chains,
-      searchInput
+      searchInput,
+      showPrzPOOLVaults
     );
     setFilteredVaults(filtered);
-  }, [showPrzPOOLVaults]);
+  }, [showPrzPOOLVaults, allVaults, chains, searchInput, filterVaultsByChainAndSearch]);
 
   useEffect(() => {
     const fetchBalances = async (userAddress: any) => {
@@ -840,7 +931,8 @@ function AllVaults() {
       const filtered = filterVaultsByChainAndSearch(
         sortedVaults,
         chains,
-        searchInput
+        searchInput,
+        showPrzPOOLVaults
       );
       setFilteredVaults(filtered);
     };
@@ -849,34 +941,41 @@ function AllVaults() {
       fetchBalances(address);
     }
   }, [address, isVaultsLoaded]);
-  useEffect(() => {
-    const filtered = filterVaultsByChainAndSearch(
+  // Memoize filtered vaults to avoid recalculating on every render
+  const memoizedFilteredVaults = useMemo(() => {
+    return filterVaultsByChainAndSearch(
       allVaults,
       chains,
-      searchInput
+      searchInput,
+      showPrzPOOLVaults
     );
-    setFilteredVaults(filtered);
-  }, [searchInput]);
-  const handleSearch = (event: any) => {
+  }, [allVaults, chains, searchInput, showPrzPOOLVaults, filterVaultsByChainAndSearch]);
+
+  useEffect(() => {
+    setFilteredVaults(memoizedFilteredVaults);
+  }, [memoizedFilteredVaults]);
+
+  // Debounced search handler
+  const debouncedSearch = useRef(
+    debounce((value: string) => {
+      // Turn off przPOOL toggle and reactivate all chains if it was active
+      if (showPrzPOOLVaults) {
+        setShowPrzPOOLVaults(false);
+        setChains(chains.map((chain) => ({ ...chain, active: true })));
+      }
+
+      // Cache the search input in sessionStorage
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('allvaults-search', value);
+      }
+    }, 300)
+  ).current;
+
+  const handleSearch = useCallback((event: any) => {
     const value = event.target.value.toLowerCase();
-
-    // Turn off przPOOL toggle and reactivate all chains if it was active
-    if (showPrzPOOLVaults) {
-      setShowPrzPOOLVaults(false);
-      setChains(chains.map((chain) => ({ ...chain, active: true })));
-    }
-
     setSearchInput(value);
-    
-    // Cache the search input in sessionStorage
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('allvaults-search', value);
-    }
-
-    // Proceed with normal filtering
-    const filtered = filterVaultsByChainAndSearch(allVaults, chains, value);
-    setFilteredVaults(filtered);
-  };
+    debouncedSearch(value);
+  }, [debouncedSearch, showPrzPOOLVaults, chains]);
   return (
     <center>
       <div className="hidden-mobile">
@@ -894,7 +993,7 @@ function AllVaults() {
             alt="pool party"
           />
           &nbsp;&nbsp;
-          <h1 style={{ margin: "0 0 0 10px", lineHeight: "120px" }}>
+          <h1 style={{ margin: "0 0 0 10px", lineHeight: "120px", fontFamily: "Poppins, sans-serif" }}>
             POOLTIME
           </h1>
         </div>
@@ -906,7 +1005,7 @@ function AllVaults() {
             <div
               style={{
                 display: "flex",
-                alignItems: "flex-end",
+                alignItems: "center",
                 justifyContent: "space-between",
                 width: "100%",
               }}>
@@ -955,61 +1054,33 @@ function AllVaults() {
                 </div>
               </div>
 
-              {!showStats && (
                 <div
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: "1rem",
-                    paddingBottom: "8px",
+                    gap: "0rem",
                   }}>
-                  <PrizeInPool />
-                  {tvl && !showStats && (
-                    <div className="more">
-                      <span
-                        style={{ cursor: "pointer" }}
-                        onClick={() => {
-                          setShowStats(true);
-                        }}>
-                        <a className="custom-link">+nerd data</a>
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-            {showStats && (
+                  <PrizeInPool compactSize={showStats} />
+                {showStats && tvl && parseInt(tvl.totalTVL.toString()) > 0 ? (
               <div
-                className="tvl"
                 style={{
-                  textAlign: "left",
-                  marginTop: "10px",
-                  color: "white",
-                  borderRadius: "10px",
-                  padding: "5px 8px 5px 8px",
-                  display: "flex",
+                      fontSize: "19px",
+                      display: "inline-flex",
                   alignItems: "center",
-                  gap: "2rem",
-                }}>
-                <PrizeInPool />
-                {tvl && parseInt(tvl.totalTVL.toString()) > 0 ? (
-                  <>
-                    <div
-                      style={{
-                        fontSize: "22px",
-                        display: "inline-block",
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                      color: "white",
                       }}
                       onClick={() => {
                         setShowStats(false);
                       }}>
-                      TVL&nbsp;&nbsp;
-                      <PrizeValueIcon size={22} />
-                      {/* desktop tvl */}
+                    TVL&nbsp;&nbsp;
+                    <PrizeValueIcon size={19} />
                       <PrizeValue
                         amount={BigInt(
                           Math.round(Number(tvl.totalTVL))
                         )}
-                        size={22}
+                      size={19}
                         rounded={false}
                       />
                       <span
@@ -1019,24 +1090,32 @@ function AllVaults() {
                         }}
                         style={{
                           cursor: "pointer",
-                          marginLeft: "8px",
+                        marginLeft: "4px",
                         }}>
                         <FontAwesomeIcon
                           icon={faCircleInfo}
                           style={{
                             color: "#ebeeef",
-                            height: "16px",
+                          height: "14px",
                           }}
                         />
                       </span>
                     </div>
-                    &nbsp;
-                  </>
                 ) : (
-                  <span style={{ width: "140px" }}></span>
-                )}
+                  tvl && !showStats && (
+                    <div className="more">
+                      <span
+                        style={{ cursor: "pointer" }}
+                        onClick={() => {
+                          setShowStats(true);
+                        }}>
+                        <a className="custom-link">+nerd data</a>
+                      </span>
               </div>
+                  )
             )}
+              </div>
+            </div>
           </div>
 
           <div className="hidden-desktop-vault-header">
@@ -1169,6 +1248,8 @@ function AllVaults() {
                             ? "vault-yield-tvl"
                             : column.id === "vaults"
                             ? "vaults-header"
+                            : column.id === "tickets" && showStats
+                            ? "vault-tickets-header-spaced"
                             : "vault-left-align"
                         }`}>
                         {(column.id === "tokens" &&
@@ -1236,71 +1317,14 @@ function AllVaults() {
 
                   if (shouldShowVault || showAllVaults) {
                     return (
-                      <Link
+                      <VaultTableRow
                         key={row.original.vault}
-                        href={`/vault?chain=${row.original.c}&address=${row.original.vault}`}
-                        style={{ textDecoration: "none", color: "inherit" }}>
-                        <div
-                          className={`vault-row ${
-                            !showStats ? "vault-row-tvl-hidden" : ""
-                          }`}>
-                          {row.cells.map((cell: any, index: number) => {
-                            if (
-                              cell.column.id === "depositsAndTVL" &&
-                              !showStats
-                            ) {
-                              return null;
-                            } else {
-                              return (
-                                <div
-                                  {...cell.getCellProps()}
-                                  data-label={`${cell.column.Header} `}
-                                  key={`${row.original.vault}-${cell.column.id}`}
-                                  className={`vault-cell ${
-                                    cell.column.id === "depositsAndTVL"
-                                      ? "vault-deposits-tvl"
-                                      : cell.column.id === "yieldAndVaultAPR"
-                                      ? "vault-yield-tvl"
-                                      : "vault-left-align"
-                                  }`}>
-                                  {cell.column.id === "contributed7d" ? (
-                                    <>
-                                      {parseFloat(cell.value) > 0 ? (
-                                        <>
-                                          <PrizeIcon size={17} />
-                                          &nbsp;
-                                          {NumberWithCommas(
-                                            CropDecimals(cell.value)
-                                          )}
-                                        </>
-                                      ) : null}
-                                      {index === 0 && (
-                                        <span className="vault-hidden-mobile">
-                                          <FontAwesomeIcon
-                                            icon={faSquareArrowUpRight}
-                                            size="sm"
-                                            style={{
-                                              color: "#1a4160",
-                                              height: "15px",
-                                              paddingLeft: "9px",
-                                            }}
-                                          />
-                                        </span>
-                                      )}
-                                    </>
-                                  ) : (
-                                    <span style={{ width: "100%" }}>
-                                      {cell.render("Cell")}
-                                    </span>
-                                  )}
-                                </div>
-                              );
-                            }
-                          })}
-                        </div>
-                      </Link>
+                        row={row}
+                        showStats={showStats}
+                      />
                     );
                   }
+                  return null;
                 })}
               </>
             </div>
