@@ -497,10 +497,10 @@ function AllVaults() {
           console.error("Error during API fetch:", error);
         }
 
-        // Use prices from context overview
+        // Use prices from context overview (guard: API may omit assets)
         prices = overview.prices;
-        const geckoPrices: any = prices.geckos;
-        const assetPrices: any = prices.assets;
+        const geckoPrices: any = prices?.geckos ?? {};
+        const assetPrices: any = prices?.assets ?? {};
         // Handle `vaultsResponse` response
         if (vaultsResponse && vaultsResponse.ok) {
           try {
@@ -679,7 +679,7 @@ function AllVaults() {
             // const assetPrice = assetPrices[chainName][vault.asset.toLowerCase()];
             if (assetPrice > 0) {
               dollarValue = parseFloat(totalSupplyValue) * assetPrice;
-              ethValue = dollarValue / geckoPrices["ethereum"];
+              ethValue = dollarValue / (geckoPrices["ethereum"] ?? 1);
             } else {
               dollarValue = 0;
               ethValue = 0;
@@ -690,7 +690,7 @@ function AllVaults() {
             if (assetPrice > 0) {
               delegateDollarValue =
                 parseFloat(totalSupplyDelegateValue) * assetPrice;
-              delegateEthValue = delegateDollarValue / geckoPrices["ethereum"];
+              delegateEthValue = delegateDollarValue / (geckoPrices["ethereum"] ?? 1);
             }
 
             let vaultAPR = null;
@@ -920,8 +920,8 @@ function AllVaults() {
       } else {
         sortedVaults = sortData(
           flattenedVaults,
-          overview.prices.geckos,
-          overview.prices.assets
+          overview.prices?.geckos ?? {},
+          overview.prices?.assets ?? {}
         );
         // console.log("sort vaults", sortedVaults);
         setAllVaults(sortedVaults);

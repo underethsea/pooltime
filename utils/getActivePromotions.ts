@@ -47,16 +47,19 @@ export async function GetActivePromotionsForVaults(
   const currentTimestamp = Math.floor(Date.now() / 1000);
   const data = await fetchPromotions(meta);
 
-  let allPromotions: any = [];
-  
-  // Iterate over each chain in the data
-  for (const chain in data) {
-    if (data.hasOwnProperty(chain) && data[chain].length > 0) {
-      const promotions = data[chain];
-      let lowercaseVaultAddresses = vaults.map((vault) => vault.toLowerCase());
+  // Guard: overview API may not include prices.assets yet (or at all)
+  const assetsByChain = priceData?.assets ?? {};
 
-      // console.log(`Processing chain: ${chain}, promotions count: ${promotions.length}`);
-      // console.log("Lowercase vault addresses:", lowercaseVaultAddresses);
+  let allPromotions: any = [];
+
+  // Ensure data is an object (API can return [] on error)
+  const dataObj = data && typeof data === "object" && !Array.isArray(data) ? data : {};
+
+  // Iterate over each chain in the data
+  for (const chain in dataObj) {
+    if (dataObj.hasOwnProperty(chain) && dataObj[chain].length > 0) {
+      const promotions = dataObj[chain];
+      let lowercaseVaultAddresses = vaults.map((vault) => (typeof vault === "string" ? vault : (vault as any).vault || vault).toLowerCase());
 
       // Filter active promotions based on currentTimestamp and vault addresses
       const activePromotionsWithTokens = promotions.filter((promo: any) => {
@@ -64,22 +67,19 @@ export async function GetActivePromotionsForVaults(
         const promoEnd =
           promoStart +
           parseInt(promo.epochDuration) * parseInt(promo.initialNumberOfEpochs);
-        let isValidVault = true
-        if(!meta){
-        const isValidVault = lowercaseVaultAddresses.includes(promo.vault.toLowerCase());}
+        let isValidVault = true;
+        if (!meta) {
+          isValidVault = lowercaseVaultAddresses.includes(promo.vault.toLowerCase());
+        }
         const isWithinTimeframe = currentTimestamp >= promoStart && (!active || currentTimestamp < promoEnd);
-
-        // console.log(`Promo vault: ${promo.vault}, is valid vault: ${isValidVault}, is within timeframe: ${isWithinTimeframe}`);
 
         return isValidVault && isWithinTimeframe;
       });
 
-      // console.log(`Active promotions for chain ${chain}:`, activePromotionsWithTokens);
-
       // Filter promotions with valid prices from the price data
       const validPromotionsWithPrices = activePromotionsWithTokens
         .map((promo: any) => {
-          const price = priceData.assets[chain]?.[promo.token.toLowerCase()];
+          const price = assetsByChain[chain]?.[promo.token.toLowerCase()];
           // console.log(`Promo token: ${promo.token}, Price found: ${price}`);
 
           if (price) {
