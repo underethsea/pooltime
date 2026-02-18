@@ -77,7 +77,7 @@ export const RewardsProvider: React.FC<RewardsProviderProps> = ({ children }) =>
   }, [vaultsCache.length]);
 
   const fetchRewards = useCallback(async (address: string, overview: any) => {
-    if (!address || !overview?.prices) {
+    if (!address || !overview?.prices?.assets) {
       return;
     }
 
