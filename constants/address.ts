@@ -134,6 +134,18 @@ const ADDRESS: Addresses = {
         VAULT: "",
         ICON: "",
       },
+      
+        {
+        LIQUIDATIONPAIR: "0xBE71cA6535AbDC2898D4c8578D21a7F80f7E3208",
+        SYMBOL: "wldETHBooster",
+        NAME: "wldETHbooster",
+        DECIMALS: 18,
+        ASSET: "0x4200000000000000000000000000000000000006",
+        ASSETSYMBOL: "WETH",
+        GECKO: "weth",
+        VAULT: "",
+        ICON: "",
+      },
     ],
   },
   BASE: {
