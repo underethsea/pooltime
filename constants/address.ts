@@ -410,7 +410,18 @@ const ADDRESS: Addresses = {
         UNIV2: true,
       },
     ],
-    BOOSTERS: [],
+    BOOSTERS: [
+      {
+        VAULT: "",
+        LIQUIDATIONPAIR: "0xe288c8A0CeBaca52e68b1414b03FE0625aF0698c",
+        SYMBOL: "wethBooster",
+        NAME: "booster",
+        DECIMALS: 18,
+        ASSET: "0x4200000000000000000000000000000000000006",
+        ASSETSYMBOL: "WETH",
+        GECKO: "ethereum",
+        ICON: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png",
+      }],
   },
   GNOSIS: {
     ICON: "/images/gnosis.svg",
