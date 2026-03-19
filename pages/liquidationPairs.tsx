@@ -199,7 +199,8 @@ const LiquidationPairsPage: React.FC = () => {
         if (!chainConfig?.VAULTS || !PROVIDERS[chainName]) continue;
         
         const provider = PROVIDERS[chainName];
-        const vaults = chainConfig.VAULTS;
+        // const vaults = chainConfig.VAULTS;
+        const vaults = [...(chainConfig.VAULTS || []), ...(chainConfig.BOOSTERS || [])];
         
         // Filter vaults that have liquidation pairs
         const vaultsWithPairs = vaults.filter(vault => 
