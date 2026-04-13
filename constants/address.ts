@@ -684,6 +684,17 @@ const ADDRESS: Addresses = {
     BOOSTERS: [
       {
         VAULT: "",
+        LIQUIDATIONPAIR: "0xaE6Ac62adDcbcE33c47185A51aD5be1171FE8d38",
+        SYMBOL: "booster",
+        NAME: "booster",
+        DECIMALS: 18,
+        ASSET: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+        ASSETSYMBOL: "WETH",
+        GECKO: "ethereum",
+        ICON: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/logo.png",
+      },
+      {
+        VAULT: "",
         LIQUIDATIONPAIR: "0x6A6Cfef8D19C6bC99115Bf66A1879D8cf4eCc95f",
         SYMBOL: "wethBooster",
         NAME: "booster",
