@@ -2482,9 +2482,17 @@ padding:15px;
 }
 @media (max-width: 500px) {
   .column-tickets {
-    margin-left:0px;
+    margin-left: 0;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
   }
-  }
+}
 .back-to-vaults {
   background-color: #1a4160;
   align-items: left;
@@ -3254,9 +3262,11 @@ padding:15px;
 @media screen and (max-width: 500px) {
   .tickets-container {
     justify-content: flex-end;
-    margin-right: 0px; /* Only flex-end for mobile */
+    margin-right: 0;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
   }
-
 }
 
 @media (max-width: 500px) {
