@@ -14,6 +14,14 @@ type VaultRowProps = {
   showStats: boolean;
 };
 
+const stripFlagship = (text: string): string =>
+  text.replace(/\bflagship\b/gi, "").replace(/\s{2,}/g, " ").trim();
+
+const formatMobileVaultLabel = (text: string): string => {
+  const cleaned = stripFlagship(text);
+  return cleaned.length > 24 ? cleaned.slice(0, 22) + "…" : cleaned;
+};
+
 const VaultRow: React.FC<VaultRowProps> = ({
   name,
   poolers,
@@ -27,7 +35,7 @@ const VaultRow: React.FC<VaultRowProps> = ({
 
   const displayName = name.substring(labelOffset);
   const displayValue = displayName.length > 24 ? displayName.slice(0, 22) + "…" : displayName;
-  const mobileDisplayValue = displayName.length > 15 ? displayName.slice(0, 24) : displayName;
+  const mobileDisplayValue = formatMobileVaultLabel(displayName);
 
   return (
     <div>
@@ -70,7 +78,7 @@ const VaultRow: React.FC<VaultRowProps> = ({
       ) : (
         <span>
           <span className="hidden-mobile">{name}</span>
-          <span className="hidden-desktop">{mobileDisplayValue}</span>
+          <span className="hidden-desktop">{formatMobileVaultLabel(name)}</span>
           <FontAwesomeIcon
             icon={faSquareArrowUpRight}
             size="sm"

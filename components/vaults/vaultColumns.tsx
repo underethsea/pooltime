@@ -222,7 +222,11 @@ export const getVaultColumns = (showStats: boolean): Column<VaultData>[] => [
         ) : (
           ""
         );
-      return <div>{display}</div>;
+      return (
+        <div className="vault-tickets-cell" style={{ width: "100%", minWidth: 0 }}>
+          {display}
+        </div>
+      );
     },
   },
   {
