@@ -1,131 +1,118 @@
-import "@rainbow-me/rainbowkit/styles.css";
-import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { OverviewProvider } from "../components/contextOverview";
-import { RewardsProvider } from "../components/contextRewards";
-import "../styles/globals.css";
-import "../styles/table.css";
+import Head from "next/head";
+import Image from "next/image";
 import type { AppProps } from "next/app";
-import { config as fontawesomeConfig } from '@fortawesome/fontawesome-svg-core'
-import '@fortawesome/fontawesome-svg-core/styles.css'
-fontawesomeConfig.autoAddCss = false
+import "../styles/globals.css";
 
+const pageStyle: React.CSSProperties = {
+  minHeight: "100vh",
+  margin: 0,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "2rem 1.5rem",
+  textAlign: "center",
+  backgroundColor: "#1a415f",
+  color: "#ffffff",
+  fontFamily:
+    "-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif",
+};
 
-import {
-  getDefaultConfig,
-  RainbowKitProvider,
-  Chain,
-} from "@rainbow-me/rainbowkit";
-import { WagmiProvider } from "wagmi";
-import { optimism, mainnet, arbitrum, base } from "wagmi/chains";
+const contentStyle: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: "1rem",
+  maxWidth: "36rem",
+  width: "100%",
+};
 
-// Define Scroll as a custom chain
-const scroll:Chain = {
-  id: 534352, // Replace with Scroll's actual chain ID
-  name: 'Scroll',
-  iconUrl: '/images/scroll2.webp',  // Ensure this path is correct and accessible
-  iconBackground: 'transparent', 
-  nativeCurrency: {
-    name: 'Ethereum',
-    symbol: 'ETH',
-    decimals: 18,
-  },
-  rpcUrls: {
-    default: { http: ['https://scroll.drpc.org'] }, // Replace with actual Scroll RPC URL
-  },
-  blockExplorers: {
-    default: { name: 'ScrollScan', url: 'https://scrollscan.com' }, // Replace with actual block explorer if available
-  },
-  contracts: {
-    multicall3: {
-      address: '0x74CAE2839919f0493E7f3a53A284C42197dF9616', 
-      blockCreated: 3512, // Replace with actual block number if needed
-    },
-  },
-} 
+const brandRowStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "12px",
+  margin: 0,
+};
 
-// Define world as a custom chain
-const world:Chain = {
-  id: 480, // Replace with Scroll's actual chain ID
-  name: 'World',
-  iconUrl: '/images/world.png',  // Ensure this path is correct and accessible
-  iconBackground: 'transparent', 
-  nativeCurrency: {
-    name: 'Ethereum',
-    symbol: 'ETH',
-    decimals: 18,
-  },
-  rpcUrls: {
-    default: { http: ['https://worldchain-mainnet.g.alchemy.com/public'] }, // Replace with actual Scroll RPC URL
-  },
-  blockExplorers: {
-    default: { name: 'WorldScan', url: 'https://worldscan.org/' }, // Replace with actual block explorer if available
-  },
-  contracts: {
-    multicall3: {
-      address: '0xcA11bde05977b3631167028862bE2a173976CA11', 
-      blockCreated: 1, // Replace with actual block number if needed
-    },
-  },
-} 
-const gnosis:Chain = {
-  id: 100, // Replace with Scroll's actual chain ID
-  name: 'Gnosis',
-  iconUrl: '/images/gnosis2.webp',  // Ensure this path is correct and accessible
-  iconBackground: 'transparent', // Red background for Scroll icon
-  nativeCurrency: {
-    name: 'XDAI',
-    symbol: 'XDAI',
-    decimals: 18,
-  },
-  rpcUrls: {
-    default: { http: ['https://1rpc.io/gnosis'] }, // Replace with actual Scroll RPC URL
-  },
-  blockExplorers: {
-    default: { name: 'GnosisScan', url: 'https://gnosisscan.io/' }, // Replace with actual block explorer if available
-  },
-  contracts: {
-    multicall3: {
-      address: '0xcA11bde05977b3631167028862bE2a173976CA11', 
-      blockCreated: 21022491, // Replace with actual block number if needed
-    },
-  },
-} 
+const brandStyle: React.CSSProperties = {
+  margin: 0,
+  fontFamily: "Poppins, sans-serif",
+  fontSize: "clamp(2.25rem, 8vw, 3.75rem)",
+  fontWeight: 900,
+  lineHeight: 1.1,
+  color: "#ffffff",
+};
 
-let WALLET_CONNECT_KEY: string = "";
-if (process.env.NEXT_PUBLIC_WALLET_CONNECT) {
-  WALLET_CONNECT_KEY = process.env.NEXT_PUBLIC_WALLET_CONNECT;
-}
+const headlineStyle: React.CSSProperties = {
+  margin: "0.5rem 0 0",
+  fontSize: "clamp(1.1rem, 3vw, 1.35rem)",
+  fontWeight: 400,
+  lineHeight: 1.45,
+  color: "rgba(255, 255, 255, 0.92)",
+};
 
-// Customize optimism chain
-const customOptimism = {
-  ...optimism,
-  iconUrl: '/images/optimism.svg#svgView(preserveAspectRatio(none))',
-  iconBackground: 'transparent',
-}
+const supportStyle: React.CSSProperties = {
+  margin: "0.25rem 0 0",
+  fontSize: "clamp(1rem, 2.8vw, 1.15rem)",
+  fontWeight: 400,
+  lineHeight: 1.5,
+  color: "rgba(255, 255, 255, 0.78)",
+};
 
-// Config setup with Scroll as a custom chain
-const config = getDefaultConfig({
-  appName: "Pooltime",
-  projectId: WALLET_CONNECT_KEY,
-  chains: [customOptimism, mainnet, arbitrum, base, scroll, gnosis, world],
-  ssr: true,
-});
+const linkStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  marginTop: "0.75rem",
+  minHeight: "52px",
+  width: "100%",
+  maxWidth: "22rem",
+  padding: "0.9rem 1.25rem",
+  boxSizing: "border-box",
+  fontSize: "clamp(1.15rem, 4.5vw, 1.4rem)",
+  fontWeight: 700,
+  lineHeight: 1.2,
+  letterSpacing: "0.01em",
+  color: "#1a415f",
+  backgroundColor: "#c4b8f0",
+  textDecoration: "none",
+  borderRadius: "12px",
+  wordBreak: "break-all",
+};
 
-const queryClient = new QueryClient();
-
-function MyApp({ Component, pageProps }: AppProps) {
+// Intentionally ignore Component/pageProps so no existing page UI can render.
+function MyApp(_props: AppProps) {
   return (
-    <OverviewProvider>
-      <RewardsProvider>
-        <WagmiProvider config={config}>
-          <QueryClientProvider client={queryClient}>
-            <RainbowKitProvider>
-              <Component {...pageProps} />
-            </RainbowKitProvider>
-          </QueryClientProvider>
-        </WagmiProvider>
-      </RewardsProvider>
-    </OverviewProvider>
+    <>
+      <Head>
+        <title>PoolTime has relocated</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta
+          name="description"
+          content="PoolTime has relocated to https://pooly.eth.limo/"
+        />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+      </Head>
+      <main style={pageStyle}>
+        <div style={contentStyle}>
+          <div style={brandRowStyle}>
+            <Image
+              src="/images/squarepool.png"
+              height={72}
+              width={72}
+              alt="PoolTime"
+              priority
+            />
+            <h1 style={brandStyle}>POOLTIME</h1>
+          </div>
+          <p style={headlineStyle}>This site has relocated</p>
+          <p style={supportStyle}>Continue at</p>
+          <a style={linkStyle} href="https://pooly.eth.limo/">
+            pooly.eth.limo
+          </a>
+        </div>
+      </main>
+    </>
   );
 }
 
